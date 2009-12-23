@@ -1,0 +1,149 @@
+
+                             Logstalgia
+
+               a website access log visualisation tool
+
+                 Copyright (C) 2008 Andrew Caudwell
+
+                http://code.google.com/p/logstalgia/
+
+Contents
+========
+
+1. Description
+2. Requirements
+3. Installation
+4. Using Logstalgia
+5. Building Logstalgia
+6. Copyright
+
+1. Description
+==============
+
+Logstalgia is a visualization tool that replays or streams website access logs as a retro arcade game simulation.
+
+Currently Logstalgia supports the Apache combined access log format used by apache webservers.
+
+2. Requirements
+===============
+
+Logstalgia's display is rendered using OpenGL and requires a 3D
+accelerated video card to run.
+
+As Logstalgia is designed to playback logs in real time you will
+need a log from a fairly  busy  webserver to achieve interesting
+results (eg 100s of requests each minute).
+
+3. Installation
+===============
+
+You can either build Logstalgia from scratch or install a pre-compiled binary version from the homepage (recommended).
+
+4. Using Logstalgia
+===================
+
+logstalgia [options] logfile
+
+options:
+
+-b       Balls disappear when hit by the paddle instead of bouncing back 
+
+-p       Hide paddle 
+
+-f       Fullscreen 
+
+-WxH     Set the window size. If -f is also supplied, will attempt to
+         set the video mode to this also. 
+
+-s       Simulation speed. Defaults to 1 (1 second-per-second) 
+
+-u       Page Summary update speed. Defaults to 5 (5 seconds) 
+
+-g name,regex,percent[,colour]
+
+         Urls matching the given regex will appear under a new section
+         with the given name using the given percentage of the screen. 
+        
+         Colour may optionally be supplied in the common hexadecimal 
+         format (eg FF0000 for red)
+
+         If no groups are supplied the default groups are Images
+         (image files), CSS (.css files) and Scripts (.js files).
+
+         If there is enough space remaining a catch-all group of Misc
+         will appear as the last group. 
+
+-x       Show full request ip/hostname
+
+logfile
+     The path to the access log file to read or '-' if you wish to
+     supply log entries via STDIN. 
+
+     NOTE: STDIN on Windows will cause the program to stall while
+           waiting for more data.
+
+The time shown in the top left of the screen is set initially from the
+first log entry read and is incremented according to the simulation
+speed (-s).
+
+The counter in the bottom right hand corner shows the number of
+requests displayed since the start of the current session.
+
+Pressing space at any time will pause/unpause the simulation. While
+paused you may use the mouse to inspect the detail of individual
+requests.
+
+Interactive keyboard commands:
+
+   (q) Debug Information
+   (c) Displays Logstalgia logo
+   (n) Jump forward in time to next log entry.
+   (+) Increase simulation speed.
+   (-) Decrease simulation speed.
+   (ESC) Quit  
+
+5. Building Logstalgia
+======================
+
+The source code to Logstalgia is available from the homepage.
+
+Logstalgia requires the following libraries to compile:
+
+    SDL 1.2 (libsdl1.2-dev)
+    SDL Image 1.2 (libsdl-image1.2-dev)
+    PCRE3 (libpcre3-dev)
+    FTGL 2.1.3~rc5-2 (libftgl-dev)
+    PNG library (libpng12-dev)
+    JPEG library (libjpeg62-dev)
+
+To build on Linux:
+
+    ./configure
+    make
+    make install
+
+If you are unfamilar with configure try reading the INSTALL file.
+
+Building on Windows:
+
+On Windows I recommend compiling the project logstalgia.win32.cbp
+with the Code Blocks IDE (www.codeblocks.org).
+
+6. Copyright
+============
+
+Logstalgia - Web server access log visualizer
+Copyright (C) 2008 Andrew Caudwell <acaudwell@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
