@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Logstalgia" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="default">
+				<Option output="logstalgia" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option parameters="data/example.log" />
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Dmain=SDL_main" />
+		</Compiler>
+		<Linker>
+			<Add option="pcre.dll" />
+			<Add library="mingw32" />
+			<Add library="SDLmain" />
+			<Add library="SDL" />
+			<Add library="opengl32" />
+			<Add library="glut32" />
+			<Add library="glu32" />
+			<Add library="SDL_image" />
+			<Add library="pcre" />
+		</Linker>
+		<Unit filename="src\ball.cpp" />
+		<Unit filename="src\ball.h" />
+		<Unit filename="src\core\display.cpp" />
+		<Unit filename="src\core\display.h" />
+		<Unit filename="src\core\fxfont.cpp" />
+		<Unit filename="src\core\fxfont.h" />
+		<Unit filename="src\core\logger.cpp" />
+		<Unit filename="src\core\logger.h" />
+		<Unit filename="src\core\regex.cpp" />
+		<Unit filename="src\core\regex.h" />
+		<Unit filename="src\core\resource.cpp" />
+		<Unit filename="src\core\resource.h" />
+		<Unit filename="src\core\sdlapp.cpp" />
+		<Unit filename="src\core\sdlapp.h" />
+		<Unit filename="src\core\stringhash.cpp" />
+		<Unit filename="src\core\stringhash.h" />
+		<Unit filename="src\core\texture.cpp" />
+		<Unit filename="src\core\texture.h" />
+		<Unit filename="src\core\vectors.h" />
+		<Unit filename="src\logentry.cpp" />
+		<Unit filename="src\logentry.h" />
+		<Unit filename="src\logstalgia.cpp" />
+		<Unit filename="src\logstalgia.h" />
+		<Unit filename="src\main.cpp" />
+		<Unit filename="src\main.h" />
+		<Unit filename="src\paddle.cpp" />
+		<Unit filename="src\paddle.h" />
+		<Unit filename="src\requestball.cpp" />
+		<Unit filename="src\requestball.h" />
+		<Unit filename="src\summarizer.cpp" />
+		<Unit filename="src\summarizer.h" />
+		<Unit filename="src\textarea.cpp" />
+		<Unit filename="src\textarea.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

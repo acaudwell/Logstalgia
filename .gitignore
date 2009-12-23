@@ -1,0 +1,13 @@
+logstalgia
+logstalgia.exe
+logstalgia.depend
+logstalgia.layout
+autom4te.cache
+debug.log
+Makefile
+*.dll
+logs
+config.log
+config.status
+*.swp
+*.d

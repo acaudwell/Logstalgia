@@ -1,0 +1,119 @@
+.TH Logstalgia 1
+.SH NAME
+Logstalgia -  a website access log visualization tool
+.SH SYNOPSIS
+\fIlogstalgia\fR
+[\-f] [\-WIDTHxHEIGHT] [options] logfile
+.SH DESCRIPTION
+\fIlogstalgia\fR
+replays or streams a standard web access log (eg access.log) as a retro arcade game-like simulation.
+.SH REQUIREMENTS
+\fIlogstalgia\fR's display is rendered using OpenGL and requires a 3D accelerated video card to run.
+
+As \fIlogstalgia\fR is designed to playback logs in real time you will need a log from a fairly busy webserver to achieve interesting results (eg 100s of requests each minute).
+.SH OPTIONS
+.TP 8
+\fB\-b\fR
+Balls disappear when hit by the paddle instead of bouncing back
+.TP 8
+\fB\-p\fR
+Hide paddle
+.TP
+\fB\-f\fR
+Fullscreen
+.TP
+\fB\-WIDTHxHEIGHT\fR
+Set the window size. If \-f is also supplied, will attempt to set the video mode to this also.
+.TP
+\fB\-s\fR
+Simulation speed. Defaults to 1 (1 second-per-second)
+.TP
+\fB\-u\fR
+Page Summary update speed. Defaults to 5 (5 seconds)
+.TP
+\fB\-g name,regex,percent[,colour]\fR
+Urls matching the given regex will appear under a new section with the given name using the given percentage of the screen. Colour may optionally be supplied in the common hexadecimal format (eg FF0000 for red)
+
+If no groups are supplied the default groups are Images (image files), CSS (.css files) and Scripts (.js files).
+
+If there is enough space remaining a catch-all group of Misc will appear as the last group.
+.TP
+\fB\-x\fR
+Show full request ip/hostname
+.TP
+\fB\-\-start\-position POSITION\fR
+Begin at some position in the log file (between 0.0 and 1.0)
+.TP
+\fB\-\-disable\-progress\fR
+Disable the progress bar
+.TP
+\fBlogfile\fR
+The path to the access log file to read or '\-' if you wish to supply log entries via STDIN.
+.SH EXAMPLES
+Some command lines you might use to watch an access log:
+
+.ti 10
+\fIlogstalgia\fR SDLAPP_RESOURCE_DIR/example.log
+
+Watch the example log file using the default settings.
+
+.ti 10
+tail \-f /var/log/apache/access.log | \fIlogstalgia\fR \-
+
+Watch the default Apache access.log in real time as new requests come in (requires tail). Note than '\-' at the end is required for
+\fIlogstalgia\fR
+to know it needs to read from STDIN.
+
+.ti 10
+ssh user@yourserver.com tail \-f /var/log/apache/access.log | \fIlogstalgia\fR \-g "Ad Clicks,/adclick.php,30" -
+
+Watch a remote Apache access.log via ssh. \-g groups together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks'.
+.SH INTERFACE
+The time shown in the top left of the screen is set initially from the first log entry read and is incremented according to the simulation speed (\-s).
+
+The counter in the bottom right hand corner shows the number of requests displayed since the start of the current session.
+
+Pressing space at any time will pause/unpause the simulation. While paused you may use the mouse to inspect the detail of individual requests.
+
+Interactive keyboard commands:
+.sp
+.ti 10
+(q) Debug Information
+.ti 10
+(c) Displays Logstalgia logo
+.ti 10
+(n) Jump forward in time to next log entry.
+.ti 10
+(+) Increase simulation speed.
+.ti 10
+(-) Decrease simulation speed.
+.ti 10
+(ESC) Quit
+.SH AUTHOR
+.nf
+ Written by Andrew Caudwell
+
+ Project Homepage: http://code.google.com/p/logstalgia/
+.SH COPYRIGHT
+.nf
+ Copyright (C) 2008 Andrew Caudwell (acaudwell@gmail.com)
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version
+ 3 of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.fi
+.SH ACKNOWLEDGEMENTS
+.nf
+ Catalyst IT (catalyst.net.nz)
+
+ For supporting the development and promotion of Logstalgia!
+.fi
