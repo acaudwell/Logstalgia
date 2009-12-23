@@ -18,6 +18,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="pcre.dll" />
+			<Add option="ftgl.dll" />
 			<Add library="mingw32" />
 			<Add library="SDLmain" />
 			<Add library="SDL" />
@@ -29,18 +30,32 @@
 		</Linker>
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
+		<Unit filename="src\core\bounds.h" />
+		<Unit filename="src\core\camera.cpp" />
+		<Unit filename="src\core\camera.h" />
 		<Unit filename="src\core\display.cpp" />
 		<Unit filename="src\core\display.h" />
+		<Unit filename="src\core\extensions.cpp" />
+		<Unit filename="src\core\extensions.h" />
+		<Unit filename="src\core\frustum.cpp" />
+		<Unit filename="src\core\frustum.h" />
 		<Unit filename="src\core\fxfont.cpp" />
 		<Unit filename="src\core\fxfont.h" />
 		<Unit filename="src\core\logger.cpp" />
 		<Unit filename="src\core\logger.h" />
+		<Unit filename="src\core\pi.h" />
+		<Unit filename="src\core\plane.cpp" />
+		<Unit filename="src\core\plane.h" />
+		<Unit filename="src\core\quadtree.cpp" />
+		<Unit filename="src\core\quadtree.h" />
 		<Unit filename="src\core\regex.cpp" />
 		<Unit filename="src\core\regex.h" />
 		<Unit filename="src\core\resource.cpp" />
 		<Unit filename="src\core\resource.h" />
 		<Unit filename="src\core\sdlapp.cpp" />
 		<Unit filename="src\core\sdlapp.h" />
+		<Unit filename="src\core\seeklog.cpp" />
+		<Unit filename="src\core\seeklog.h" />
 		<Unit filename="src\core\stringhash.cpp" />
 		<Unit filename="src\core\stringhash.h" />
 		<Unit filename="src\core\texture.cpp" />
@@ -56,6 +71,8 @@
 		<Unit filename="src\paddle.h" />
 		<Unit filename="src\requestball.cpp" />
 		<Unit filename="src\requestball.h" />
+		<Unit filename="src\slider.cpp" />
+		<Unit filename="src\slider.h" />
 		<Unit filename="src\summarizer.cpp" />
 		<Unit filename="src\summarizer.h" />
 		<Unit filename="src\textarea.cpp" />

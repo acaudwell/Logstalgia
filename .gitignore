@@ -1,7 +1,7 @@
 logstalgia
 logstalgia.exe
-logstalgia.depend
-logstalgia.layout
+logstalgia.win32.depend
+logstalgia.win32.layout
 autom4te.cache
 debug.log
 Makefile
@@ -11,3 +11,4 @@ config.log
 config.status
 *.swp
 *.d
+.objs
