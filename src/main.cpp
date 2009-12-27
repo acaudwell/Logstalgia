@@ -49,12 +49,12 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        if(args == "-x") {
+        if(args == "-x" || args == "--full-hostnames") {
             gMask = false;
             continue;
         }
 
-        if(args == "-s") {
+        if(args == "-s" || args == "--speed") {
 
             if((i+1)>=arguments.size()) {
                 logstalgia_help("specify speed (1 to 30)");
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        if(args == "-u") {
+        if(args == "-u" || args == "--update-rate") {
 
             if((i+1)>=arguments.size()) {
                 logstalgia_help("specify update rate (1 to 60)");
@@ -97,19 +97,19 @@ int main(int argc, char *argv[]) {
         }
 
         //dont bounce
-        if(args == "-b") {
+        if(args == "--no-bounce") {
             gBounce = false;
             continue;
         }
 
         //dont draw response code
-        if(args == "-r") {
+        if(args == "--hide-response-code") {
             gResponseCode = false;
             continue;
         }
 
         //no paddle
-        if(args == "-p") {
+        if(args == "--hide-paddle") {
             gPaddle = false;
             continue;
         }
@@ -147,6 +147,8 @@ int main(int argc, char *argv[]) {
             continue;
         }
     }
+
+    if(!logfile.size()) logstalgia_help("no file supplied");
 
     //wait for data before launching
     if(logfile.compare("-") == 0) {
