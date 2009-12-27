@@ -10,7 +10,7 @@
 				<Option output="logstalgia" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="data/example.log" />
+				<Option parameters="-f -1280x1024 data/example.log" />
 			</Target>
 		</Build>
 		<Compiler>

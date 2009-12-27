@@ -49,8 +49,17 @@ public:
     ~RequestBall();
     bool mouseOver(TextArea& textarea, vec2f& mouse);
     void logic(float dt);
+
+    void drawBloom();
+
     void draw(float dt);
 
 };
+
+extern bool gEnableBloom;
+extern bool gHideBalls;
+extern float gBloomIntensity;
+extern float gBloomMultiplier;
+
 
 #endif

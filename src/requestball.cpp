@@ -22,6 +22,11 @@ int gHighscore = 0;
 bool gBounce=true;
 bool gResponseCode=true;
 
+bool  gEnableBloom     = false;
+bool  gHideBalls       = false;
+float gBloomIntensity  = 0.05;
+float gBloomMultiplier = 2.5;
+
 RequestBall::RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed) {
     this->le  = le;
     this->font = font;
@@ -99,6 +104,34 @@ void RequestBall::logic(float dt) {
     ProjectedBall::logic(dt);
 }
 
+void RequestBall::drawBloom() {
+
+    float prog = progress();
+
+    float bloom_radius = size * size * gBloomMultiplier;
+
+    float alpha = has_bounced ? 1.0 : std::min(1.0f, prog / 0.1f);
+
+    vec3f bloom_col    = colour * gBloomIntensity * alpha;
+
+    glColor4f(bloom_col.x, bloom_col.y, bloom_col.z, 1.0);
+
+    glPushMatrix();
+        glTranslatef(pos.x, pos.y, 0.0);
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(1.0, 1.0);
+            glVertex2f(bloom_radius,bloom_radius);
+            glTexCoord2f(1.0, 0.0);
+            glVertex2f(bloom_radius,-bloom_radius);
+            glTexCoord2f(0.0, 0.0);
+            glVertex2f(-bloom_radius,-bloom_radius);
+            glTexCoord2f(0.0, 1.0);
+            glVertex2f(-bloom_radius,bloom_radius);
+        glEnd();
+    glPopMatrix();
+}
+
 void RequestBall::draw(float dt) {
 //    glDisable(GL_TEXTURE_2D);
 
@@ -106,36 +139,13 @@ void RequestBall::draw(float dt) {
 
     glEnable(GL_TEXTURE_2D);
 
-    if(gBounce || !hasBounced || no_bounce) {
+    if(!gHideBalls && (gBounce || !hasBounced || no_bounce)) {
         glBindTexture(GL_TEXTURE_2D, tex->textureid);
-//       glEnable(GL_BLEND);
-//       glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         float halfsize = size * 0.5f;
         vec2f offsetpos = pos - vec2f(halfsize, halfsize);
 
         glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
-
-/*
-    drop shadow
-
-        glPushMatrix();
-            glTranslatef(2.0f, 2.0f, 0.0f);
-            glBegin(GL_QUADS);
-                glTexCoord2f(0.0f,0.0f);
-                glVertex2f(offsetpos.x, offsetpos.y);
-
-                glTexCoord2f(1.0f,0.0f);
-                glVertex2f(offsetpos.x+size, offsetpos.y);
-
-                glTexCoord2f(1.0f,1.0f);
-                glVertex2f(offsetpos.x+size, offsetpos.y+size);
-
-                glTexCoord2f(0.0f,1.0f);
-                glVertex2f(offsetpos.x, offsetpos.y+size);
-            glEnd();
-        glPopMatrix();
-*/
 
         glColor4f(colour.x, colour.y, colour.z, 1.0f);
 
@@ -152,15 +162,6 @@ void RequestBall::draw(float dt) {
             glTexCoord2f(0.0f,1.0f);
             glVertex2f(offsetpos.x, offsetpos.y+size);
         glEnd();
-
-/*
-        glDisable(GL_TEXTURE_2D);
-        glBegin(GL_LINE_STRIP);
-            for(int i=0;i<points.size();i++) {
-                glVertex2fv(points[i]);
-            }
-        glEnd();
-*/
     }
 
     glEnable(GL_TEXTURE_2D);

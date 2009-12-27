@@ -96,6 +96,7 @@ class Logstalgia : public SDLApp {
     int total_entries;
 
     TextureResource* balltex;
+    TextureResource* bloomtex;
 
     float mousehide_timeout;
     vec2f mousepos;

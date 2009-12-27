@@ -49,12 +49,12 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        if(args == "-x") {
+        if(args == "-x" || args == "--full-hostnames") {
             gMask = false;
             continue;
         }
 
-        if(args == "-s") {
+        if(args == "-s" || args == "--speed") {
 
             if((i+1)>=arguments.size()) {
                 logstalgia_help("specify speed (1 to 30)");
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        if(args == "-u") {
+        if(args == "-u" || args == "--update-rate") {
 
             if((i+1)>=arguments.size()) {
                 logstalgia_help("specify update rate (1 to 60)");
@@ -97,20 +97,26 @@ int main(int argc, char *argv[]) {
         }
 
         //dont bounce
-        if(args == "-b") {
+        if(args == "--no-bounce") {
             gBounce = false;
             continue;
         }
 
         //dont draw response code
-        if(args == "-r") {
+        if(args == "--hide-response-code") {
             gResponseCode = false;
             continue;
         }
 
         //no paddle
-        if(args == "-p") {
+        if(args == "--hide-paddle") {
             gPaddle = false;
+            continue;
+        }
+
+        //no paddle
+        if(args == "--hide-balls") {
+            gHideBalls = true;
             continue;
         }
 
@@ -140,6 +146,41 @@ int main(int argc, char *argv[]) {
             multisample = true;
             continue;
         }
+
+        if(args == "--enable-bloom") {
+            gEnableBloom = true;
+            continue;
+        }
+
+        if(args == "--bloom-intensity") {
+            if((i+1)>=arguments.size()) {
+                logstalgia_help("specify bloom-intensity (float)");
+            }
+
+            gBloomIntensity = atof(arguments[++i].c_str());
+
+            if(gBloomIntensity<=0.0) {
+                logstalgia_help("invalid bloom-intensity value");
+            }
+
+            continue;
+        }
+
+        if(args == "--bloom-multiplier") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_help("specify bloom-multiplier (float)");
+            }
+
+            gBloomMultiplier = atof(arguments[++i].c_str());
+
+            if(gBloomMultiplier<=0.0) {
+                logstalgia_help("invalid bloom-multiplier value");
+            }
+
+            continue;
+        }
+
 
         //if given a non option arg treat it as a file, or if it is '-', pass that too (stdin)
         if(args == "-" || args.size() >= 1 && args[0] != '-') {

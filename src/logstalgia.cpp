@@ -142,17 +142,29 @@ void logstalgia_help(std::string error) {
 
     printf("Usage: logstalgia [OPTIONS] FILE\n\n");
     printf("Options:\n");
-    printf("  -b                              no bouncing\n");
-    printf("  -p                              hide response code\n");
-    printf("  -r                              hide paddle\n");
-    printf("  -WIDTHxHEIGHT                   set window size\n");
-    printf("  -f                              fullscreen\n");
-    printf("  -s                              simulation speed (default: 1)\n");
-    printf("  -u                              page summary update rate (default: 5)\n");
-    printf("  -x                              show full request ip/hostname\n");
-    printf("  -g name,regex,percent[,colour]  group urls that match a regular expression together\n\n");
-    printf("  --start-position POSITION       begin at some position in the log file (between 0.0 and 1.0)\n");
-    printf("  --disable-progress              disable the progress bar\n");
+    printf("  -WIDTHxHEIGHT              Set window size\n");
+    printf("  -f                         Fullscreen\n\n");
+
+    printf("  -x --full-hostnames        Show full request ip/hostname\n");
+    printf("  -s --speed                 Simulation speed (default: 1)\n");
+    printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
+
+    printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
+
+    printf("  --start-position POSITION  Begin at some position in the log file (0.0 - 1.0)\n\n");
+
+    printf("  --no-bounce                No bouncing\n\n");
+
+    printf("  --hide-response-code       Hide response code\n");
+    printf("  --hide-balls               Hide balls\n");
+    printf("  --hide-paddle              Hide paddle\n\n");
+
+    printf("  --disable-progress         Disable the progress bar\n\n");
+
+    printf("  --enable-bloom             Enable bloom effect\n");
+    printf("  --bloom-multiplier         Adjust the amount of bloom (default: 1.0)\n");
+    printf("  --bloom-intensity          Adjust the intensity of the bloom (default: 0.75)\n\n");
+
     printf("\nFILE should be a log file or '-' to read STDIN.\n\n");
 
 #ifdef _WIN32
@@ -219,7 +231,8 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     fontMedium = fontmanager.grab("FreeSans.ttf", 16);
     fontSmall  = fontmanager.grab("FreeMonoBold.ttf", 14);
 
-    balltex = texturemanager.grab("ball.tga");
+    balltex  = texturemanager.grab("ball.tga");
+    bloomtex = texturemanager.grab("bloom.tga");
 
     infowindow = TextArea(fontMedium);
 
@@ -850,6 +863,20 @@ void Logstalgia::draw(float t, float dt) {
     }
 
     profile_stop();
+
+    if(gEnableBloom) {
+
+        glBlendFunc (GL_ONE, GL_ONE);
+
+        glEnable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
+
+        glBindTexture(GL_TEXTURE_2D, bloomtex->textureid);
+
+        for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
+            (*it)->drawBloom();
+        }
+    }
 
     profile_start("draw paddle");
 
