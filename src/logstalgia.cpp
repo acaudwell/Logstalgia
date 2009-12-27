@@ -215,8 +215,8 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     total_entries=0;
 
-    fontLarge  = fontmanager.grab("FreeMonoBold.ttf", 32);
-    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
+    fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
+    fontMedium = fontmanager.grab("FreeSans.ttf", 16);
     fontSmall  = fontmanager.grab("FreeMonoBold.ttf", 14);
 
     balltex = texturemanager.grab("ball.tga");
@@ -878,7 +878,7 @@ void Logstalgia::draw(float t, float dt) {
         int cwidth    = fontMedium.getWidth("Web Access Log Viewer");
         int awidth    = fontSmall.getWidth("(C) 2008 Andrew Caudwell");
 
-        vec2f corner(display.width/2 - logowidth/2 - 30.0f, display.height/2 - 40);
+        vec2f corner(display.width/2 - logowidth/2 - 30.0f, display.height/2 - 45);
 
         glDisable(GL_TEXTURE_2D);
         glColor4f(0.0f, 0.5f, 1.0f, gSplash * 0.015f);
@@ -911,7 +911,7 @@ void Logstalgia::draw(float t, float dt) {
 
     if(info) {
         fontMedium.print(2,2, "FPS %d", (int) fps);
-        fontMedium.print(2,19,"Balls %d, %d Queued", balls.size(), entries.size());
+        fontMedium.print(2,19,"Balls %03d", balls.size());
     } else {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());

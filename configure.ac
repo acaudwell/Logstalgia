@@ -86,7 +86,7 @@ AC_CHECK_HEADER([ftgl.h],, AC_MSG_ERROR(ftgl.h is required. Please see README))
 AC_CHECK_HEADER([pcre.h],, AC_MSG_ERROR(pcre.h is required. Please see README))
 
 #see if ttf-font-dir option is enabled
-AC_ARG_ENABLE(ttf-font-dir,[AS_HELP_STRING([--enable-ttf-font-dir=DIR],[directory containing FreeSans.ttf and FreeMonoBold.ttf])],[sdlappfontdir="$enableval"],[sdlappfontdir=""])
+AC_ARG_ENABLE(ttf-font-dir,[AS_HELP_STRING([--enable-ttf-font-dir=DIR],[directory containing GNU FreeFont TTF fonts])],[sdlappfontdir="$enableval"],[sdlappfontdir=""])
 AC_SUBST(sdlappfontdir)
 
 AC_CONFIG_FILES([Makefile
