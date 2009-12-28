@@ -35,6 +35,7 @@
 #include "summarizer.h"
 #include "textarea.h"
 #include "slider.h"
+#include "ppm.h"
 
 #include <unistd.h>
 
@@ -111,7 +112,6 @@ class Logstalgia : public SDLApp {
 
     PositionSlider slider;
 
-//    FILE* loghandle;
     SeekLog* seeklog;
     StreamLog* streamlog;
 
@@ -119,6 +119,11 @@ class Logstalgia : public SDLApp {
     std::list<RequestBall*> balls;
 
     TextArea infowindow;
+
+    float fixed_tick_rate;
+    int framecount;
+    int frameskip;
+    FrameExporter* frameExporter;
 
     std::string dateAtPosition(float percent);
     void seekTo(float percent);
@@ -146,6 +151,8 @@ public:
 	~Logstalgia();
 
     void addGroup(std::string groupstr);
+
+    void setFrameExporter(FrameExporter* exporter, int video_framerate);
 
     //inherited methods
     void init();

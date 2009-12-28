@@ -160,6 +160,9 @@ void logstalgia_help(std::string error) {
 
     printf("  --disable-progress         Disable the progress bar\n\n");
 
+    printf("  --output-ppm-stream FILE Write frames as PPM to a file ('-' for STDOUT)\n");
+    printf("  --output-framerate FPS   Framerate of output (25,30,60)\n\n");
+
     printf("\nFILE should be a log file or '-' to read STDIN.\n\n");
 
 #ifdef _WIN32
@@ -231,6 +234,11 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     infowindow = TextArea(fontMedium);
 
     mousehide_timeout = 0.0f;
+
+    frameExporter = 0;
+    framecount = 0;
+    frameskip = 0;
+    fixed_tick_rate = 0.0;
 
     debugLog("Logstalgia end of constructor\n");
 }
@@ -531,9 +539,42 @@ void Logstalgia::init() {
     }
 }
 
+void Logstalgia::setFrameExporter(FrameExporter* exporter, int video_framerate) {
+
+    int fixed_framerate = video_framerate;
+
+    this->framecount = 0;
+    this->frameskip  = 0;
+
+    //calculate appropriate tick rate for video frame rate
+    while(fixed_framerate<60) {
+        fixed_framerate += video_framerate;
+        this->frameskip++;
+    }
+
+    this->fixed_tick_rate = 1.0f / ((float) fixed_framerate);
+
+    this->frameExporter = exporter;
+}
+
 void Logstalgia::update(float t, float dt) {
     this->logic(t, dt);
     this->draw(t, dt);
+
+    //if exporting a video use a fixed tick rate rather than time based
+    if(frameExporter != 0) {
+        dt = fixed_tick_rate;
+    }
+
+    //extract frames based on frameskip setting
+    //if frameExporter defined
+    if(frameExporter != 0) {
+        if(framecount % (frameskip+1) == 0) {
+            frameExporter->dump();
+        }
+    }
+
+   framecount++;
 }
 
 RequestBall* Logstalgia::findNearest() {
