@@ -17,7 +17,6 @@
 			<Add option="-Dmain=SDL_main" />
 		</Compiler>
 		<Linker>
-			<Add option="pcre.dll" />
 			<Add option="ftgl.dll" />
 			<Add library="mingw32" />
 			<Add library="SDLmain" />
