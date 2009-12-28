@@ -156,14 +156,17 @@ void logstalgia_help(std::string error) {
     printf("  --no-bounce                No bouncing\n\n");
 
     printf("  --hide-response-code       Hide response code\n");
-    printf("  --hide-balls               Hide balls\n");
     printf("  --hide-paddle              Hide paddle\n\n");
 
-    printf("  --disable-progress         Disable the progress bar\n\n");
+    printf("  --disable-progress         Disable the progress bar\n");
+    printf("  --disable-glow             Disable the glow effect\n\n");
 
-    printf("  --enable-bloom             Enable bloom effect\n");
-    printf("  --bloom-multiplier         Adjust the amount of bloom (default: 1.0)\n");
-    printf("  --bloom-intensity          Adjust the intensity of the bloom (default: 0.75)\n\n");
+    printf("  --glow-multiplier          Adjust the amount of glow (default: 1.5)\n");
+    printf("  --glow-intensity           Intensity of the glow (default: 0.5)\n\n");
+    printf("  --glow-duration            Duration of the glow (default: 0.1)\n\n");
+
+    printf("  --output-ppm-stream FILE Write frames as PPM to a file ('-' for STDOUT)\n");
+    printf("  --output-framerate FPS   Framerate of output (25,30,60)\n\n");
 
     printf("\nFILE should be a log file or '-' to read STDIN.\n\n");
 
@@ -228,15 +231,20 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     total_entries=0;
 
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
-    fontMedium = fontmanager.grab("FreeSans.ttf", 16);
+    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
     fontSmall  = fontmanager.grab("FreeMonoBold.ttf", 14);
 
     balltex  = texturemanager.grab("ball.tga");
-    bloomtex = texturemanager.grab("bloom.tga");
+    glowtex = texturemanager.grab("glow.tga");
 
     infowindow = TextArea(fontMedium);
 
     mousehide_timeout = 0.0f;
+
+    frameExporter = 0;
+    framecount = 0;
+    frameskip = 0;
+    fixed_tick_rate = 0.0;
 
     debugLog("Logstalgia end of constructor\n");
 }
@@ -393,7 +401,7 @@ std::string Logstalgia::dateAtPosition(float percent) {
             long timestamp = le.getTimestamp();
 
             struct tm* timeinfo = localtime ( &timestamp );
-            strftime(datestr, 256, "%H:%M:%S, %A, %d %B, %Y", timeinfo);
+            strftime(datestr, 256, "%H:%M:%S %B %d, %Y", timeinfo);
             date = std::string(datestr);
         }
      }
@@ -537,9 +545,42 @@ void Logstalgia::init() {
     }
 }
 
+void Logstalgia::setFrameExporter(FrameExporter* exporter, int video_framerate) {
+
+    int fixed_framerate = video_framerate;
+
+    this->framecount = 0;
+    this->frameskip  = 0;
+
+    //calculate appropriate tick rate for video frame rate
+    while(fixed_framerate<60) {
+        fixed_framerate += video_framerate;
+        this->frameskip++;
+    }
+
+    this->fixed_tick_rate = 1.0f / ((float) fixed_framerate);
+
+    this->frameExporter = exporter;
+}
+
 void Logstalgia::update(float t, float dt) {
     this->logic(t, dt);
     this->draw(t, dt);
+
+    //if exporting a video use a fixed tick rate rather than time based
+    if(frameExporter != 0) {
+        dt = fixed_tick_rate;
+    }
+
+    //extract frames based on frameskip setting
+    //if frameExporter defined
+    if(frameExporter != 0) {
+        if(framecount % (frameskip+1) == 0) {
+            frameExporter->dump();
+        }
+    }
+
+   framecount++;
 }
 
 RequestBall* Logstalgia::findNearest() {
@@ -661,7 +702,7 @@ void Logstalgia::logic(float t, float dt) {
         char datestr[256];
         char timestr[256];
         struct tm* timeinfo = localtime ( &currtime );
-        strftime(datestr, 256, "%A, %d %B, %Y", timeinfo);
+        strftime(datestr, 256, "%A, %B %d, %Y", timeinfo);
         strftime(timestr, 256, "%X", timeinfo);
 
         displaydate =datestr;
@@ -864,17 +905,17 @@ void Logstalgia::draw(float t, float dt) {
 
     profile_stop();
 
-    if(gEnableBloom) {
+    if(!gDisableGlow) {
 
         glBlendFunc (GL_ONE, GL_ONE);
 
         glEnable(GL_BLEND);
         glEnable(GL_TEXTURE_2D);
 
-        glBindTexture(GL_TEXTURE_2D, bloomtex->textureid);
+        glBindTexture(GL_TEXTURE_2D, glowtex->textureid);
 
         for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
-            (*it)->drawBloom();
+            (*it)->drawGlow();
         }
     }
 
@@ -902,10 +943,11 @@ void Logstalgia::draw(float t, float dt) {
     if(gSplash>0.0f) {
         int logowidth = fontLarge.getWidth("Logstalgia");
         int logoheight = 100;
-        int cwidth    = fontMedium.getWidth("Web Access Log Viewer");
+        int cwidth    = fontMedium.getWidth("Website Access Log Viewer");
         int awidth    = fontSmall.getWidth("(C) 2008 Andrew Caudwell");
 
-        vec2f corner(display.width/2 - logowidth/2 - 30.0f, display.height/2 - 45);
+        vec2f corner(display.width/2 - logowidth/2 - 30.0f,
+                     display.height/2 - 45);
 
         glDisable(GL_TEXTURE_2D);
         glColor4f(0.0f, 0.5f, 1.0f, gSplash * 0.015f);
@@ -925,8 +967,9 @@ void Logstalgia::draw(float t, float dt) {
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Logstalgia");
         glColor4f(0,1,1,1);
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Log");
+
         glColor4f(1,1,1,1);
-        fontMedium.draw(display.width/2 - cwidth/2,display.height/2 + 17, "Web Access Log Viewer");
+        fontMedium.draw(display.width/2 - cwidth/2,display.height/2 + 17, "Website Access Log Viewer");
         fontSmall.draw(display.width/2 - awidth/2,display.height/2 + 37, "(C) 2008 Andrew Caudwell");
 
         gSplash-=dt;

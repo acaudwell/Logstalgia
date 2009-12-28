@@ -28,6 +28,9 @@ int main(int argc, char *argv[]) {
     float update_rate = 5.0f;
     bool multisample  = false;
 
+    int video_framerate = 60;
+    std::string ppm_file_name;
+
     std::string logfile = "";
 
     std::vector<std::string> groupstr;
@@ -114,12 +117,6 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        //no paddle
-        if(args == "--hide-balls") {
-            gHideBalls = true;
-            continue;
-        }
-
         if(args == "--start-position") {
 
             if((i+1)>=arguments.size()) {
@@ -141,53 +138,107 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--disable-glow") {
+            gDisableGlow = true;
+            continue;
+        }
+
         //enable multisampling
         if(args == "--multi-sampling") {
             multisample = true;
             continue;
         }
 
-        if(args == "--enable-bloom") {
-            gEnableBloom = true;
-            continue;
-        }
-
-        if(args == "--bloom-intensity") {
+        if(args == "--glow-duration") {
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify bloom-intensity (float)");
+                logstalgia_help("specify glow-duration (float)");
             }
 
-            gBloomIntensity = atof(arguments[++i].c_str());
+            gGlowDuration = atof(arguments[++i].c_str());
 
-            if(gBloomIntensity<=0.0) {
-                logstalgia_help("invalid bloom-intensity value");
+            if(gGlowDuration<=0.0 || gGlowDuration>1.0) {
+                logstalgia_help("invalid glow-intensity value");
             }
 
             continue;
         }
 
-        if(args == "--bloom-multiplier") {
+        if(args == "--glow-intensity") {
+            if((i+1)>=arguments.size()) {
+                logstalgia_help("specify glow-intensity (float)");
+            }
+
+            gGlowIntensity = atof(arguments[++i].c_str());
+
+            if(gGlowIntensity<=0.0) {
+                logstalgia_help("invalid glow-intensity value");
+            }
+
+            continue;
+        }
+
+        if(args == "--glow-multiplier") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify bloom-multiplier (float)");
+                logstalgia_help("specify glow-multiplier (float)");
             }
 
-            gBloomMultiplier = atof(arguments[++i].c_str());
+            gGlowMultiplier = atof(arguments[++i].c_str());
 
-            if(gBloomMultiplier<=0.0) {
-                logstalgia_help("invalid bloom-multiplier value");
+            if(gGlowMultiplier<=0.0) {
+                logstalgia_help("invalid glow-multiplier value");
             }
 
             continue;
         }
 
+        if(args == "--output-ppm-stream") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_help("specify ppm output file or '-' for stdout");
+            }
+
+            ppm_file_name = arguments[++i];
+
+#ifdef _WIN32
+            if(ppm_file_name == "-") {
+                logstalgia_help("stdout PPM mode not supported on Windows");
+            }
+#endif
+
+            continue;
+        }
+
+        if(args == "--output-framerate") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_help("specify framerate (25,30,60)");
+            }
+
+            video_framerate = atoi(arguments[++i].c_str());
+
+            if(   video_framerate != 25
+               && video_framerate != 30
+               && video_framerate != 60) {
+                logstalgia_help("supported framerates are 25,30,60");
+            }
+
+            continue;
+        }
 
         //if given a non option arg treat it as a file, or if it is '-', pass that too (stdin)
         if(args == "-" || args.size() >= 1 && args[0] != '-') {
             logfile = args;
             continue;
         }
+
+        // unknown argument
+        std::string arg_error = std::string("unknown option ") + std::string(args);
+
+        logstalgia_help(arg_error);
     }
+
+    if(!logfile.size()) logstalgia_help("no file supplied");
 
     //wait for data before launching
     if(logfile.compare("-") == 0) {
@@ -210,6 +261,13 @@ int main(int argc, char *argv[]) {
 
     Logstalgia* ls = new Logstalgia(logfile, simu_speed, update_rate);
 
+    //init frame exporter
+    FrameExporter* exporter = 0;
+    if(ppm_file_name.size() > 0) {
+        exporter = new PPMExporter(ppm_file_name);
+        ls->setFrameExporter(exporter, video_framerate);
+    }
+
     for(size_t i=0;i<groupstr.size();i++) {
         ls->addGroup(groupstr[i]);
     }
@@ -217,6 +275,8 @@ int main(int argc, char *argv[]) {
     ls->run();
 
     delete ls;
+
+    if(exporter!=0) delete exporter;
 
     display.quit();
 

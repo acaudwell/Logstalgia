@@ -22,10 +22,11 @@ int gHighscore = 0;
 bool gBounce=true;
 bool gResponseCode=true;
 
-bool  gEnableBloom     = false;
-bool  gHideBalls       = false;
-float gBloomIntensity  = 0.05;
-float gBloomMultiplier = 2.5;
+bool  gDisableGlow    = false;
+bool  gHideBalls      = false;
+float gGlowIntensity  = 0.5;
+float gGlowMultiplier = 1.25;
+float gGlowDuration   = 0.15;
 
 RequestBall::RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed) {
     this->le  = le;
@@ -104,30 +105,32 @@ void RequestBall::logic(float dt) {
     ProjectedBall::logic(dt);
 }
 
-void RequestBall::drawBloom() {
+void RequestBall::drawGlow() {
+    if(!bounced()) return;
 
     float prog = progress();
 
-    float bloom_radius = size * size * gBloomMultiplier;
+    float glow_radius = size * size * gGlowMultiplier;
 
-    float alpha = has_bounced ? 1.0 : std::min(1.0f, prog / 0.1f);
+//    float alpha = std::min(1.0f, std::min(prog/0.02f, 1.0f-(prog/0.15f)));
+    float alpha = std::min(1.0f, 1.0f-(prog/gGlowDuration));
 
-    vec3f bloom_col    = colour * gBloomIntensity * alpha;
+    vec3f glow_col = colour * gGlowIntensity * alpha;
 
-    glColor4f(bloom_col.x, bloom_col.y, bloom_col.z, 1.0);
+    glColor4f(glow_col.x, glow_col.y, glow_col.z, 1.0);
 
     glPushMatrix();
         glTranslatef(pos.x, pos.y, 0.0);
 
         glBegin(GL_QUADS);
         glTexCoord2f(1.0, 1.0);
-            glVertex2f(bloom_radius,bloom_radius);
+            glVertex2f(glow_radius,glow_radius);
             glTexCoord2f(1.0, 0.0);
-            glVertex2f(bloom_radius,-bloom_radius);
+            glVertex2f(glow_radius,-glow_radius);
             glTexCoord2f(0.0, 0.0);
-            glVertex2f(-bloom_radius,-bloom_radius);
+            glVertex2f(-glow_radius,-glow_radius);
             glTexCoord2f(0.0, 1.0);
-            glVertex2f(-bloom_radius,bloom_radius);
+            glVertex2f(-glow_radius,glow_radius);
         glEnd();
     glPopMatrix();
 }
@@ -139,7 +142,7 @@ void RequestBall::draw(float dt) {
 
     glEnable(GL_TEXTURE_2D);
 
-    if(!gHideBalls && (gBounce || !hasBounced || no_bounce)) {
+    if(gBounce || !hasBounced || no_bounce) {
         glBindTexture(GL_TEXTURE_2D, tex->textureid);
 
         float halfsize = size * 0.5f;
