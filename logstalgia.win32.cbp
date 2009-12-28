@@ -68,6 +68,8 @@
 		<Unit filename="src\main.h" />
 		<Unit filename="src\paddle.cpp" />
 		<Unit filename="src\paddle.h" />
+		<Unit filename="src\ppm.cpp" />
+		<Unit filename="src\ppm.h" />
 		<Unit filename="src\requestball.cpp" />
 		<Unit filename="src\requestball.h" />
 		<Unit filename="src\slider.cpp" />
