@@ -1296,7 +1296,7 @@ Optional Features:
        --disable-freetypetest  Do not try to compile and run a test FreeType
                           program
   --enable-ttf-font-dir=DIR
-                          directory containing FreeSans.ttf
+                          directory containing GNU FreeFont TTF fonts
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
