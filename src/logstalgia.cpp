@@ -161,9 +161,9 @@ void logstalgia_help(std::string error) {
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
 
-    printf("  --glow-multiplier          Adjust the amount of glow (default: 1.5)\n");
+    printf("  --glow-multiplier          Adjust the amount of glow (default: 1.25)\n");
     printf("  --glow-intensity           Intensity of the glow (default: 0.5)\n\n");
-    printf("  --glow-duration            Duration of the glow (default: 0.1)\n\n");
+    printf("  --glow-duration            Duration of the glow (default: 0.15)\n\n");
 
     printf("  --output-ppm-stream FILE Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  --output-framerate FPS   Framerate of output (25,30,60)\n\n");
