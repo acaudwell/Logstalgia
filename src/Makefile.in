@@ -6,7 +6,7 @@ CXXFLAGS = @CXXFLAGS@
 SUBDIRS = core
 CXX = g++
 CC = gcc
-objects = textarea.o slider.o ball.o requestball.o paddle.o logentry.o summarizer.o logstalgia.o main.o
+objects = textarea.o slider.o ball.o requestball.o paddle.o logentry.o summarizer.o logstalgia.o ppm.o main.o
 
 all:	
 	for dir in ${SUBDIRS} ; do ( cd $$dir ; ${MAKE} all ); done
