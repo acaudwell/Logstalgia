@@ -24,10 +24,11 @@ PositionSlider::PositionSlider(float percent) {
 
     font = fontmanager.grab("FreeMonoBold.ttf", 16);
 
-    int gap = display.width / 30;
+    int gapx = display.width / 30;
+    int gapy = display.height / 25;
 
-    bounds.update(vec2f(gap, display.height - gap*2));
-    bounds.update(vec2f(display.width - gap, display.height - gap));
+    bounds.update(vec2f(gapx, display.height - gapy*3));
+    bounds.update(vec2f(display.width - gapx, display.height - gapy*2));
 
     slidercol = vec3f(1.0, 1.0, 1.0);
 
@@ -111,7 +112,7 @@ void PositionSlider::draw(float dt) {
 
     float posx = bounds.min.x + (bounds.max.x - bounds.min.x) * percent;
 
-    glLineWidth(4.0f);
+    glLineWidth(2.0f);
     glBegin(GL_LINES);
         glVertex2f(posx, bounds.min.y);
         glVertex2f(posx, bounds.max.y);
