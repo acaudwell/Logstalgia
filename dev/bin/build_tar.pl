@@ -48,6 +48,7 @@ my @inclusions = (
     qr{^/INSTALL$},
     qr{^/README$},
     qr{/Makefile\.in$},
+    qr{/Makefile\.am$},
     qr{^/aclocal\.m4$},
     qr{^/m4/.+\.m4$},
     qr{^/configure(?:\.ac)?$},
@@ -58,6 +59,8 @@ my @inclusions = (
     qr{^/config\.guess$},
     qr{^/config\.sub$},
     qr{^/install-sh$},
+    qr{^/depcomp$},
+    qr{^/missing$},
 );
 
 my $tmp_path = "/var/tmp/$APP_NAME-$VERSION";
@@ -77,6 +80,18 @@ unless(`cat configure.ac` =~ /AC_INIT\(Logstalgia, $VERSION,/) {
 #check ChangeLog has been updated
 unless(`cat ChangeLog` =~ /^$VERSION:/) {
     die("ChangeLog does not mention current version number\n");
+}
+
+#if Makefile exists, do distclean
+if(-e 'Makefile') {
+    if(system("make distclean") != 0) {
+        die("make distclean failed: $!\n");
+    }
+}
+
+#reconfigure
+if(system("autoreconf -f -i -v") != 0) {
+    die("autoreconf failed: $!\n");
 }
 
 foreach my $file (@files) {
