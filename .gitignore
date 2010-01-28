@@ -1,3 +1,7 @@
+depcomp
+missing
+install-sh
+aclocal.m4
 logstalgia
 logstalgia.exe
 logstalgia.win32.depend
@@ -5,10 +9,14 @@ logstalgia.win32.layout
 autom4te.cache
 debug.log
 Makefile
+Makefile.in
 *.dll
 logs
+configure
 config.log
 config.status
+config.sub
+config.guess
 *.swp
 *.d
 .objs
