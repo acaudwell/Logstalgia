@@ -42,84 +42,15 @@ void profile_stop() {
 #endif
 }
 
-#ifdef _WIN32
-HWND consoleWindow = 0;
-
-void createWindowsConsole() {
-    if(consoleWindow !=0) return;
-
-    //create a console on Windows so users can see messages
-
-    //find an available name for our window
-    int console_suffix = 0;
-    char consoleTitle[512];
-    sprintf(consoleTitle, "%s", "Logstalgia Console");
-
-    while(FindWindow(0, consoleTitle)) {
-        sprintf(consoleTitle, "Logstalgia Console %d", ++console_suffix);
-    }
-
-    AllocConsole();
-    SetConsoleTitle(consoleTitle);
-
-    //redirect streams to console
-    freopen("conin$", "r", stdin);
-    freopen("conout$","w", stdout);
-    freopen("conout$","w", stderr);
-
-    consoleWindow = 0;
-
-    //wait for our console window
-    while(consoleWindow==0) {
-        consoleWindow = FindWindow(0, consoleTitle);
-        SDL_Delay(100);
-    }
-
-    //disable the close button so the user cant crash the application
-    HMENU hm = GetSystemMenu(consoleWindow, false);
-    DeleteMenu(hm, SC_CLOSE, MF_BYCOMMAND);
+void logstalgia_info(std::string msg) {
+    SDLAppInfo(msg);
 }
-#endif
+
+void logstalgia_quit(std::string error) {
+    SDLAppQuit(error);
+}
 
 void logstalgia_help() {
-    logstalgia_help("");
-}
-
-//info message
-void logstalgia_info(std::string msg) {
-#ifdef _WIN32
-    createWindowsConsole();
-#endif
-
-    printf("%s\n", msg.c_str());
-
-#ifdef _WIN32
-    printf("\nPress Enter\n");
-    getchar();
-#endif
-
-    exit(0);
-}
-
-//display error only
-void logstalgia_quit(std::string error) {
-    SDL_Quit();
-
-#ifdef _WIN32
-    createWindowsConsole();
-#endif
-
-    printf("Error: %s\n\n", error.c_str());
-
-#ifdef _WIN32
-    printf("Press Enter\n");
-    getchar();
-#endif
-
-    exit(1);
-}
-
-void logstalgia_help(std::string error) {
 
 #ifdef _WIN32
     createWindowsConsole();
@@ -135,10 +66,6 @@ void logstalgia_help(std::string error) {
 #endif
 
     printf("Logstalgia v%s\n", LOGSTALGIA_VERSION);
-
-    if(error.size()>0) {
-        printf("Error: %s\n", error.c_str());
-    }
 
     printf("Usage: logstalgia [OPTIONS] FILE\n\n");
     printf("Options:\n");
@@ -175,12 +102,7 @@ void logstalgia_help(std::string error) {
     getchar();
 #endif
 
-    //check if we should use an error code
-    if(error.size()) {
-        exit(1);
-    } else {
-        exit(0);
-    }
+    exit(0);
 }
 
 Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate) : SDLApp() {
@@ -207,7 +129,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     seeklog       = 0;
     streamlog     = 0;
 
-    if(!logfile.size()) logstalgia_help("no file supplied");
+    if(!logfile.size()) logstalgia_quit("no file supplied");
 
     if(logfile.compare("-")==0) {
 
@@ -492,11 +414,12 @@ void Logstalgia::readLog() {
     if(entries.size()==0 && seeklog != 0) {
 
         if(total_entries==0) {
-            logstalgia_help("could not parse first entry");
+            logstalgia_quit("could not parse first entry");
         }
 
-        printf("no more entires\n");
-        exit(0);
+        //no more entries
+        appFinished=true;
+        return;
     }
 
 
@@ -753,6 +676,8 @@ void Logstalgia::logic(float t, float dt) {
         profile_start("readLog");
 
         readLog();
+        if(appFinished) return;
+
 
         profile_stop();
     }
@@ -869,6 +794,7 @@ void Logstalgia::drawGroups(float dt) {
 }
 
 void Logstalgia::draw(float t, float dt) {
+    if(appFinished) return;
 
     if(!gDisableProgress) slider.logic(dt);
 

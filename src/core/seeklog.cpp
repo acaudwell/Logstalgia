@@ -44,11 +44,11 @@ StreamLog::StreamLog() {
 #endif
 }
 
-StreamLog::StreamLog(std::istream* stream) {
-    this->stream = stream;
+StreamLog::~StreamLog() {
 }
 
-StreamLog::~StreamLog() {
+StreamLog::StreamLog(std::istream* stream) {
+    this->stream = stream;
 }
 
 bool StreamLog::getNextLine(std::string& line) {
@@ -119,6 +119,8 @@ bool SeekLog::readFully() {
 
     buffstream = new std::istringstream(std::string(filebuffer));
 
+    delete[] filebuffer;
+
     return true;
 }
 
@@ -153,21 +155,6 @@ void SeekLog::seekTo(float percent) {
     }
 }
 
-// temporarily move the file pointer to get a line somewhere else in the file
-bool SeekLog::getNextLineAt(std::string& line, float percent) {
-
-    long currpointer = getPointer();
-
-    seekTo(percent);
-
-    bool success = getNextLine(line);
-
-    //set the pointer back
-    setPointer(currpointer);
-
-    return success;
-}
-
 bool SeekLog::getNextLine(std::string& line) {
 
     //try and fix the stream
@@ -191,6 +178,21 @@ bool SeekLog::getNextLine(std::string& line) {
     //debugLog("current_percent = %.2f\n", current_percent);
 
     return true;
+}
+
+// temporarily move the file pointer to get a line somewhere else in the file
+bool SeekLog::getNextLineAt(std::string& line, float percent) {
+
+    long currpointer = getPointer();
+
+    seekTo(percent);
+
+    bool success = getNextLine(line);
+
+    //set the pointer back
+    setPointer(currpointer);
+
+    return success;
 }
 
 bool SeekLog::isFinished() {

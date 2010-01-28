@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
 
     std::vector<std::string> arguments;
 
+    SDLAppInit("Logstalgia", "logstalgia");
+
     SDLAppParseArgs(argc, argv, &width, &height, &fullscreen, &arguments);
 
     for (int i=0; i<arguments.size(); i++) {
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]) {
         std::string args = arguments[i];
 
         if(args == "-h" || args == "-?" || args == "--help") {
-            logstalgia_help("");
+            logstalgia_help();
         }
 
         if(args == "-c") {
@@ -60,13 +62,13 @@ int main(int argc, char *argv[]) {
         if(args == "-s" || args == "--speed") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify speed (1 to 30)");
+                logstalgia_quit("specify speed (1 to 30)");
             }
 
             simu_speed = atof(arguments[++i].c_str());
 
             if(simu_speed < 1.0f || simu_speed > 30.0f) {
-                logstalgia_help("speed should be between 1 and 30\n");
+                logstalgia_quit("speed should be between 1 and 30\n");
             }
 
             continue;
@@ -75,13 +77,13 @@ int main(int argc, char *argv[]) {
         if(args == "-u" || args == "--update-rate") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify update rate (1 to 60)");
+                logstalgia_quit("specify update rate (1 to 60)");
             }
 
             update_rate = atof(arguments[++i].c_str());
 
             if(update_rate < 1.0f || update_rate > 60.0f) {
-                logstalgia_help("update rate should be between 1 and 60\n");
+                logstalgia_quit("update rate should be between 1 and 60\n");
             }
 
             continue;
@@ -91,7 +93,7 @@ int main(int argc, char *argv[]) {
         if(args == "-g") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify group definition");
+                logstalgia_quit("specify group definition");
             }
 
             groupstr.push_back(arguments[++i].c_str());
@@ -120,13 +122,13 @@ int main(int argc, char *argv[]) {
         if(args == "--start-position") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify start-position (0.0 - 1.0)");
+                logstalgia_quit("specify start-position (0.0 - 1.0)");
             }
 
             gStartPosition = atof(arguments[++i].c_str());
 
             if(gStartPosition<=0.0 || gStartPosition>=1.0) {
-                logstalgia_help("start-position outside of range 0.0 - 1.0 (non-inclusive)");
+                logstalgia_quit("start-position outside of range 0.0 - 1.0 (non-inclusive)");
             }
 
             continue;
@@ -151,13 +153,13 @@ int main(int argc, char *argv[]) {
 
         if(args == "--glow-duration") {
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify glow-duration (float)");
+                logstalgia_quit("specify glow-duration (float)");
             }
 
             gGlowDuration = atof(arguments[++i].c_str());
 
             if(gGlowDuration<=0.0 || gGlowDuration>1.0) {
-                logstalgia_help("invalid glow-intensity value");
+                logstalgia_quit("invalid glow-intensity value");
             }
 
             continue;
@@ -165,13 +167,13 @@ int main(int argc, char *argv[]) {
 
         if(args == "--glow-intensity") {
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify glow-intensity (float)");
+                logstalgia_quit("specify glow-intensity (float)");
             }
 
             gGlowIntensity = atof(arguments[++i].c_str());
 
             if(gGlowIntensity<=0.0) {
-                logstalgia_help("invalid glow-intensity value");
+                logstalgia_quit("invalid glow-intensity value");
             }
 
             continue;
@@ -180,13 +182,13 @@ int main(int argc, char *argv[]) {
         if(args == "--glow-multiplier") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify glow-multiplier (float)");
+                logstalgia_quit("specify glow-multiplier (float)");
             }
 
             gGlowMultiplier = atof(arguments[++i].c_str());
 
             if(gGlowMultiplier<=0.0) {
-                logstalgia_help("invalid glow-multiplier value");
+                logstalgia_quit("invalid glow-multiplier value");
             }
 
             continue;
@@ -195,14 +197,14 @@ int main(int argc, char *argv[]) {
         if(args == "--output-ppm-stream") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify ppm output file or '-' for stdout");
+                logstalgia_quit("specify ppm output file or '-' for stdout");
             }
 
             ppm_file_name = arguments[++i];
 
 #ifdef _WIN32
             if(ppm_file_name == "-") {
-                logstalgia_help("stdout PPM mode not supported on Windows");
+                logstalgia_quit("stdout PPM mode not supported on Windows");
             }
 #endif
 
@@ -212,7 +214,7 @@ int main(int argc, char *argv[]) {
         if(args == "--output-framerate") {
 
             if((i+1)>=arguments.size()) {
-                logstalgia_help("specify framerate (25,30,60)");
+                logstalgia_quit("specify framerate (25,30,60)");
             }
 
             video_framerate = atoi(arguments[++i].c_str());
@@ -220,7 +222,7 @@ int main(int argc, char *argv[]) {
             if(   video_framerate != 25
                && video_framerate != 30
                && video_framerate != 60) {
-                logstalgia_help("supported framerates are 25,30,60");
+                logstalgia_quit("supported framerates are 25,30,60");
             }
 
             continue;
@@ -235,10 +237,10 @@ int main(int argc, char *argv[]) {
         // unknown argument
         std::string arg_error = std::string("unknown option ") + std::string(args);
 
-        logstalgia_help(arg_error);
+        logstalgia_quit(arg_error);
     }
 
-    if(!logfile.size()) logstalgia_help("no file supplied");
+    if(!logfile.size()) logstalgia_quit("no file supplied");
 
     //wait for data before launching
     if(logfile.compare("-") == 0) {
@@ -257,24 +259,60 @@ int main(int argc, char *argv[]) {
 
     display.init("Logstalgia", width, height, fullscreen);
 
-    if(multisample) glEnable(GL_MULTISAMPLE_ARB);
-
-    Logstalgia* ls = new Logstalgia(logfile, simu_speed, update_rate);
-
     //init frame exporter
     FrameExporter* exporter = 0;
+
     if(ppm_file_name.size() > 0) {
-        exporter = new PPMExporter(ppm_file_name);
-        ls->setFrameExporter(exporter, video_framerate);
+
+        try {
+
+            exporter = new PPMExporter(ppm_file_name);
+
+        } catch(PPMExporterException& exception) {
+
+            char errormsg[1024];
+            snprintf(errormsg, 1024, "could not write to '%s'", exception.what());
+
+            logstalgia_quit(errormsg);
+        }
     }
 
-    for(size_t i=0;i<groupstr.size();i++) {
-        ls->addGroup(groupstr[i]);
+    if(multisample) glEnable(GL_MULTISAMPLE_ARB);
+
+    Logstalgia* ls = 0;
+
+    try {
+        ls = new Logstalgia(logfile, simu_speed, update_rate);
+
+        //init frame exporter
+        if(ppm_file_name.size() > 0) {
+            ls->setFrameExporter(exporter, video_framerate);
+        }
+
+        for(size_t i=0;i<groupstr.size();i++) {
+            ls->addGroup(groupstr[i]);
+        }
+
+        ls->run();
+
+    } catch(ResourceException& exception) {
+
+        char errormsg[1024];
+        snprintf(errormsg, 1024, "failed to load resource '%s'", exception.what());
+
+        logstalgia_quit(errormsg);
+
+    } catch(SDLAppException& exception) {
+
+        if(exception.showHelp()) {
+            logstalgia_help();
+        } else {
+            logstalgia_quit(exception.what());
+        }
+
     }
 
-    ls->run();
-
-    delete ls;
+    if(ls!=0) delete ls;
 
     if(exporter!=0) delete exporter;
 

@@ -38,6 +38,7 @@
 
 class BaseLog {
 public:
+    virtual ~BaseLog() {};
     virtual bool getNextLine(std::string& line) {};
     virtual bool isFinished() {};
 };
@@ -71,8 +72,8 @@ public:
     long getPointer();
 
     void seekTo(float percent);
-    bool getNextLineAt(std::string& line, float percent);
     bool getNextLine(std::string& line);
+    bool getNextLineAt(std::string& line, float percent);
     float getPercent();
 
     bool isFinished();
