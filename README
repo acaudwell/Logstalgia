@@ -46,41 +46,75 @@ logstalgia [options] logfile
 
 options:
 
--b       Balls disappear when hit by the paddle instead of bouncing back 
+    -b       Balls disappear when hit by the paddle instead of bouncing back
 
--p       Hide paddle 
+    -p       Hide paddle
 
--f       Fullscreen 
+    -f       Fullscreen
 
--WxH     Set the window size. If -f is also supplied, will attempt to
-         set the video mode to this also. 
+    -WxH     Set the window size. If -f is also supplied, will attempt to
+             set the video mode to this also
 
--s       Simulation speed. Defaults to 1 (1 second-per-second) 
+    -s       Simulation speed. Defaults to 1 (1 second-per-second)
 
--u       Page Summary update speed. Defaults to 5 (5 seconds) 
+    -u       Page Summary update speed. Defaults to 5 (5 seconds)
 
--g name,regex,percent[,colour]
+    -g name,regex,percent[,colour]
 
-         Urls matching the given regex will appear under a new section
-         with the given name using the given percentage of the screen. 
-        
-         Colour may optionally be supplied in the common hexadecimal 
-         format (eg FF0000 for red)
+            Urls matching the given regex will appear under a new section
+            with the given name using the given percentage of the screen. 
 
-         If no groups are supplied the default groups are Images
-         (image files), CSS (.css files) and Scripts (.js files).
+            Colour may optionally be supplied in the common hexadecimal 
+            format (eg FF0000 for red)
 
-         If there is enough space remaining a catch-all group of Misc
-         will appear as the last group. 
+            If no groups are supplied the default groups are Images
+            (image files), CSS (.css files) and Scripts (.js files).
 
--x       Show full request ip/hostname
+            If there is enough space remaining a catch-all group of Misc
+            will appear as the last group.
 
-logfile
-     The path to the access log file to read or '-' if you wish to
-     supply log entries via STDIN. 
+    -x       Show full request ip/hostname
 
-     NOTE: STDIN on Windows will cause the program to stall while
-           waiting for more data.
+    --start-position POSITION
+            Begin at some position in the log file (between 0.0 and 1.0)
+
+    --disable-progress
+            Disable the progress bar
+
+    --output-ppm-stream FILE
+        Write frames as PPM to a file (?-? for STDOUT).
+
+    --output-framerate FPS
+        Framerate of output (used with --output-ppm-stream).
+
+    logfile
+        The path to the access log file to read or '-' if you wish to
+        supply log entries via STDIN.
+
+Examples:
+
+Watch an example access.log file using the default settings:
+
+    logstalgia data/example.log
+
+Watch the default Apache access.log in real time as new requests come in (requires tail). Note than '-' at the end is required for logstalgia to know it needs to read from STDIN:
+
+    tail -f /var/log/apache2/access.log | logstalgia -
+
+Watch a remote Apache access.log via ssh. The '-g' option is used here to group together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks':
+
+    ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad Clicks,/adclick.php,30" -
+
+Recording Videos:
+
+You can create a video of Logstalgia using the --output-ppm-stream option. This creates an uncompressed sequence of
+screenshots in PPM format which can then be processed by another program (such as ffmpeg) to produce a video file.
+
+The below command line will create a video at 60fps in x264 format, stopping at the end of the log (assumes you have ffmpeg with x264 support):
+
+    logstalgia --output-ppm-stream - /var/log/apache2/access.log | ffmpeg -y -b 3000K -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 logstalgia.mp4
+
+Interface:
 
 The time shown in the top left of the screen is set initially from the
 first log entry read and is incremented according to the simulation
