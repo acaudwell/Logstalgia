@@ -121,6 +121,9 @@ class Logstalgia : public SDLApp {
 
     TextArea infowindow;
 
+    float time_scale;
+
+    float runtime;
     float fixed_tick_rate;
     int framecount;
     int frameskip;

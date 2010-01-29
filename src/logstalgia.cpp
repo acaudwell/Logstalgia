@@ -163,6 +163,9 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     mousehide_timeout = 0.0f;
 
+    time_scale = 1.0;
+
+    runtime = 0.0;
     frameExporter = 0;
     framecount = 0;
     frameskip = 0;
@@ -487,13 +490,19 @@ void Logstalgia::setFrameExporter(FrameExporter* exporter, int video_framerate) 
 }
 
 void Logstalgia::update(float t, float dt) {
-    this->logic(t, dt);
-    this->draw(t, dt);
 
     //if exporting a video use a fixed tick rate rather than time based
     if(frameExporter != 0) {
         dt = fixed_tick_rate;
     }
+
+    dt *= time_scale;
+
+    //have to manage runtime internally as we're messing with dt
+    runtime += dt;
+
+    logic(runtime, dt);
+    draw(runtime, dt);
 
     //extract frames based on frameskip setting
     //if frameExporter defined
