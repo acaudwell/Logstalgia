@@ -33,7 +33,13 @@ logstalgia_SOURCES = \
 
 CPPFLAGS = -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
 
-dist_man_MANS = data/logstalgia.1
+dist_man_MANS = data/logstalgia.1.gz
+
+data/logstalgia.1.gz: data/logstalgia.1
+	$(SED) 's|SDLAPP_RESOURCE_DIR|$(pkgdatadir)|g' $< | gzip -f9 --stdout > $@
+
+clean-local:
+	-rm -rf data/logstalgia.1.gz
 
 dist_pkgdata_DATA = data/ball.tga data/example.log data/glow.tga
 
