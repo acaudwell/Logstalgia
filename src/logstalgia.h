@@ -55,6 +55,7 @@ extern bool  gResponseCode;
 extern bool  gDisableProgress;
 extern float gSplash;
 extern float gStartPosition;
+extern float gStopPosition;
 
 void logstalgia_help();
 void logstalgia_info(std::string msg);

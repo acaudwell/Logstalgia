@@ -46,18 +46,18 @@ logstalgia [options] logfile
 
 options:
 
-    -b       Balls disappear when hit by the paddle instead of bouncing back
+    -b       Balls disappear when hit by the paddle instead of bouncing back.
 
-    -p       Hide paddle
+    -p       Hide paddle.
 
-    -f       Fullscreen
+    -f       Fullscreen.
 
     -WxH     Set the window size. If -f is also supplied, will attempt to
-             set the video mode to this also
+             set the video mode to this also.
 
-    -s       Simulation speed. Defaults to 1 (1 second-per-second)
+    -s       Simulation speed. Defaults to 1 (1 second-per-second).
 
-    -u       Page Summary update speed. Defaults to 5 (5 seconds)
+    -u       Page Summary update speed. Defaults to 5 (5 seconds).
 
     -g name,regex,percent[,colour]
 
@@ -73,13 +73,28 @@ options:
             If there is enough space remaining a catch-all group of Misc
             will appear as the last group.
 
-    -x       Show full request ip/hostname
+    -x       Show full request ip/hostname.
 
     --start-position POSITION
-            Begin at some position in the log file (between 0.0 and 1.0)
+            Begin at some position in the log file (between 0.0 and 1.0).
+
+    --stop-position POSITION
+            Stop at some position.
 
     --disable-progress
-            Disable the progress bar
+            Disable the progress bar.
+
+    --disable-glow
+            Disable the glow effect.
+
+    --glow-duration
+            Duration of the glow (between 0.0 and 1.0).
+
+    --glow-multiplier
+            Adjust the amount of glow.
+
+    --glow-intensity
+            Intensity of the glow.
 
     --output-ppm-stream FILE
         Write frames as PPM to a file (?-? for STDOUT).

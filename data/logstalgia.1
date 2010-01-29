@@ -14,22 +14,22 @@ As \fIlogstalgia\fR is designed to playback logs in real time you will need a lo
 .SH OPTIONS
 .TP 8
 \fB\-b\fR
-Balls disappear when hit by the paddle instead of bouncing back
+Balls disappear when hit by the paddle instead of bouncing back.
 .TP 8
 \fB\-p\fR
-Hide paddle
+Hide paddle.
 .TP
 \fB\-f\fR
-Fullscreen
+Fullscreen.
 .TP
 \fB\-WIDTHxHEIGHT\fR
 Set the window size. If \-f is also supplied, will attempt to set the video mode to this also.
 .TP
 \fB\-s\fR
-Simulation speed. Defaults to 1 (1 second-per-second)
+Simulation speed. Defaults to 1 (1 second-per-second).
 .TP
 \fB\-u\fR
-Page Summary update speed. Defaults to 5 (5 seconds)
+Page Summary update speed. Defaults to 5 (5 seconds).
 .TP
 \fB\-g name,regex,percent[,colour]\fR
 Urls matching the given regex will appear under a new section with the given name using the given percentage of the screen. Colour may optionally be supplied in the common hexadecimal format (eg FF0000 for red)
@@ -39,13 +39,28 @@ If no groups are supplied the default groups are Images (image files), CSS (.css
 If there is enough space remaining a catch-all group of Misc will appear as the last group.
 .TP
 \fB\-x\fR
-Show full request ip/hostname
+Show full request ip/hostname.
 .TP
 \fB\-\-start\-position POSITION\fR
-Begin at some position in the log file (between 0.0 and 1.0)
+Begin at some position in the log file (between 0.0 and 1.0).
+.TP
+\fB\-\-stop\-position POSITION\fR
+Stop at some position.
 .TP
 \fB\-\-disable\-progress\fR
-Disable the progress bar
+Disable the progress bar.
+.TP
+\fB\-\-disable\-glow\fR
+Disable the glow effect.
+.TP
+\fB\-\-glow\-duration\fR
+Duration of the glow (between 0.0 and 1.0).
+.TP
+\fB\-\-glow\-multiplier\fR
+Adjust the amount of glow.
+.TP
+\fB\-\-glow\-intensity\fR
+Intensity of the glow.
 .TP
 \fB\-\-output\-ppm\-stream FILE\fR
 Write frames as PPM to a file ('\-' for STDOUT).

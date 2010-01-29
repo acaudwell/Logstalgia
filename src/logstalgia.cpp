@@ -24,6 +24,7 @@
 
 float gSplash = -1.0f;
 float gStartPosition = 0.0;
+float gStopPosition  = 1.0;
 bool  gDisableProgress = false;
 
 std::string profile_name;
@@ -78,7 +79,8 @@ void logstalgia_help() {
 
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
-    printf("  --start-position POSITION  Begin at some position in the log file (0.0 - 1.0)\n\n");
+    printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
+    printf("  --stop-position  POSITION  Stop at some position\n\n");
 
     printf("  --no-bounce                No bouncing\n\n");
 
@@ -88,9 +90,9 @@ void logstalgia_help() {
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
 
+    printf("  --glow-duration            Duration of the glow (default: 0.15)\n");
     printf("  --glow-multiplier          Adjust the amount of glow (default: 1.25)\n");
     printf("  --glow-intensity           Intensity of the glow (default: 0.5)\n\n");
-    printf("  --glow-duration            Duration of the glow (default: 0.15)\n\n");
 
     printf("  --output-ppm-stream FILE Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  --output-framerate FPS   Framerate of output (25,30,60)\n\n");
@@ -425,10 +427,16 @@ void Logstalgia::readLog() {
         return;
     }
 
-
-    if(!gDisableProgress) {
+    if(seeklog != 0) {
         float percent = seeklog->getPercent();
-        slider.setPercent(percent);
+
+        if(percent > gStopPosition) {
+            appFinished = true;
+            return;
+        }
+
+
+        if(!gDisableProgress) slider.setPercent(percent);
     }
 
     //set start time if currently 0

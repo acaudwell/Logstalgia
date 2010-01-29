@@ -134,6 +134,22 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--stop-position") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify stop-position (0.0 - 1.0)");
+            }
+
+            gStopPosition = atof(arguments[++i].c_str());
+
+            if(gStopPosition<=0.0 || gStopPosition>1.0) {
+                logstalgia_quit("stop-position outside of range 0.0 - 1.0");
+            }
+
+            continue;
+        }
+
+
         //disable progress bar
         if(args == "--disable-progress") {
             gDisableProgress = true;
@@ -159,7 +175,7 @@ int main(int argc, char *argv[]) {
             gGlowDuration = atof(arguments[++i].c_str());
 
             if(gGlowDuration<=0.0 || gGlowDuration>1.0) {
-                logstalgia_quit("invalid glow-intensity value");
+                logstalgia_quit("glow-duration outside of range 0.0 - 1.0");
             }
 
             continue;
