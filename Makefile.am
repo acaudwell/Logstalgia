@@ -3,6 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 bin_PROGRAMS = logstalgia
 
 logstalgia_SOURCES = \
+	src/apache.cpp src/apache.h \
 	src/ball.cpp src/ball.h \
 	src/core/bounds.h \
 	src/core/camera.cpp src/core/camera.h \
@@ -21,6 +22,7 @@ logstalgia_SOURCES = \
 	src/core/stringhash.cpp src/core/stringhash.h \
 	src/core/texture.cpp src/core/texture.h \
 	src/core/vectors.h \
+	src/custom.cpp src/custom.h \
 	src/logentry.cpp src/logentry.h \
 	src/logstalgia.cpp src/logstalgia.h \
 	src/main.cpp src/main.h \
