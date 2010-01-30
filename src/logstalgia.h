@@ -29,6 +29,8 @@
 #include "core/stringhash.h"
 #include "core/seeklog.h"
 
+#include "apache.h"
+#include "custom.h"
 #include "logentry.h"
 #include "paddle.h"
 #include "requestball.h"
@@ -113,6 +115,8 @@ class Logstalgia : public SDLApp {
     std::vector<Summarizer*> summGroups;
 
     PositionSlider slider;
+
+    AccessLog* accesslog;
 
     SeekLog* seeklog;
     StreamLog* streamlog;

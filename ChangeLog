@@ -2,6 +2,7 @@
  * Added seekbar for log files (not available from STDIN).
  * Added glow on impact with paddle (turn off using --disable-glow).
  * PPM output for videos using --output-ppm-stream option.
+ * Custom log file format support.
  * Changed font library to FTGL.
  * --stop-position and --start-position options.
 

@@ -38,7 +38,7 @@ RequestBall::RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f 
     vec2f vel = dest - pos;
     vel.normalize();
 
-    int bytes = le.bytesCount();
+    int bytes = le.response_size;
     float size = log((float)bytes) + 1.0f;
     if(size<5.0f) size = 5.0f;
 
@@ -51,10 +51,10 @@ RequestBall::RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f 
     start = pos;
     this->dest  = finish();
 
-    if(!le.successful()) dontBounce();
+    if(!le.successful) dontBounce();
 
     char buff[16];
-    snprintf(buff, 16, "%d", le.responseCode());
+    snprintf(buff, 16, "%s", le.response_code.c_str());
     response_code = std::string(buff);
 
     response_colour = responseColour();
@@ -64,21 +64,7 @@ RequestBall::~RequestBall() {
 }
 
 vec3f RequestBall::responseColour() {
-    int code = le.responseCode();
-
-    if(code<200) {
-        return vec3f(0.0f, 1.0f, 0.5f);
-    }
-
-    if(code>= 200 && code < 300) {
-        return vec3f(1.0f, 1.0f, 0.0f);
-    }
-
-    if(code>= 300 && code < 400) {
-        return vec3f(1.0f, 0.5f, 0.0f);
-    }
-
-    return vec3f(1.0f, 0.0f, 0.0f);
+    return le.response_colour;
 }
 
 bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
@@ -86,10 +72,10 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
     if((pos - mouse).length2()<36.0f) {
 
         std::vector<std::string> content;
-        content.push_back( std::string("addr:  ") + le.getHostname() );
-        content.push_back( std::string("url:     ") + le.requestURL() );
-        content.push_back( std::string("ref:     ") + le.referrerURL() );
-        content.push_back( std::string("agent: ") + le.userAgent() );
+        content.push_back( std::string("addr:  ") + le.hostname );
+        content.push_back( std::string("url:   ") + le.path );
+        content.push_back( std::string("ref:   ") + le.referrer );
+        content.push_back( std::string("agent: ") + le.user_agent );
 
         textarea.setText(content);
         textarea.setPos(pos);
@@ -178,7 +164,7 @@ void RequestBall::draw(float dt) {
         float prog = progress();
         float drift = prog * 100.0f;
 
-        if(!le.successful()) drift *= -1.0f;
+        if(!le.successful) drift *= -1.0f;
         vec2f msgpos = (vel * drift) + vec2f(dest.x-45.0f, dest.y);
 
         glColor4f(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f) );

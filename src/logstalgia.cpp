@@ -167,10 +167,13 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     frameskip = 0;
     fixed_tick_rate = 0.0;
 
+    accesslog = 0;
+
     debugLog("Logstalgia end of constructor\n");
 }
 
 Logstalgia::~Logstalgia() {
+    if(accesslog!=0) delete accesslog;
     if(paddle!=0) delete paddle;
 
     if(seeklog!=0) delete seeklog;
@@ -305,7 +308,7 @@ std::string Logstalgia::dateAtPosition(float percent) {
 
     std::string date;
 
-    if(seeklog == 0) return date;
+    if(seeklog == 0 || accesslog == 0) return date;
 
     //get line at position
 
@@ -313,13 +316,14 @@ std::string Logstalgia::dateAtPosition(float percent) {
 
     if(percent<1.0 && seeklog->getNextLineAt(linestr, percent)) {
 
-        LogEntry le(linestr);
-        if(le.parsedOK()) {
+        LogEntry le;
+
+        if(accesslog->parseLine(linestr, le)) {
 
             //display date
             char datestr[256];
 
-            long timestamp = le.getTimestamp();
+            long timestamp = le.timestamp;
 
             struct tm* timeinfo = localtime ( &timestamp );
             strftime(datestr, 256, "%H:%M:%S %B %d, %Y", timeinfo);
@@ -348,8 +352,8 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
 
     gHighscore++;
 
-    std::string hostname = le.getHostname();
-    std::string pageurl  = le.requestURL();
+    std::string hostname = le.hostname;
+    std::string pageurl  = le.path;
 
     //find appropriate summarizer for url
     int nogroups = summGroups.size();
@@ -387,6 +391,8 @@ BaseLog* Logstalgia::getLog() {
     return streamlog;
 }
 
+std::string whitespaces (" \t\f\v\n\r");
+
 void Logstalgia::readLog() {
     debugLog("readLog()\n");
 
@@ -397,12 +403,54 @@ void Logstalgia::readLog() {
 
     while( baselog->getNextLine(linestr) ) {
 
-        LogEntry le(linestr);
-        if(le.parsedOK()) {
-            entries.push_back(le);
-            total_entries++;
+        //trim whitespace
+        if(linestr.size()>0) {
+            size_t string_end =
+                linestr.find_last_not_of(whitespaces);
+
+            if(string_end == std::string::npos) {
+                linestr = "";
+            } else if(string_end != linestr.size()-1) {
+                linestr = linestr.substr(0,string_end+1);
+            }
+        }
+
+        LogEntry le;
+
+        //determine format
+        if(accesslog==0) {
+
+            //is this an apache access log?
+            ApacheLog* apachelog = new ApacheLog();
+            if(apachelog->parseLine(linestr, le)) {
+                accesslog = apachelog;
+                entries.push_back(le);
+                total_entries++;
+            } else {
+                delete apachelog;
+            }
+
+            if(accesslog==0) {
+                //is this a custom log?
+                CustomLog* customlog = new CustomLog();
+                if(customlog->parseLine(linestr, le)) {
+                    accesslog = customlog;
+                    entries.push_back(le);
+                    total_entries++;
+                } else {
+                    delete customlog;
+                }
+            }
+
         } else {
-            debugLog("error: could not read line %s\n", linestr.c_str());
+
+            if(accesslog->parseLine(linestr, le)) {
+                entries.push_back(le);
+                total_entries++;
+            } else {
+                debugLog("error: could not read line %s\n", linestr.c_str());
+            }
+
         }
 
         lineno++;
@@ -434,7 +482,8 @@ void Logstalgia::readLog() {
     }
 
     //set start time if currently 0
-    if(starttime==0 && entries.size()) starttime = entries[0].getTimestamp();
+    if(starttime==0 && entries.size())
+        starttime = entries[0].timestamp;
 
     debugLog("end of readLog()\n");
 }
@@ -526,11 +575,11 @@ RequestBall* Logstalgia::findNearest() {
         RequestBall* ball = *it;
 
             //special case if failed response code
-            if(!ball->le.successful()) {
+            if(!ball->le.successful) {
                 continue;
             }
 
-        if(ball->le.successful() && !ball->bounced()) {
+        if(ball->le.successful && !ball->bounced()) {
             float dist = (paddle->getX() - ball->getX())/ball->speed;
             if(min_dist<0.0f || dist<min_dist) {
                 min_dist = dist;
@@ -543,8 +592,8 @@ RequestBall* Logstalgia::findNearest() {
 }
 
 void Logstalgia::removeBall(RequestBall* ball) {
-    std::string url  = ball->le.requestURL();
-    std::string host = ball->le.getHostname();
+    std::string url  = ball->le.path;
+    std::string host = ball->le.hostname;
 
     int nogroups = summGroups.size();
 
@@ -606,7 +655,7 @@ void Logstalgia::logic(float t, float dt) {
         if(entries.size() > 0) {
             LogEntry le = entries[0];
 
-            long entrytime = le.getTimestamp();
+            long entrytime = le.timestamp;
             if(entrytime > currtime) {
                 elapsed_time = entrytime - starttime;
                 currtime = starttime + (long)(elapsed_time);
@@ -620,7 +669,7 @@ void Logstalgia::logic(float t, float dt) {
         profile_start("calc spawn speed");
         int items_to_spawn=-1;
         for(std::deque<LogEntry>::iterator it = entries.begin(); it != entries.end(); it++) {
-            if((*it).getTimestamp() <= currtime) {
+            if((*it).timestamp <= currtime) {
                 items_to_spawn++;
                 continue;
             }
@@ -673,7 +722,7 @@ void Logstalgia::logic(float t, float dt) {
         profile_start("add entries");
 
         LogEntry le = entries[0];
-        if(le.getTimestamp() < currtime) {
+        if(le.timestamp < currtime) {
             addBall(le, -spawn_delay);
 
             entries.pop_front();
@@ -857,6 +906,8 @@ void Logstalgia::draw(float t, float dt) {
     }
 
     profile_start("draw paddle");
+
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     paddle->draw(dt);
 

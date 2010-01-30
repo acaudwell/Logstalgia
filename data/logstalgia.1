@@ -90,6 +90,34 @@ Watch a remote Apache access.log via ssh. The '\-g' option is used here to group
 .ti 10
 ssh user@yourserver.com tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-g "Ad Clicks,/adclick.php,30" -
 
+.SH CUSTOM LOG FORMAT
+
+Logstalgia now supports a pipe ('|') delimited custom log file format:
+
+.ti 10
+timestamp       - unix timestamp of the request date.
+.ti 10
+hostname        - hostname of the request
+.ti 10
+path            - path requested
+.ti 10
+response_code   - the response code from the webserver (eg 200)
+.ti 10
+response_size   - the size of the response in bytes
+
+The following are optional:
+
+.ti 10
+success         - 1 or 0 to indicate if successful
+.ti 10
+response_colour - response colour in hexidecial (#FFFFFF) format
+.ti 10
+referrer url    - the referrer url
+.ti 10
+user_agent      - the user agent
+
+If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
+
 .SH RECORDING VIDEOS
 You can create a video of Logstalgia using the \-\-output\-ppm\-stream option. This creates an uncompressed sequence of
 screenshots in PPM format which can then be processed by another program (such as ffmpeg) to produce a video file.

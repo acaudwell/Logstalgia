@@ -25,6 +25,7 @@
 #include <time.h>
 
 #include "core/sdlapp.h"
+#include "core/vectors.h"
 #include "core/regex.h"
 
 extern bool  gMask;
@@ -32,37 +33,37 @@ extern bool  gMask;
 class LogEntry {
 
 private:
-    bool parse_ok;
-
-    std::string host;
-    std::string user;
-    long timestamp;
-    std::string rtype;
-    std::string file;
-    std::string proto;
-    int code;
-    long bytes;
-    std::string refer;
-    std::string agent;
-
-    int parse(std::string& line);
     std::string maskHostname(std::string hostname);
 public:
     LogEntry();
-    LogEntry(std::string& entry);
-    int  responseCode();
-    long  bytesCount();
-    long  getTimestamp();
-    std::string getHostname();
-    void setHostname(std::string str);
-    std::string getUsername();
-    std::string referrerURL();
-    std::string requestURL();
-    std::string requestType();
-    std::string userAgent();
-    bool successful();
+    bool validate();
 
-    bool parsedOK();
+    void setSuccess();
+    void setResponseColour();
+
+    long timestamp;
+
+    std::string hostname;
+
+    std::string path;
+
+    std::string response_code;
+    long response_size;
+
+    std::string referrer;
+    std::string user_agent;
+
+    vec3f response_colour;
+
+    bool successful;
+};
+
+class AccessLog {
+
+public:
+    AccessLog();
+    virtual ~AccessLog() {};
+    virtual bool parseLine(std::string& line, LogEntry& entry) {};
 
 };
 

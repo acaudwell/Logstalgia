@@ -120,6 +120,26 @@ Watch a remote Apache access.log via ssh. The '-g' option is used here to group 
 
     ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad Clicks,/adclick.php,30" -
 
+
+Custom Log Format:
+
+Logstalgia now supports a pipe ('|') delimited custom log file format:
+
+    timestamp       - unix timestamp of the request date.
+    hostname        - hostname of the request
+    path            - path requested
+    response_code   - the response code from the webserver (eg 200)
+    response_size   - the size of the response in bytes
+
+The following are optional:
+    success         - 1 or 0 to indicate if successful
+    response_colour - response colour in hexidecial (#FFFFFF) format
+    referrer url    - the referrer url
+    user_agent      - the user agent
+
+If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
+
+
 Recording Videos:
 
 You can create a video of Logstalgia using the --output-ppm-stream option. This creates an uncompressed sequence of
@@ -128,6 +148,7 @@ screenshots in PPM format which can then be processed by another program (such a
 The below command line will create a video at 60fps in x264 format, stopping at the end of the log (assumes you have ffmpeg with x264 support):
 
     logstalgia --output-ppm-stream - /var/log/apache2/access.log | ffmpeg -y -b 3000K -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 logstalgia.mp4
+
 
 Interface:
 
