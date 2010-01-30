@@ -25,6 +25,8 @@ TextArea::TextArea(FXFont font) {
     this->font   = font;
     this->corner = vec2f(0.0f,0.0f);
     this->visible = false;
+
+    this->font.dropShadow(true);
 }
 
 TextArea::TextArea(std::vector<std::string>& content, FXFont font, vec3f colour) {
@@ -57,7 +59,7 @@ void TextArea::setText(std::vector<std::string>& content_) {
             s = s.substr(0,80);
         }
 
-        int width = font.getWidth(s) + 4;
+        int width = font.getWidth(s) + 6;
         if(width>rectwidth) rectwidth = width;
         this->content.push_back(s);
     }
@@ -103,11 +105,11 @@ void TextArea::draw() {
     glEnable(GL_TEXTURE_2D);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-    int yinc = 0;
+    int yinc = 2;
 
     std::vector<std::string>::iterator it;
     for(it = content.begin(); it != content.end(); it++) {
-        font.draw((int)corner.x, (int)corner.y+yinc,  (*it).c_str());
+        font.draw((int)corner.x+2, (int)corner.y+yinc,  (*it).c_str());
         yinc += font.getHeight() + 4;
     }
 }
