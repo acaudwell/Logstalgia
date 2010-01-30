@@ -258,13 +258,13 @@ int main(int argc, char *argv[]) {
 
     if(!logfile.size()) logstalgia_quit("no file supplied");
 
-    //wait for data before launching
-    if(logfile.compare("-") == 0) {
+    // wait for a character on the file handle if reading stdin
+    if(logfile == "-") {
 
-        char line[1024];
-        while( fgets(line, sizeof(line), stdin) == NULL ) {
-            SDL_Delay(100);
-        }
+//      logstalgia_quit("--log-format required when reading from STDIN");
+
+        while(std::cin.peek() == EOF && !std::cin.fail()) SDL_Delay(100);
+        std::cin.clear();
     }
 
     //enable vsync
