@@ -125,7 +125,8 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     seeklog       = 0;
     streamlog     = 0;
 
-    if(!logfile.size()) logstalgia_quit("no file supplied");
+    if(!logfile.size())
+        throw SDLAppException("no file supplied");
 
     if(logfile.compare("-")==0) {
 
@@ -137,7 +138,12 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
         buffer_row_count = 500;
 
     } else {
-        seeklog = new SeekLog(logfile);
+        try {
+            seeklog = new SeekLog(logfile);
+
+        } catch(SeekLogException& exception) {
+            throw SDLAppException("unable to read log file");
+        }
 
         //dont buffer
         buffer_row_count = 1;
