@@ -54,16 +54,10 @@ void logstalgia_quit(std::string error) {
 void logstalgia_help() {
 
 #ifdef _WIN32
-    createWindowsConsole();
+    SDLAppCreateWindowsConsole();
 
     //resize window to fit help message
-    if(consoleWindow !=0) {
-        RECT windowRect;
-        if(GetWindowRect(consoleWindow, &windowRect)) {
-            float width = windowRect.right - windowRect.left;
-            MoveWindow(consoleWindow,windowRect.left,windowRect.top,width,700,true);
-        }
-    }
+    SDLAppResizeWindowsConsole(700);
 #endif
 
     printf("Logstalgia v%s\n", LOGSTALGIA_VERSION);
