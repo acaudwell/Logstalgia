@@ -27,6 +27,8 @@
 			<Add library="SDL_image" />
 			<Add library="pcre" />
 		</Linker>
+		<Unit filename="src\apache.cpp" />
+		<Unit filename="src\apache.h" />
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
 		<Unit filename="src\core\bounds.h" />
@@ -60,6 +62,8 @@
 		<Unit filename="src\core\texture.cpp" />
 		<Unit filename="src\core\texture.h" />
 		<Unit filename="src\core\vectors.h" />
+		<Unit filename="src\custom.cpp" />
+		<Unit filename="src\custom.h" />
 		<Unit filename="src\logentry.cpp" />
 		<Unit filename="src\logentry.h" />
 		<Unit filename="src\logstalgia.cpp" />
