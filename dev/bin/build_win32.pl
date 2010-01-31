@@ -44,8 +44,8 @@ doit("mkdir -p $WINBUILD/data/");
 doit("mkdir -p $WINBUILD/data/fonts/");
 
 doit("cp $APP_NAME.exe $WINBUILD");
-doit("cp data/*.png $WINBUILD/data/");
 doit("cp data/*.tga $WINBUILD/data/");
+doit("cp data/example.log $WINBUILD/data/");
 doit("cp data/fonts/*.ttf $WINBUILD/data/fonts/");
 
 dosify('README',    "$WINBUILD/README.txt");
