@@ -10,10 +10,10 @@
 				<Option output="logstalgia" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="data/example.log" />
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-O2" />
 			<Add option="-Dmain=SDL_main" />
 		</Compiler>
 		<Linker>

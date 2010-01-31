@@ -5,6 +5,7 @@
  * Custom log file format support.
  * Changed font library to FTGL.
  * --stop-position and --start-position options.
+ * Open a file selector if no log file supplied (on Windows).
 
 0.9.2:
  * Fixed issue with resource.h.

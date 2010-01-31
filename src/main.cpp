@@ -17,6 +17,31 @@
 
 #include "main.h"
 
+#ifdef _WIN32
+std::string win32LogSelector() {
+    OPENFILENAME ofn;
+
+    char filepath[_MAX_PATH];
+    filepath[0] = '\0';
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = 0;
+    ofn.lpstrFile = filepath;
+    ofn.nMaxFile = sizeof(filepath);
+    ofn.lpstrFilter = "Website Access Log\0*.log\0*.*\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = 0;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = 0;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+    GetOpenFileName(&ofn);
+
+    return std::string(filepath);
+}
+#endif
+
 int main(int argc, char *argv[]) {
 
     //defaults
@@ -255,6 +280,15 @@ int main(int argc, char *argv[]) {
 
         logstalgia_quit(arg_error);
     }
+
+#ifdef _WIN32
+    if(!logfile.size()) {
+        //open file dialog
+        logfile = win32LogSelector();
+
+        if(!logfile.size()) return 0;
+    }
+#endif
 
     if(!logfile.size()) logstalgia_quit("no file supplied");
 
