@@ -1,3 +1,6 @@
+0.9.4:
+ * Fixed STDIN stopping working after the first lot of records.
+
 0.9.3:
  * Added seekbar for log files (not available from STDIN).
  * Added glow on impact with paddle (turn off using --disable-glow).
