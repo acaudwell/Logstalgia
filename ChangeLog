@@ -1,3 +1,6 @@
+0.9.5:
+ * Adjust time scale with <> keys.
+
 0.9.4:
  * Fixed STDIN stopping working after the first lot of records.
 

@@ -165,12 +165,11 @@ requests.
 
 Interactive keyboard commands:
 
-   (q) Debug Information
-   (c) Displays Logstalgia logo
-   (n) Jump forward in time to next log entry.
-   (+) Increase simulation speed.
-   (-) Decrease simulation speed.
-   (ESC) Quit  
+   (C)   Displays Logstalgia logo
+   (N)   Jump forward in time to next log entry
+   (+-)  Adjust simulation speed
+   (<>)  Adjust time scale
+   (ESC) Quit
 
 5. Building Logstalgia
 ======================

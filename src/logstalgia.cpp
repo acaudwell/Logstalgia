@@ -232,7 +232,6 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             if(simu_speed<=29.0f) {
                 simu_speed += 1.0f;
                 recentre=true;
-                setMessage("speed +1");
             }
         }
 
@@ -240,16 +239,28 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             if(simu_speed>=2.0f) {
                 simu_speed -= 1.0f;
                 recentre=true;
-                setMessage("speed -1");
+            }
+        }
+
+        if(e->keysym.sym == SDLK_PERIOD) {
+
+            if(time_scale>=1.0) {
+                time_scale = std::min(4.0f, floorf(time_scale) + 1.0f);
+            } else {
+                time_scale = std::min(1.0f, time_scale * 2.0f);
+            }
+        }
+
+        if(e->keysym.sym == SDLK_COMMA) {
+
+            if(time_scale>1.0) {
+                time_scale = std::max(0.0f, floorf(time_scale) - 1.0f);
+            } else {
+                time_scale = std::max(0.25f, time_scale * 0.5f);
             }
         }
 
 	}
-}
-
-void Logstalgia::setMessage(std::string message) {
-    uimessage       = message;
-    uimessage_timer = 3.0f;
 }
 
 void Logstalgia::reset() {

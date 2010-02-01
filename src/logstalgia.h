@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "0.9.4"
+#define LOGSTALGIA_VERSION "0.9.5"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -147,8 +147,6 @@ class Logstalgia : public SDLApp {
     void removeBall(RequestBall* ball);
     void addGroup(std::string grouptitle, std::string groupregex, int percent = 0, vec3f colour = vec3f(0.0f, 0.0f, 0.0f));
     void togglePause();
-
-    void setMessage(std::string message);
 
     BaseLog* getLog();
 
