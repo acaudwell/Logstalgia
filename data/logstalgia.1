@@ -119,13 +119,11 @@ user_agent      - the user agent
 If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
 
 .SH RECORDING VIDEOS
-You can create a video of Logstalgia using the \-\-output\-ppm\-stream option. This creates an uncompressed sequence of
-screenshots in PPM format which can then be processed by another program (such as ffmpeg) to produce a video file.
 
-The below command line will create a video at 60fps in x264 format, stopping at the end of the log (assumes you have ffmpeg with x264 support):
+See the guide on the homepage for examples of recording videos with Logstalgia:
 
 .ti 10
-logstalgia \-\-output\-ppm\-stream \- /var/log/apache2/access.log | ffmpeg \-y \-b 3000K \-r 60 \-f image2pipe \-vcodec ppm \-i \- \-vcodec libx264 logstalgia.mp4
+http://code.google.com/p/logstalgia/wiki/Videos
 
 .SH INTERFACE
 The time shown in the top left of the screen is set initially from the first log entry read and is incremented according to the simulation speed (\-s).

@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "0.9.5"
+#define LOGSTALGIA_VERSION "0.9.6"
 
 #ifdef _WIN32
 #include "windows.h"

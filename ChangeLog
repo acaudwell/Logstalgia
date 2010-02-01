@@ -1,3 +1,6 @@
+0.9.6:
+ * Defer to homepage for video recording instructions.
+
 0.9.5:
  * Adjust time scale with <> keys.
 
