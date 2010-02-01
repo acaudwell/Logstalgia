@@ -91,7 +91,7 @@ void logstalgia_help() {
     printf("  --output-ppm-stream FILE Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  --output-framerate FPS   Framerate of output (25,30,60)\n\n");
 
-    printf("\nFILE should be a log file or '-' to read STDIN.\n\n");
+    printf("FILE should be a log file or '-' to read STDIN.\n\n");
 
 #ifdef _WIN32
     printf("Press Enter\n");
