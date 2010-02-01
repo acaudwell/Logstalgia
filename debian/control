@@ -11,8 +11,6 @@ Vcs-Git: git://github.com/acaudwell/logstalgia.git
 Package: logstalgia
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Logstalgia
- Web server access log visualization tool.
- .
+Description: web server access log visualizer
  Replay or stream a standard Apache access log (access.log) as an arcade
  game-like simulation.
