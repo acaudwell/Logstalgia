@@ -1,0 +1,39 @@
+This package was debianized by Andrew Caudwell <acaudwell@gmail.com> on
+Mon, 01 Feb 2010 17:08:55 +1300
+
+It was downloaded from http://logstalgia.googlecode.com/
+
+Upstream Author: Andrew Caudwell <acaudwell@gmail.com>
+
+Copyright: 2008 Andrew Caudwell
+
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation; either version
+  3 of the License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+You are free to distribute this software under the terms of the GNU General
+Public License. On Debian systems, the complete text of the GNU General
+Public License can be found in the /usr/share/common-licenses/GPL-3 file.
+
+The files in src/core are from the same author but licensed under the
+revised BSD license. On Debian systems, the complete text of the BSD license
+can be found in the /usr/share/common-licenses/BSD file.
+
+src/ppm.*:
+  Copyright (C) 2009 Johannes Schindelin (johannes.schindelin@gmx.de)
+  Licensed under the GNU General Public License, version 3 or later.
+
+data/fonts/*:
+  Copyright (C) 2002 Free Software Foundation.
+                Primoz Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>
+  Licensed under the GNU General Public License, version 2 or later.
+
