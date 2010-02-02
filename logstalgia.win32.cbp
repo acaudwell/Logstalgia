@@ -13,7 +13,6 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-O2" />
 			<Add option="-Dmain=SDL_main" />
 		</Compiler>
 		<Linker>
