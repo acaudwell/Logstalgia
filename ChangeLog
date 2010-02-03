@@ -1,3 +1,6 @@
+0.9.7:
+ * Added --sync option (start from the next entry received on STDIN).
+
 0.9.6:
  * Defer to homepage for video recording instructions.
 

@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
     float simu_speed  = 1.0f;
     float update_rate = 5.0f;
     bool multisample  = false;
+    bool sync_log = false;
 
     int video_framerate = 60;
     std::string ppm_file_name;
@@ -269,6 +270,12 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--sync") {
+            sync_log = true;
+            if(!logfile.size()) logfile = "-";
+            continue;
+        }
+
         //if given a non option arg treat it as a file, or if it is '-', pass that too (stdin)
         if(args == "-" || args.size() >= 1 && args[0] != '-') {
             logfile = args;
@@ -294,9 +301,6 @@ int main(int argc, char *argv[]) {
 
     // wait for a character on the file handle if reading stdin
     if(logfile == "-") {
-
-//      logstalgia_quit("--log-format required when reading from STDIN");
-
         while(std::cin.peek() == EOF && !std::cin.fail()) SDL_Delay(100);
         std::cin.clear();
     }
@@ -342,6 +346,8 @@ int main(int argc, char *argv[]) {
         for(size_t i=0;i<groupstr.size();i++) {
             ls->addGroup(groupstr[i]);
         }
+
+        if(sync_log) ls->syncLog();
 
         ls->run();
 

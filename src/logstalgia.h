@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "0.9.6"
+#define LOGSTALGIA_VERSION "0.9.7"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -79,6 +79,7 @@ class Logstalgia : public SDLApp {
     bool paused;
     bool recentre;
     bool next;
+    bool sync;
 
     long starttime;
     long currtime;
@@ -160,6 +161,8 @@ public:
     void addGroup(std::string groupstr);
 
     void setFrameExporter(FrameExporter* exporter, int video_framerate);
+
+    void syncLog();
 
     //inherited methods
     void init();

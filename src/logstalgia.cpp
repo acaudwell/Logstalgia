@@ -73,6 +73,7 @@ void logstalgia_help() {
 
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
+    printf("  --sync                     Begin with the next entry received (implies STDIN)\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
     printf("  --stop-position  POSITION  Stop at some position\n\n");
 
@@ -106,6 +107,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     paused     = false;
     recentre   = false;
     next       = false;
+    sync       = false;
 
     this->simu_speed  = simu_speed;
     this->update_rate = update_rate;
@@ -190,6 +192,11 @@ Logstalgia::~Logstalgia() {
         summGroups[i]=0;
     }
 
+}
+
+void Logstalgia::syncLog() {
+    if(streamlog == 0) return;
+    sync = true;
 }
 
 void Logstalgia::togglePause() {
@@ -532,11 +539,20 @@ void Logstalgia::init() {
 
     SDL_ShowCursor(false);
 
-
     //set start position
     if(gStartPosition > 0.0 && gStartPosition < 1.0) {
         seekTo(gStartPosition);
     }
+
+    if(sync && streamlog != 0) {
+        streamlog->sync();
+        entries.clear();
+
+        starttime     = time(0);
+        elapsed_time  = 0;
+        lasttime      = 0;
+    }
+
 }
 
 void Logstalgia::setFrameExporter(FrameExporter* exporter, int video_framerate) {
@@ -668,7 +684,7 @@ void Logstalgia::logic(float t, float dt) {
     currtime = starttime + (long)(elapsed_time);
 
     //next will fast forward clock to the time of the next entry, if the next entry is in the future
-    if(next) {
+    if(next || sync) {
         if(entries.size() > 0) {
             LogEntry le = entries[0];
 
@@ -677,6 +693,7 @@ void Logstalgia::logic(float t, float dt) {
                 elapsed_time = entrytime - starttime;
                 currtime = starttime + (long)(elapsed_time);
             }
+            sync = false;
         }
         next = false;
     }
