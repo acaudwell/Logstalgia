@@ -545,7 +545,7 @@ void Logstalgia::init() {
     }
 
     if(sync && streamlog != 0) {
-        streamlog->sync();
+        streamlog->consume();
         entries.clear();
 
         starttime     = time(0);

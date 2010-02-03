@@ -75,6 +75,8 @@ options:
 
     -x       Show full request ip/hostname.
 
+    --sync  Begin with the next entry received (implies STDIN).
+
     --start-position POSITION
             Begin at some position in the log file (between 0.0 and 1.0).
 
@@ -108,13 +110,17 @@ options:
 
 Examples:
 
-Watch an example access.log file using the default settings:
+Watch an example Apache access.log file using the default settings:
 
     logstalgia data/example.log
 
-Watch the default Apache access.log in real time as new requests come in (requires tail). Note than '-' at the end is required for logstalgia to know it needs to read from STDIN:
+Watch the live Apache access.log, starting from the most recent batch of entries in the log (requires tail). Note than '-' at the end is required for logstalgia to know it needs to read from STDIN:
 
     tail -f /var/log/apache2/access.log | logstalgia -
+
+To follow the log in real time, use the --sync option. This will start reading from the next entry received on STDIN:
+
+    tail -f /var/log/apache2/access.log | logstalgia --sync
 
 Watch a remote Apache access.log via ssh. The '-g' option is used here to group together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks':
 

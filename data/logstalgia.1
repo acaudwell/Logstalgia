@@ -41,6 +41,9 @@ If there is enough space remaining a catch-all group of Misc will appear as the 
 \fB\-x\fR
 Show full request ip/hostname.
 .TP
+\fB\-\-sync\fR
+Begin with the next entry received (implies STDIN).
+.TP
 \fB\-\-start\-position POSITION\fR
 Begin at some position in the log file (between 0.0 and 1.0).
 .TP
@@ -73,17 +76,22 @@ The path to the access log file to read or '\-' if you wish to supply log entrie
 
 .SH EXAMPLES
 
-Watch an example access.log using the default settings:
+Watch an example Apache access.log using the default settings:
 
 .ti 10
 \fIlogstalgia\fR SDLAPP_RESOURCE_DIR/example.log
 
-Watch the default Apache access.log in real time as new requests come in (requires tail). Note than '\-' at the end is required for
+Watch the live Apache access.log, starting from the most recent batch of entries in the log (requires tail). Note than '\-' at the end is required for
 \fIlogstalgia\fR
 to know it needs to read from STDIN:
 
 .ti 10
 tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-
+
+To follow the log in real time, use the \-\-sync option. This will start reading from the next entry received on STDIN:
+
+.ti 10
+tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-\-sync
 
 Watch a remote Apache access.log via ssh. The '\-g' option is used here to group together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks':
 

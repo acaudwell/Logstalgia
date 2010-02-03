@@ -31,8 +31,11 @@ long gSeekLogMaxBufferSize = 104857600;
 
 //BaseLog
 
-int BaseLog::sync() {
-    return stream->sync();
+void BaseLog::consume() {
+
+    while(stream->get() && !stream->fail());
+
+    stream->clear();
 }
 
 //StreamLog

@@ -45,7 +45,7 @@ public:
     virtual bool getNextLine(std::string& line) { return false; };
     virtual bool isFinished() { return false; };
 
-    int sync();
+    void consume();
 };
 
 class StreamLog : public BaseLog {
