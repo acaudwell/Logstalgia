@@ -81,6 +81,16 @@ void Paddle::draw(float dt) {
     glEnable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
 
+    vec2f spos = vec2f(pos.x + 1.0f, pos.y + 1.0f);
+
+    glColor4f(0.0, 0.0, 0.0, 0.7);
+    glBegin(GL_QUADS);
+        glVertex2f(spos.x,spos.y-(height/2));
+        glVertex2f(spos.x,spos.y+(height/2));
+        glVertex2f(spos.x+width,spos.y+(height/2));
+        glVertex2f(spos.x+width,spos.y-(height/2));
+    glEnd();
+
     glColor4fv(colour);
     glBegin(GL_QUADS);
         glVertex2f(pos.x,pos.y-(height/2));
