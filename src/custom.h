@@ -20,10 +20,10 @@
 
 #include "logentry.h"
 
-class CustomLog : public AccessLog {
+class CustomAccessLog : public AccessLog {
 
 public:
-    CustomLog();
+    CustomAccessLog();
     bool parseLine(std::string& line, LogEntry& entry);
 };
 

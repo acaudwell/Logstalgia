@@ -17,11 +17,11 @@
 
 #include "apache.h"
 
-const char* apache_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
-Regex apache_entry_start("^([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
-Regex apache_entry_date("(\\d+)/([A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
-Regex apache_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
-Regex apache_entry_agent(" +\"([^\"]+)\" +\"([^\"]+)\" +\"([^\"]+)\"");
+const char* ls_apache_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
+Regex ls_apache_entry_start("^([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
+Regex ls_apache_entry_date("(\\d+)/([A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
+Regex ls_apache_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
+Regex ls_apache_entry_agent(" +\"([^\"]+)\" +\"([^\"]+)\" +\"([^\"]+)\"");
 
 ApacheLog::ApacheLog() {
 }
@@ -30,7 +30,7 @@ ApacheLog::ApacheLog() {
 bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
 
     std::vector<std::string> matches;
-    apache_entry_start.match(line, &matches);
+    ls_apache_entry_start.match(line, &matches);
 
     if(matches.size()!=4) {
         return 0;
@@ -49,7 +49,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     std::string datestr     = matches[2];
 
     matches.clear();
-    apache_entry_date.match(datestr, &matches);
+    ls_apache_entry_date.match(datestr, &matches);
 
     if(matches.size()!=8) {
         return 0;
@@ -69,7 +69,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
 
     month=0;
     for(int i=0;i<12;i++) {
-        if(strcmp(matches[1].c_str(), apache_months[i])==0) {
+        if(strcmp(matches[1].c_str(), ls_apache_months[i])==0) {
             month=i;
             break;
         }
@@ -86,7 +86,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     entry.timestamp = mktime(&time_str);
 
     matches.clear();
-    apache_entry_request.match(request_str, &matches);
+    ls_apache_entry_request.match(request_str, &matches);
 
     if(matches.size() < 5) {
         return 0;
@@ -102,7 +102,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     if(matches.size() > 5) {
         std::string agentstr = matches[5];
         matches.clear();
-        apache_entry_agent.match(agentstr, &matches);
+        ls_apache_entry_agent.match(agentstr, &matches);
 
         if(matches.size()>1) {
             entry.referrer   = matches[0];

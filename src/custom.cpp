@@ -12,15 +12,15 @@
 
 Regex custom_entry("^([^|]*)\\|([^|]*)\\|([^|]*)\\|([^|]*)\\|([^|]*)(?:\\|([^|]*))?(?:\\|#?([^|]*))?(?:\\|([^|]*))?(?:\\|([^|]*))?$");
 
-CustomLog::CustomLog() {
+CustomAccessLog::CustomAccessLog() {
 }
 
-bool CustomLog::parseLine(std::string& line, LogEntry& entry) {
+bool CustomAccessLog::parseLine(std::string& line, LogEntry& entry) {
 
     std::vector<std::string> matches;
 
     if(!custom_entry.match(line, &matches)) return false;
-debugLog("yes\n");
+
     entry.timestamp = atol(matches[0].c_str());
     entry.hostname  = matches[1];
     entry.path      = matches[2];
