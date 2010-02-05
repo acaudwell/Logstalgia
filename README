@@ -46,18 +46,22 @@ logstalgia [options] logfile
 
 options:
 
-    -b       Balls disappear when hit by the paddle instead of bouncing back.
+    -f      Fullscreen.
 
-    -p       Hide paddle.
+    -WxH    Set the window size. If -f is also supplied, will attempt to
+            set the video mode to this also.
 
-    -f       Fullscreen.
+    -b, --background FFFFFF
+            Background colour in hex.
 
-    -WxH     Set the window size. If -f is also supplied, will attempt to
-             set the video mode to this also.
+    -x, --full-hostnames
+            Show full request ip/hostname.
 
-    -s       Simulation speed. Defaults to 1 (1 second-per-second).
+    -s, --speed
+            Simulation speed. Defaults to 1 (1 second-per-second).
 
-    -u       Page Summary update speed. Defaults to 5 (5 seconds).
+    -u, --update-rate
+            Page Summary update speed. Defaults to 5 (5 seconds).
 
     -g name,regex,percent[,colour]
 
@@ -73,8 +77,6 @@ options:
             If there is enough space remaining a catch-all group of Misc
             will appear as the last group.
 
-    -x       Show full request ip/hostname.
-
     --sync  Begin with the next entry received (implies STDIN).
 
     --start-position POSITION
@@ -82,6 +84,15 @@ options:
 
     --stop-position POSITION
             Stop at some position.
+
+    --no-bounce
+            No bouncing.
+
+    --hide-response-code
+            Hide response code.
+
+    --hide-paddle
+            Hide paddle.
 
     --disable-progress
             Disable the progress bar.
@@ -99,14 +110,14 @@ options:
             Intensity of the glow.
 
     --output-ppm-stream FILE
-        Write frames as PPM to a file (?-? for STDOUT).
+            Write frames as PPM to a file (?-? for STDOUT).
 
     --output-framerate FPS
-        Framerate of output (used with --output-ppm-stream).
+            Framerate of output (used with --output-ppm-stream).
 
     logfile
-        The path to the access log file to read or '-' if you wish to
-        supply log entries via STDIN.
+            The path to the access log file to read or '-' if you wish to
+            supply log entries via STDIN.
 
 Examples:
 

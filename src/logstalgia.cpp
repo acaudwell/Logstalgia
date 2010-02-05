@@ -67,6 +67,8 @@ void logstalgia_help() {
     printf("  -WIDTHxHEIGHT              Set window size\n");
     printf("  -f                         Fullscreen\n\n");
 
+    printf("  -b --background FFFFFF     Background colour in hex\n\n");
+
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --speed                 Simulation speed (default: 1)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
@@ -156,9 +158,15 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     total_entries=0;
 
+    background = vec3f(0.0, 0.0, 0.0);
+
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
     fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
     fontSmall  = fontmanager.grab("FreeMonoBold.ttf", 14);
+
+    fontLarge.dropShadow(true);
+    fontMedium.dropShadow(true);
+    fontSmall.dropShadow(true);
 
     balltex  = texturemanager.grab("ball.tga");
     glowtex = texturemanager.grab("glow.tga");
@@ -456,7 +464,7 @@ void Logstalgia::readLog() {
 
             if(accesslog==0) {
                 //is this a custom log?
-                CustomLog* customlog = new CustomLog();
+                CustomAccessLog* customlog = new CustomAccessLog();
                 if(customlog->parseLine(linestr, le)) {
                     accesslog = customlog;
                     entries.push_back(le);
@@ -553,6 +561,10 @@ void Logstalgia::init() {
         lasttime      = 0;
     }
 
+}
+
+void Logstalgia::setBackground(vec3f background) {
+    this->background = background;
 }
 
 void Logstalgia::setFrameExporter(FrameExporter* exporter, int video_framerate) {
@@ -892,7 +904,9 @@ void Logstalgia::draw(float t, float dt) {
 
     if(!gDisableProgress) slider.logic(dt);
 
+    display.setClearColour(background);
     display.clear();
+
     glDisable(GL_FOG);
 
     display.mode2D();

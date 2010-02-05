@@ -12,12 +12,6 @@ replays or streams a standard web access log (eg access.log) as a retro arcade g
 
 As \fIlogstalgia\fR is designed to playback logs in real time you will need a log from a fairly busy webserver to achieve interesting results (eg 100s of requests each minute).
 .SH OPTIONS
-.TP 8
-\fB\-b\fR
-Balls disappear when hit by the paddle instead of bouncing back.
-.TP 8
-\fB\-p\fR
-Hide paddle.
 .TP
 \fB\-f\fR
 Fullscreen.
@@ -25,10 +19,16 @@ Fullscreen.
 \fB\-WIDTHxHEIGHT\fR
 Set the window size. If \-f is also supplied, will attempt to set the video mode to this also.
 .TP
-\fB\-s\fR
+\fB\-b, \-\-background\fR
+Background colour in hex.
+.TP
+\fB\-x  \-\-full\-hostnames\fR
+Show full request ip/hostname.
+.TP
+\fB\-s, \-\-speed\fR
 Simulation speed. Defaults to 1 (1 second-per-second).
 .TP
-\fB\-u\fR
+\fB\-u, \-\-update\-rate\fR
 Page Summary update speed. Defaults to 5 (5 seconds).
 .TP
 \fB\-g name,regex,percent[,colour]\fR
@@ -38,9 +38,6 @@ If no groups are supplied the default groups are Images (image files), CSS (.css
 
 If there is enough space remaining a catch-all group of Misc will appear as the last group.
 .TP
-\fB\-x\fR
-Show full request ip/hostname.
-.TP
 \fB\-\-sync\fR
 Begin with the next entry received (implies STDIN).
 .TP
@@ -49,6 +46,15 @@ Begin at some position in the log file (between 0.0 and 1.0).
 .TP
 \fB\-\-stop\-position POSITION\fR
 Stop at some position.
+.TP
+\fB\-\-no\-bounce\fR
+No bouncing.
+.TP
+\fB\-\-hide\-response\-code\fR
+Hide response code.
+.TP
+\fB\-\-hide\-paddle\fR
+Hide paddle.
 .TP
 \fB\-\-disable\-progress\fR
 Disable the progress bar.

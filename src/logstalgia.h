@@ -100,6 +100,8 @@ class Logstalgia : public SDLApp {
     int remaining_space;
     int total_entries;
 
+    vec3f background;
+
     TextureResource* balltex;
     TextureResource* glowtex;
 
@@ -163,6 +165,8 @@ public:
     void setFrameExporter(FrameExporter* exporter, int video_framerate);
 
     void syncLog();
+
+    void setBackground(vec3f background);
 
     //inherited methods
     void init();

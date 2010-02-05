@@ -54,6 +54,8 @@ int main(int argc, char *argv[]) {
     bool multisample  = false;
     bool sync_log = false;
 
+    vec3f background = vec3f(0.0, 0.0, 0.0);
+
     int video_framerate = 60;
     std::string ppm_file_name;
 
@@ -125,6 +127,26 @@ int main(int argc, char *argv[]) {
             groupstr.push_back(arguments[++i].c_str());
 
             continue;
+        }
+
+        if(args == "-b" || args == "--background") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify background colour (FFFFFF)");
+            }
+
+            int r,g,b;
+            std::string colstring = arguments[++i];
+
+            if(colstring.size()==6 && sscanf(colstring.c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
+                background = vec3f(r,g,b);
+                background /= 255.0f;
+            } else {
+                logstalgia_quit("invalid colour string");
+            }
+
+            continue;
+
         }
 
         //dont bounce
@@ -346,6 +368,8 @@ int main(int argc, char *argv[]) {
         for(size_t i=0;i<groupstr.size();i++) {
             ls->addGroup(groupstr[i]);
         }
+
+        ls->setBackground(background);
 
         if(sync_log) ls->syncLog();
 
