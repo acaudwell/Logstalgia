@@ -379,6 +379,18 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     }
 }
 
+Regex ls_url_hostname_regex("^http://[^/]+(.+)$");
+
+std::string Logstalgia::filterURLHostname(std::string hostname) {
+    std::vector<std::string> matches;
+
+    if(ls_url_hostname_regex.match(hostname, &matches)) {
+        return matches[0];
+    }
+
+    return hostname;
+}
+
 void Logstalgia::addBall(LogEntry& le, float head_start) {
     debugLog("adding ball for log entry\n");
 
@@ -399,7 +411,10 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
 
     if(pageSummarizer==0) return;
 
+    pageurl = filterURLHostname(pageurl);
+
     float dest_y = pageSummarizer->addString(pageurl);
+
     float pos_y  = ipSummarizer->addString(hostname);
 
     vec2f pos  = vec2f(1, pos_y);
@@ -644,6 +659,9 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
     for(int i=0;i<nogroups;i++) {
         if(summGroups[i]->supportedString(url)) {
+
+            url = filterURLHostname(url);
+
             summGroups[i]->removeString(url);
             break;
         }

@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "0.9.7"
+#define LOGSTALGIA_VERSION "0.9.8"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -136,6 +136,8 @@ class Logstalgia : public SDLApp {
     int framecount;
     int frameskip;
     FrameExporter* frameExporter;
+
+    std::string filterURLHostname(std::string hostname);
 
     std::string dateAtPosition(float percent);
     void seekTo(float percent);

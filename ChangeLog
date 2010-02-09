@@ -1,3 +1,7 @@
+0.9.8:
+ * Filter hostnames from URLs before displaying them.
+ * Fixed command line option documentation.
+
 0.9.7:
  * Added --sync option (start from the next entry received on STDIN).
 

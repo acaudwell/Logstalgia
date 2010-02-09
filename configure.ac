@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(Logstalgia, 0.9.7, [acaudwell@gmail.com])
+AC_INIT(Logstalgia, 0.9.8, [acaudwell@gmail.com])
 AC_CONFIG_SRCDIR([src/main.h])
 
 AM_INIT_AUTOMAKE([dist-bzip2 foreign subdir-objects])
