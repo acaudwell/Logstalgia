@@ -44,8 +44,11 @@ public:
     long timestamp;
 
     std::string hostname;
+    std::string vhost;
 
     std::string path;
+
+    std::string pid;
 
     std::string response_code;
     long response_size;

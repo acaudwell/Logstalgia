@@ -98,6 +98,9 @@ void LogEntry::setResponseColour() {
 }
 
 bool LogEntry::validate() {
+    if(pid == "-") pid = "";
+    if(referrer == "-") referrer = "";
+
     if(hostname.size()==0) return false;
 
     if(gMask) {

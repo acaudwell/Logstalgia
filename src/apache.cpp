@@ -18,10 +18,10 @@
 #include "apache.h"
 
 const char* ls_apache_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
-Regex ls_apache_entry_start("^([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
+Regex ls_apache_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
 Regex ls_apache_entry_date("(\\d+)/([A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
 Regex ls_apache_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
-Regex ls_apache_entry_agent(" +\"([^\"]+)\" +\"([^\"]+)\" +\"([^\"]+)\"");
+Regex ls_apache_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?(?: +\([^ ]+))?");
 
 ApacheLog::ApacheLog() {
 }
@@ -32,12 +32,13 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     std::vector<std::string> matches;
     ls_apache_entry_start.match(line, &matches);
 
-    if(matches.size()!=4) {
+    if(matches.size()!=5) {
         return 0;
     }
 
     //get details
-    entry.hostname = matches[0];
+    entry.vhost    = matches[0];
+    entry.hostname = matches[1];
     //entry.username = matches[1];
 
     //parse timestamp
@@ -45,8 +46,8 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
 
     int day, month, year, hour, minute, second, zone;
 
-    std::string request_str = matches[3];
-    std::string datestr     = matches[2];
+    std::string request_str = matches[4];
+    std::string datestr     = matches[3];
 
     matches.clear();
     ls_apache_entry_date.match(datestr, &matches);
@@ -104,9 +105,10 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
         matches.clear();
         ls_apache_entry_agent.match(agentstr, &matches);
 
-        if(matches.size()>1) {
+        if(matches.size()==3) {
             entry.referrer   = matches[0];
             entry.user_agent = matches[1];
+            entry.pid        = matches[2];
         }
     }
 
