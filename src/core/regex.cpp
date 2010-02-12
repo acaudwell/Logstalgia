@@ -80,11 +80,20 @@ bool Regex::match(std::string& str, std::vector<std::string>* results) {
 
 
     if(results!=0) {
+
         results->clear();
+
+        char* resbuff = new char[str.size()];
+
         for (int i = 1; i < rc; i++) {
-            std::string match(str, ovector[2*i], ovector[2*i+1] - ovector[2*i]);
-            results->push_back(match);
+            resbuff[0] = '\0';
+
+            pcre_copy_substring(str.c_str(), ovector, rc, i, resbuff, str.size());
+
+            results->push_back(std::string(resbuff));
         }
+
+        delete[] resbuff;
     }
 
     return true;
