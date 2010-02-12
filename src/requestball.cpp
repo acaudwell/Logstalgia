@@ -72,10 +72,16 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
     if((pos - mouse).length2()<36.0f) {
 
         std::vector<std::string> content;
-        content.push_back( std::string("addr:  ") + le.hostname );
-        content.push_back( std::string("url:   ") + le.path );
-        content.push_back( std::string("ref:   ") + le.referrer );
-        content.push_back( std::string("agent: ") + le.user_agent );
+
+        content.push_back( std::string( le.path ) );
+        content.push_back( " " );
+
+        if(le.vhost.size()>0) content.push_back( std::string("Virtual-Host: ") + le.vhost );
+
+        content.push_back( std::string("Remote-Host:  ") + le.hostname );
+
+        if(le.referrer.size()>0)   content.push_back( std::string("Referrer:     ") + le.referrer );
+        if(le.user_agent.size()>0) content.push_back( std::string("User-Agent:   ") + le.user_agent );
 
         textarea.setText(content);
         textarea.setPos(pos);
