@@ -77,6 +77,15 @@ options:
             If there is enough space remaining a catch-all group of Misc
             will appear as the last group.
 
+    --paddle-mode MODE
+            Paddle mode (pid, vhost, single).
+
+            vhost  - seperate paddle for each virtual host in the log file.
+
+            pid    - seperate paddle for each process id in the log file.
+
+            single - single paddle (the default).
+
     --sync  Begin with the next entry received (implies STDIN).
 
     --start-position POSITION
@@ -138,6 +147,25 @@ Watch a remote Apache access.log via ssh. The '-g' option is used here to group 
     ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad Clicks,/adclick.php,30" -
 
 
+Supported Apache Log Formats:
+
+Logstalgia supports the following widely used Apache log formats:
+
+Common Log Format (CLF)
+    "%h %l %u %t \"%r\" %>s %b"
+
+Common Log Format with Virtual Host
+    "%v %h %l %u %t \"%r\" %>s %b"
+
+NCSA extended/combined log format
+    "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
+
+NCSA extended/combined log format with Virtual Host
+    "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
+
+Additionally, the process id (%P) or some other identifier, may be included as the last field for use with '--paddle-mode pid', where each pid will have a seperate paddle.
+
+
 Custom Log Format:
 
 Logstalgia now supports a pipe ('|') delimited custom log file format:
@@ -152,7 +180,9 @@ The following are optional:
     success         - 1 or 0 to indicate if successful
     response_colour - response colour in hexidecial (#FFFFFF) format
     referrer url    - the referrer url
-    user_agent      - the user agent
+    user agent      - the user agent
+    virtual host    - the virtual host (to use with --paddle-mode vhost)
+    pid             - process id or some other identifier for the paddle (to use with --paddle-mode pid)
 
 If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
 

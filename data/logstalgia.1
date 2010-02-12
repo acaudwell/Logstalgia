@@ -38,6 +38,15 @@ If no groups are supplied the default groups are Images (image files), CSS (.css
 
 If there is enough space remaining a catch-all group of Misc will appear as the last group.
 .TP
+\fB\-\-paddle\-mode MODE\fR
+Paddle mode (pid, vhost, single).
+
+\fBvhost\fR  \- seperate paddle for each virtual host in the log file.
+
+\fBpid\fR    \- seperate paddle for each process id in the log file.
+
+\fBsingle\fR \- single paddle (the default).
+.TP
 \fB\-\-sync\fR
 Begin with the next entry received (implies STDIN).
 .TP
@@ -104,6 +113,32 @@ Watch a remote Apache access.log via ssh. The '\-g' option is used here to group
 .ti 10
 ssh user@yourserver.com tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-g "Ad Clicks,/adclick.php,30" -
 
+.SH SUPPORTED APACHE LOG FORMATS
+
+Logstalgia supports the following widely used Apache log formats:
+
+.ti 10
+Common Log Format (CLF)
+.ti 10
+    "%h %l %u %t \\"%r\\" %\>s %b"
+
+.ti 10
+Common Log Format with Virtual Host
+.ti 10
+    "%v %h %l %u %t \\"%r\\" %\>s %b"
+
+.ti 10
+NCSA extended/combined log format
+.ti 10
+    "%h %l %u %t \\"%r\\" %\>s %b \\"%{Referer}i\\" \\"%{User-agent}i\\""
+
+.ti 10
+NCSA extended/combined log format with Virtual Host
+.ti 10
+    "%v %h %l %u %t \\"%r\\" %\>s %b \\"%{Referer}i\\" \\"%{User-agent}i\\""
+
+Additionally, the process id (%P) or some other identifier, may be included as the last field for use with '\-\-paddle\-mode pid', where each pid will have a seperate paddle.
+
 .SH CUSTOM LOG FORMAT
 
 Logstalgia now supports a pipe ('|') delimited custom log file format:
@@ -128,7 +163,11 @@ response_colour - response colour in hexidecial (#FFFFFF) format
 .ti 10
 referrer url    - the referrer url
 .ti 10
-user_agent      - the user agent
+user agent      - the user agent
+.ti 10
+virtual host    - the virtual host (to use with \-\-paddle-mode vhost)
+.ti 10
+pid             - process id or some other identifier for the paddle (to use with \-\-paddle-mode pid)
 
 If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
 

@@ -129,6 +129,31 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--paddle-mode") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify paddle-mode (vhost,pid)");
+            }
+
+            std::string paddle_mode = arguments[++i];
+
+            if(paddle_mode == "single") {
+                gPaddleMode = PADDLE_SINGLE;
+
+            } else if(paddle_mode == "pid") {
+                gPaddleMode = PADDLE_PID;
+
+            } else if(paddle_mode == "vhost") {
+                gPaddleMode = PADDLE_VHOST;
+
+            } else {
+                logstalgia_quit("invalid paddle-mode");
+
+            }
+
+            continue;
+        }
+
         if(args == "-b" || args == "--background") {
 
             if((i+1)>=arguments.size()) {
@@ -163,7 +188,7 @@ int main(int argc, char *argv[]) {
 
         //no paddle
         if(args == "--hide-paddle") {
-            gPaddle = false;
+            gPaddleMode = PADDLE_NONE;
             continue;
         }
 

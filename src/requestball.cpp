@@ -84,7 +84,7 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
         if(le.user_agent.size()>0) content.push_back( std::string("User-Agent:   ") + le.user_agent );
 
         textarea.setText(content);
-        textarea.setPos(pos);
+        textarea.setPos(mouse);
         textarea.setColour(colour);
         return true;
     }

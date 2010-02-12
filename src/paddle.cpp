@@ -17,14 +17,19 @@
  
 #include "paddle.h"
 
-bool gPaddle=true;
+int gPaddleMode = PADDLE_SINGLE;
 
-Paddle::Paddle(vec2f pos, vec3f colour) {
+Paddle::Paddle(vec2f pos, vec4f colour, std::string token) {
+    this->token = token;
+    this->token_colour = token.size() > 0 ? colourHash2(token) : vec3f(0.5,0.5,0.5);
+
     this->pos = pos;
-    this->lastcol = vec4f(colour, 1.0f);
+    this->lastcol = colour;
+    this->default_colour = colour;
     this->colour  = lastcol;
     this->width = 10;
     this->height = 50;
+    this->target = 0;
 
     dest_y = -1;
 }
@@ -32,14 +37,18 @@ Paddle::Paddle(vec2f pos, vec3f colour) {
 Paddle::~Paddle() {
 }
 
-void Paddle::moveTo(int y, float eta, vec3f nextcol) {
+void Paddle::moveTo(int y, float eta, vec4f nextcol) {
     this->start_y = (int) this->pos.y;
     this->dest_y = y;
     this->dest_eta = eta;
     this->dest_elapsed = 0.0f;
-    this->nextcol = vec4f(nextcol, 1.0f);
+    this->nextcol = nextcol;
 
     debugLog("move to %d over %.2f\n", dest_y, dest_eta);
+}
+
+bool Paddle::visible() {
+    return colour.w > 0.01;
 }
 
 bool Paddle::moving() {
@@ -52,6 +61,43 @@ float Paddle::getY() {
 
 float Paddle::getX() {
     return pos.x;
+}
+
+RequestBall* Paddle::getTarget() {
+    return target;
+}
+
+void Paddle::setTarget(RequestBall* target) {
+    this->target = target;
+
+    if(target==0) {
+        moveTo(display.height/2, 4, default_colour);
+        return;
+    }
+
+    vec2f dest = target->finish();
+    vec4f col  = (gPaddleMode == PADDLE_VHOST || gPaddleMode == PADDLE_PID)  ?
+        vec4f(token_colour,1.0) : vec4f(target->colour, 1.0f);
+
+    moveTo((int)dest.y, target->arrivalTime(), col);
+}
+
+bool Paddle::mouseOver(TextArea& textarea, vec2f& mouse) {
+
+    if(pos.x <= mouse.x && pos.x + width >= mouse.x && abs(pos.y - mouse.y) < height/2) {
+
+        std::vector<std::string> content;
+
+        content.push_back( token );
+
+        textarea.setText(content);
+        textarea.setPos(mouse);
+        textarea.setColour(colour.truncate());
+
+        return true;
+    }
+
+    return false;
 }
 
 void Paddle::logic(float dt) {
@@ -75,21 +121,22 @@ void Paddle::logic(float dt) {
     }
 }
 
-void Paddle::draw(float dt) {
-    if(!gPaddle) return;
-
-    glEnable(GL_BLEND);
-    glDisable(GL_TEXTURE_2D);
+void Paddle::drawShadow() {
+    if(!gPaddleMode) return;
 
     vec2f spos = vec2f(pos.x + 1.0f, pos.y + 1.0f);
 
-    glColor4f(0.0, 0.0, 0.0, 0.7);
+    glColor4f(0.0, 0.0, 0.0, 0.7 * colour.w);
     glBegin(GL_QUADS);
         glVertex2f(spos.x,spos.y-(height/2));
         glVertex2f(spos.x,spos.y+(height/2));
         glVertex2f(spos.x+width,spos.y+(height/2));
         glVertex2f(spos.x+width,spos.y-(height/2));
     glEnd();
+}
+
+void Paddle::draw() {
+    if(!gPaddleMode) return;
 
     glColor4fv(colour);
     glBegin(GL_QUADS);

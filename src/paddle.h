@@ -20,14 +20,29 @@
 
 #include "core/vectors.h"
 #include "core/sdlapp.h"
+#include "core/stringhash.h"
 
-extern bool gPaddle;
+#include "requestball.h"
+
+#define PADDLE_NONE   0
+#define PADDLE_SINGLE 1
+#define PADDLE_PID    2
+#define PADDLE_VHOST  3
+
+extern int gPaddleMode;
 
 class Paddle {
 
 protected:
     vec2f pos;
 
+    RequestBall* target;
+
+    std::string token;
+    vec3f token_colour;
+
+    vec4f default_colour;
+    vec4f proc_colour;
     vec4f colour;
     vec4f lastcol;
     vec4f nextcol;
@@ -40,12 +55,22 @@ protected:
     float dest_elapsed;
 
 public:
-    Paddle(vec2f pos, vec3f colour);
+    Paddle(vec2f pos, vec4f colour, std::string token);
     ~Paddle();
-    void moveTo(int y, float eta, vec3f nextcol);
+    void moveTo(int y, float eta, vec4f nextcol);
     bool moving();
+    bool visible();
+
+    void setTarget(RequestBall* target);
+    RequestBall* getTarget();
+
     void logic(float dt);
-    void draw(float dt);
+
+    bool mouseOver(TextArea& textarea, vec2f& mouse);
+
+    void drawShadow();
+    void draw();
+
     float getX();
     float getY();
 };

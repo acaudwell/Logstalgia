@@ -55,8 +55,8 @@ void TextArea::setText(std::vector<std::string>& content_) {
     for(it = content_.begin(); it != content_.end(); it++) {
         std::string s = *it;
 
-        if(s.size() > 80) {
-            s = s.substr(0,80);
+        if(s.size() > 100) {
+            s = s.substr(0,100);
         }
 
         int width = font.getWidth(s) + 6;

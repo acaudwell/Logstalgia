@@ -25,6 +25,7 @@
 float gSplash = -1.0f;
 float gStartPosition = 0.0;
 float gStopPosition  = 1.0;
+
 bool  gDisableProgress = false;
 
 std::string profile_name;
@@ -75,6 +76,8 @@ void logstalgia_help() {
 
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
+    printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n\n");
+
     printf("  --sync                     Begin with the next entry received (implies STDIN)\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
     printf("  --stop-position  POSITION  Stop at some position\n\n");
@@ -122,9 +125,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     uimessage_timer=0.0f;
 
-    paddle        = 0;
     ipSummarizer  = 0;
-    paddle_target = 0;
 
     seeklog       = 0;
     streamlog     = 0;
@@ -171,7 +172,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     balltex  = texturemanager.grab("ball.tga");
     glowtex = texturemanager.grab("glow.tga");
 
-    infowindow = TextArea(fontMedium);
+    infowindow = TextArea(fontSmall);
 
     mousehide_timeout = 0.0f;
 
@@ -185,12 +186,19 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     accesslog = 0;
 
+    paddle_colour = (gPaddleMode > PADDLE_SINGLE) ?
+        vec4f(0.0f, 0.0f, 0.0f, 0.0f) : vec4f(0.5, 0.5, 0.5, 1.0);
+
     debugLog("Logstalgia end of constructor\n");
 }
 
 Logstalgia::~Logstalgia() {
     if(accesslog!=0) delete accesslog;
-    if(paddle!=0) delete paddle;
+
+    for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+        delete it->second;
+    }
+    paddles.clear();
 
     if(seeklog!=0) delete seeklog;
     if(streamlog!=0) delete streamlog;
@@ -282,6 +290,17 @@ void Logstalgia::reset() {
 
     gHighscore = 0;
 
+    for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+        delete it->second;
+    }
+    paddles.clear();
+
+    if(gPaddleMode <= PADDLE_SINGLE) {
+        vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
+        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
+        paddles[""] = paddle;
+    }
+
     for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
         removeBall(*it);
     }
@@ -293,8 +312,6 @@ void Logstalgia::reset() {
     for(size_t i=0;i<summGroups.size();i++) {
         summGroups[i]->recalc_display();
     }
-
-    paddle_target = 0;
 
     entries.clear();
 
@@ -411,6 +428,25 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
 
     if(pageSummarizer==0) return;
 
+    Paddle* entry_paddle = 0;
+
+    if(gPaddleMode > PADDLE_SINGLE) {
+
+        std::string paddle_token = (gPaddleMode == PADDLE_VHOST) ? le.vhost : le.pid;
+
+        entry_paddle = paddles[paddle_token];
+
+        if(entry_paddle == 0) {
+            vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
+            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
+            entry_paddle = paddles[paddle_token] = paddle;
+        }
+
+    } else {
+        entry_paddle = paddles[""];
+    }
+
+
     pageurl = filterURLHostname(pageurl);
 
     float dest_y = pageSummarizer->addString(pageurl);
@@ -418,7 +454,7 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
     float pos_y  = ipSummarizer->addString(hostname);
 
     vec2f pos  = vec2f(1, pos_y);
-    vec2f dest = vec2f(paddle->getX(), dest_y);
+    vec2f dest = vec2f(entry_paddle->getX(), dest_y);
 
     std::string match = ipSummarizer->getBestMatchStr(hostname);
 
@@ -538,9 +574,6 @@ void Logstalgia::readLog() {
 void Logstalgia::init() {
     debugLog("init called\n");
 
-    vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
-    paddle = new Paddle(paddle_pos, vec3f(0.5f, 0.5f, 0.5f));
-
     ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f);
 
     reset();
@@ -626,20 +659,25 @@ void Logstalgia::update(float t, float dt) {
    framecount++;
 }
 
-RequestBall* Logstalgia::findNearest() {
-    std::list<RequestBall*>::iterator it = balls.begin();
+RequestBall* Logstalgia::findNearest(Paddle* paddle, std::string paddle_token) {
 
     float min_dist = -1.0f;
     RequestBall* nearest = 0;
+
     for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
         RequestBall* ball = *it;
 
-            //special case if failed response code
-            if(!ball->le.successful) {
-                continue;
-            }
+        //special case if failed response code
+        if(!ball->le.successful) {
+            continue;
+        }
 
-        if(ball->le.successful && !ball->bounced()) {
+        if(ball->le.successful && !ball->bounced()
+            && (gPaddleMode <= PADDLE_SINGLE 
+                || gPaddleMode == PADDLE_VHOST && ball->le.vhost == paddle_token
+                || gPaddleMode == PADDLE_PID   && ball->le.pid   == paddle_token
+               )
+            ) {
             float dist = (paddle->getX() - ball->getX())/ball->speed;
             if(min_dist<0.0f || dist<min_dist) {
                 min_dist = dist;
@@ -689,6 +727,15 @@ void Logstalgia::logic(float t, float dt) {
     //if paused, dont move anything, only check what is under mouse
     if(paused) {
 
+        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+            std::string paddle_token = it->first;
+            Paddle*           paddle = it->second;
+
+            if(paddle->mouseOver(infowindow, mousepos)) {
+                break;
+            }
+        }
+
         for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
             RequestBall* ball = *it;
             if(ball->mouseOver(infowindow, mousepos)) {
@@ -696,13 +743,10 @@ void Logstalgia::logic(float t, float dt) {
             }
         }
 
-        if(paused) {
-
-            if(!ipSummarizer->mouseOver(infowindow,mousepos)) {
-                int nogrps = summGroups.size();
-                for(int i=0;i<nogrps;i++) {
-                    if(summGroups[i]->mouseOver(infowindow, mousepos)) break;
-                }
+        if(!ipSummarizer->mouseOver(infowindow,mousepos)) {
+            int nogrps = summGroups.size();
+            for(int i=0;i<nogrps;i++) {
+                if(summGroups[i]->mouseOver(infowindow, mousepos)) break;
             }
         }
 
@@ -758,29 +802,6 @@ void Logstalgia::logic(float t, float dt) {
 
     lasttime=currtime;
 
-    if((recentre || !paddle->moving()) && balls.size()>0) {
-        profile_start("findNearest");
-
-        recentre=false;
-
-        RequestBall* ball = findNearest();
-
-        if(ball!=0 && !(paddle->moving() && paddle_target == ball)) {
-            paddle_target = ball;
-            vec2f dest = ball->finish();
-
-            paddle->moveTo((int)dest.y, ball->arrivalTime(), ball->colour);
-        }
-
-        profile_stop();
-    }
-
-    //if still not moving, recentre
-    if(!paddle->moving()) {
-        recentre=true;
-        paddle->moveTo(display.height/2, 4, vec3f(0.5f, 0.5f, 0.5f));
-    }
-
     //see if entries show appear
     if(entries.size() > 0 && spawn_delay<=0) {
         profile_start("add entries");
@@ -808,7 +829,60 @@ void Logstalgia::logic(float t, float dt) {
 
     spawn_delay -= sdt;
 
-    paddle->logic(sdt);
+    std::list<Paddle*> inactivePaddles;
+
+    //update paddles
+    for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+
+        std::string paddle_token = it->first;
+        Paddle*           paddle = it->second;
+
+        if(gPaddleMode > PADDLE_SINGLE && !paddle->moving() && !paddle->visible()) {
+
+            bool token_match = false;
+
+            //are there any requests that will match this paddle?
+            for(std::list<RequestBall*>::iterator bit = balls.begin(); bit != balls.end();bit++) {
+
+                RequestBall* ball = *bit;
+
+                if(   gPaddleMode == PADDLE_VHOST && ball->le.vhost == paddle_token
+                   || gPaddleMode == PADDLE_PID   && ball->le.pid   == paddle_token) {
+                    token_match = true;
+                    break;
+                }
+            }
+
+            //mark this paddle for deletion, continue
+            if(!token_match) {
+                inactivePaddles.push_back(paddle);
+                continue;
+            }
+        }
+
+        // find nearest ball to this paddle
+        if((recentre || !paddle->moving()) && balls.size()>0) {
+
+            recentre=false;
+
+            RequestBall* ball = findNearest(paddle, paddle_token);
+
+            if(ball!=0 && !(paddle->moving() && paddle->getTarget() == ball)) {
+                paddle->setTarget(ball);
+            }
+
+        }
+
+        //if still not moving, recentre
+        if(!paddle->moving()) {
+            recentre=true;
+            paddle->setTarget(0);
+        }
+
+        it->second->logic(sdt);
+    }
+
+    recentre = false;
 
     profile_start("check ball status");
 
@@ -957,6 +1031,28 @@ void Logstalgia::draw(float t, float dt) {
 
     profile_stop();
 
+    profile_start("draw paddle(s)");
+
+    glDisable(GL_TEXTURE_2D);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
+    if(gPaddleMode != PADDLE_NONE) {
+
+        //draw paddles shadows
+        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+            it->second->drawShadow();
+        }
+
+        //draw paddles
+        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+            it->second->draw();
+        }
+
+    }
+
+    profile_stop();
+
     if(!gDisableGlow) {
 
         glBlendFunc (GL_ONE, GL_ONE);
@@ -970,14 +1066,6 @@ void Logstalgia::draw(float t, float dt) {
             (*it)->drawGlow();
         }
     }
-
-    profile_start("draw paddle");
-
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    paddle->draw(dt);
-
-    profile_stop();
 
     infowindow.draw();
 
@@ -1036,6 +1124,7 @@ void Logstalgia::draw(float t, float dt) {
     if(info) {
         fontMedium.print(2,2, "FPS %d", (int) fps);
         fontMedium.print(2,19,"Balls %03d", balls.size());
+        fontMedium.print(2,49,"Paddles %03d", paddles.size());
     } else {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());

@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "0.9.8"
+#define LOGSTALGIA_VERSION "0.9.9"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -46,13 +46,13 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include <map>
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
 
 extern int   gHighscore;
 extern bool  gBounce;
-extern bool  gPaddle;
 extern bool  gResponseCode;
 extern bool  gDisableProgress;
 extern float gSplash;
@@ -66,7 +66,7 @@ void logstalgia_help(std::string error);
 
 class Logstalgia : public SDLApp {
 
-    Paddle* paddle;
+    std::map<std::string,Paddle*> paddles;
 
     int buffer_row_count;
 
@@ -101,6 +101,7 @@ class Logstalgia : public SDLApp {
     int total_entries;
 
     vec3f background;
+    vec4f paddle_colour;
 
     TextureResource* balltex;
     TextureResource* glowtex;
@@ -144,7 +145,7 @@ class Logstalgia : public SDLApp {
 
     void readLog();
 
-    RequestBall* findNearest();
+    RequestBall* findNearest(Paddle* paddle, std::string paddle_proc);
     void updateGroups(float dt);
     void drawGroups(float dt);
 
