@@ -28,15 +28,17 @@
 #ifndef STRINGHASH_H
 #define STRINGHASH_H
 
+#include <stdlib.h>
 #include <string>
 
 #include "vectors.h"
 
 //basic string hash algorithm
-int stringHash(std::string& str);
-vec2f vec2Hash(std::string& str);
-vec3f vec3Hash(std::string& str);
-vec3f colourHash(std::string& str);
-vec3f stylizedColourHash(std::string& str);
+int   intHash(int key);
+int   stringHash(const std::string& str);
+vec2f vec2Hash(const std::string& str);
+vec3f vec3Hash(const std::string& str);
+vec3f colourHash(const std::string& str);
+vec3f colourHash2(const std::string& str);
 
 #endif

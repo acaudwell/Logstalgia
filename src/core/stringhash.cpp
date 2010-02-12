@@ -27,7 +27,7 @@
 
 #include "stringhash.h"
 
-int stringHash(std::string& str) {
+int stringHash(const std::string& str) {
 
     int val = 0;
     int n = str.size();
@@ -55,7 +55,7 @@ int stringHash(std::string& str) {
     return val;
 }
 
-vec2f vec2Hash(std::string& str) {
+vec2f vec2Hash(const std::string& str) {
     int hash = stringHash(str);
 
     int x = ((hash/7) % 255) - 127;
@@ -67,7 +67,7 @@ vec2f vec2Hash(std::string& str) {
     return v;
 }
 
-vec3f vec3Hash(std::string& str) {
+vec3f vec3Hash(const std::string& str) {
     int hash = stringHash(str);
 
     int x = ((hash/7) % 255) - 127;
@@ -80,7 +80,31 @@ vec3f vec3Hash(std::string& str) {
     return v;
 }
 
-vec3f colourHash(std::string& str) {
+//http://www.concentric.net/~Ttwang/tech/inthash.htm
+int intHash(int key) {
+    key = (key << 15) - key - 1;
+    key = key ^ (key >> 12);
+    key = key + (key << 2);
+    key = key ^ (key >> 4);
+    key = (key + (key << 3)) + (key << 11);
+    key = key ^ (key >> 16);
+    return key;
+}
+
+vec3f colourHash2(const std::string& str) {
+    int hash = stringHash(str);
+
+    int r = abs(intHash(hash*7)) % 255;
+    int g = abs(intHash(hash*3)) % 255;
+    int b = abs(intHash(hash))   % 255;
+
+    vec3f colour = vec3f(r, g, b);
+    colour.normalize();
+
+    return colour;
+}
+
+vec3f colourHash(const std::string& str) {
     int hash = stringHash(str);
 
     int r = (hash/7) % 255;
@@ -95,23 +119,3 @@ vec3f colourHash(std::string& str) {
     return colour;
 }
 
-vec3f stylizedColourHash(std::string& str) {
-    vec3f colour = colourHash(str);
-
-    vec3f colourc;
-
-    //how red
-    float z = colour.z;
-    float t = 0.5;
-
-    if(z <= t) {
-        float zp = z/t;
-
-        colourc = vec3f(1.0, 1.0, 1.0) * zp + vec3f(0.6, 0.6, 0.6) * (1.0 - zp);
-    } else {
-        float zp = (z-t)/(1.0 - t);
-        colourc = vec3f(1.0, 0.0, 0.0) * zp + vec3f(1.0, 1.0, 1.0) * (1.0 - zp);
-    }
-
-    return colour * 0.1 + colourc * 0.9;
-}
