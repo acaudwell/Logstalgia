@@ -1,6 +1,6 @@
 0.9.9:
  * Support for more common Apache access log formats.
- * Added --paddle-mode (vhost,pid,single). Spawn seperate paddles.
+ * Added --paddle-mode (vhost,pid,single). Spawn separate paddles.
 
 0.9.8:
  * Added --background option to control the background colour.
