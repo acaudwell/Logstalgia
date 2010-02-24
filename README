@@ -18,19 +18,21 @@ Contents
 1. Description
 ==============
 
-Logstalgia is a visualization tool that replays or streams website access logs as a retro arcade game simulation.
-
-Currently Logstalgia supports the Apache combined access log format used by apache webservers.
+Logstalgia is a visualization tool that replays or streams web server access
+logs as a retro arcade game simulation.
 
 2. Requirements
 ===============
 
-Logstalgia's display is rendered using OpenGL and requires a 3D
-accelerated video card to run.
+Logstalgia's display is rendered using OpenGL and requires a 3D accelerated
+video card to run.
 
-As Logstalgia is designed to playback logs in real time you will
-need a log from a fairly  busy  webserver to achieve interesting
-results (eg 100s of requests each minute).
+Currently Logstalgia supports several access.log formats used by
+Apache web servers (common/custom format).
+
+As Logstalgia is designed to playback logs in real time you will need a log from
+a fairly  busy  webserver to achieve interesting results (eg 100s of requests
+each minute).
 
 3. Using Logstalgia
 ===================
@@ -127,18 +129,20 @@ Watch an example Apache access.log file using the default settings:
 
     logstalgia data/example.log
 
-Watch the live Apache access.log, starting from the most recent batch of entries in the log (requires tail). Note than '-' at the end is required for logstalgia to know it needs to read from STDIN:
+Watch the live Apache access.log, starting from the most recent batch of entries
+in the log (requires tail). Note than '-' at the end is required for logstalgia 
+to know it needs to read from STDIN:
 
     tail -f /var/log/apache2/access.log | logstalgia -
 
-To follow the log in real time, use the --sync option. This will start reading from the next entry received on STDIN:
+To follow the log in real time, use the --sync option. This will start reading
+from the next entry received on STDIN:
 
     tail -f /var/log/apache2/access.log | logstalgia --sync
 
-Watch a remote Apache access.log via ssh. The '-g' option is used here to group together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks':
+Watch a remote Apache access.log via ssh:
 
-    ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad Clicks,/adclick.php,30" -
-
+    ssh user@example.com tail -f /var/log/apache2/access.log | logstalgia --sync
 
 Supported Apache Log Formats:
 
@@ -156,7 +160,9 @@ NCSA extended/combined log format
 NCSA extended/combined log format with Virtual Host
     "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
 
-Additionally, the process id (%P) or some other identifier, may be included as the last field for use with '--paddle-mode pid', where each pid will have a seperate paddle.
+The process id (%P), or some other identifier, may be included as an additional
+field at the end of the entry. This can be used with '--paddle-mode pid', where
+entries will use separate paddles grouped by their identifier.
 
 
 Custom Log Format:
@@ -175,9 +181,10 @@ The following are optional:
     referrer url    - the referrer url
     user agent      - the user agent
     virtual host    - the virtual host (to use with --paddle-mode vhost)
-    pid             - process id or some other identifier for the paddle (to use with --paddle-mode pid)
+    pid             - process id or some other identifier (--paddle-mode pid)
 
-If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
+If success or response_colour are not provided, they will be derived from the
+response_code using the normal HTTP conventions (code < 400 = success).
 
 
 Recording Videos:
@@ -188,16 +195,14 @@ See the guide on the homepage for examples of recording videos with Logstalgia:
 
 Interface:
 
-The time shown in the top left of the screen is set initially from the
-first log entry read and is incremented according to the simulation
-speed (-s).
+The time shown in the top left of the screen is set initially from the first log
+entry read and is incremented according to the simulation speed (-s).
 
-The counter in the bottom right hand corner shows the number of
-requests displayed since the start of the current session.
+The counter in the bottom right hand corner shows the number of requests
+displayed since the start of the current session.
 
-Pressing space at any time will pause/unpause the simulation. While
-paused you may use the mouse to inspect the detail of individual
-requests.
+Pressing space at any time will pause/unpause the simulation. While paused you
+may use the mouse to inspect the detail of individual requests.
 
 Interactive keyboard commands:
 

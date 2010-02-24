@@ -6,9 +6,11 @@ Logstalgia -  a web server access log visualization tool
 [\-f] [\-WIDTHxHEIGHT] [options] logfile
 .SH DESCRIPTION
 \fIlogstalgia\fR
-replays or streams a standard web access log (eg access.log) as a retro arcade game-like simulation.
+is a visualization tool that replays or streams web server access logs as a retro arcade game simulation.
 .SH REQUIREMENTS
 \fIlogstalgia\fR's display is rendered using OpenGL and requires a 3D accelerated video card to run.
+
+Currently \fIlogstalgia\fR supports several access.log formats used by Apache web servers (common/custom format).
 
 As \fIlogstalgia\fR is designed to playback logs in real time you will need a log from a fairly busy webserver to achieve interesting results (eg 100s of requests each minute).
 .SH OPTIONS
@@ -108,10 +110,10 @@ To follow the log in real time, use the \-\-sync option. This will start reading
 .ti 10
 tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-\-sync
 
-Watch a remote Apache access.log via ssh. The '\-g' option is used here to group together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks':
+Watch a remote Apache access.log via ssh:
 
 .ti 10
-ssh user@yourserver.com tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-g "Ad Clicks,/adclick.php,30" -
+ssh user@example.com tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-\-sync
 
 .SH SUPPORTED APACHE LOG FORMATS
 
@@ -137,7 +139,7 @@ NCSA extended/combined log format with Virtual Host
 .ti 10
     "%v %h %l %u %t \\"%r\\" %\>s %b \\"%{Referer}i\\" \\"%{User-agent}i\\""
 
-Additionally, the process id (%P) or some other identifier, may be included as the last field for use with '\-\-paddle\-mode pid', where each pid will have a seperate paddle.
+The process id (%P), or some other identifier, may be included as an additional field at the end of the entry. This can be used with '\-\-paddle\-mode pid', where entries will use separate paddles grouped by their identifier.
 
 .SH CUSTOM LOG FORMAT
 
@@ -167,7 +169,7 @@ user agent      - the user agent
 .ti 10
 virtual host    - the virtual host (to use with \-\-paddle-mode vhost)
 .ti 10
-pid             - process id or some other identifier for the paddle (to use with \-\-paddle-mode pid)
+pid             - process id or some other identifier (\-\-paddle-mode pid)
 
 If success or response_colour are not provided, they will be derived from the response_code using the normal HTTP conventions (code < 400 = success).
 
