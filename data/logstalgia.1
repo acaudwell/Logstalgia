@@ -43,9 +43,9 @@ If there is enough space remaining a catch-all group of Misc will appear as the 
 \fB\-\-paddle\-mode MODE\fR
 Paddle mode (pid, vhost, single).
 
-\fBvhost\fR  \- seperate paddle for each virtual host in the log file.
+\fBvhost\fR  \- separate paddle for each virtual host in the log file.
 
-\fBpid\fR    \- seperate paddle for each process id in the log file.
+\fBpid\fR    \- separate paddle for each process id in the log file.
 
 \fBsingle\fR \- single paddle (the default).
 .TP
@@ -139,7 +139,7 @@ NCSA extended/combined log format with Virtual Host
 .ti 10
     "%v %h %l %u %t \\"%r\\" %\>s %b \\"%{Referer}i\\" \\"%{User-agent}i\\""
 
-The process id (%P), or some other identifier, may be included as an additional field at the end of the entry. This can be used with '\-\-paddle\-mode pid', where entries will use separate paddles grouped by their identifier.
+The process id (%P), or some other identifier, may be included as an additional field at the end of the entry. This can be used with '\-\-paddle\-mode pid' where a separate paddle will be created for each unique value in this field.
 
 .SH CUSTOM LOG FORMAT
 

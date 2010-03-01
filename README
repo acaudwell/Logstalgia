@@ -75,9 +75,9 @@ options:
     --paddle-mode MODE
             Paddle mode (pid, vhost, single).
 
-            vhost  - seperate paddle for each virtual host in the log file.
+            vhost  - separate paddle for each virtual host in the log file.
 
-            pid    - seperate paddle for each process id in the log file.
+            pid    - separate paddle for each process id in the log file.
 
             single - single paddle (the default).
 
@@ -161,8 +161,8 @@ NCSA extended/combined log format with Virtual Host
     "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
 
 The process id (%P), or some other identifier, may be included as an additional
-field at the end of the entry. This can be used with '--paddle-mode pid', where
-entries will use separate paddles grouped by their identifier.
+field at the end of the entry. This can be used with '--paddle-mode pid' where
+a separate paddle will be created for each unique value in this field.
 
 
 Custom Log Format:
