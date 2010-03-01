@@ -90,8 +90,9 @@ void TextArea::setPos(vec2f pos) {
 void TextArea::draw() {
     if(!visible) return;
 
-	glDisable(GL_TEXTURE_2D);
-   	glEnable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     vec4f col(colour, 0.2f);
     glColor4fv(col);
