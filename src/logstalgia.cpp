@@ -928,7 +928,7 @@ void Logstalgia::logic(float t, float dt) {
     font_alpha = 1.0f;
 
     if(screen_blank_elapsed>screen_blank_interval) {
-        font_alpha = std::min(1.0, fabs(1.0f - (screen_blank_elapsed-screen_blank_interval)/(screen_blank_period*0.5)));
+        font_alpha = std::min(1.0f, (float) fabs(1.0f - (screen_blank_elapsed-screen_blank_interval)/(screen_blank_period*0.5)));
         font_alpha *= font_alpha;
     }
 }
