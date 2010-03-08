@@ -376,8 +376,8 @@ void SummItem::logic(float dt) {
     }
 }
 
-void SummItem::draw() {
-    glColor4fv(colour);
+void SummItem::draw(float alpha) {
+    glColor4f(colour.x, colour.y, colour.z, colour.w * alpha);
     font.draw((int)pos.x, (int)pos.y, displaystr.c_str());
 }
 
@@ -641,19 +641,19 @@ void Summarizer::logic(float dt) {
     }
 }
 
-void Summarizer::draw(float dt) {
+void Summarizer::draw(float dt, float alpha) {
    	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
 
     if(title.size()) {
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glColor4f(1.0f, 1.0f, 1.0f, alpha);
         font.draw((int)pos_x, (int)(top_gap - font_gap), title.c_str());
     }
 
     std::list<SummItem>::iterator it;
     for(it=items.begin();it!=items.end();it++) {
-        (*it).draw();
+        (*it).draw(alpha);
     }
 
 }

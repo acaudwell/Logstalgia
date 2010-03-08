@@ -186,6 +186,14 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     accesslog = 0;
 
+    font_alpha = 1.0;
+
+    //every 60 minutes seconds blank text for 60 seconds
+
+    screen_blank_interval = 3600.0;
+    screen_blank_period   = 60.0;
+    screen_blank_elapsed  = 0.0;
+
     paddle_colour = (gPaddleMode > PADDLE_SINGLE) ?
         vec4f(0.0f, 0.0f, 0.0f, 0.0f) : vec4f(0.5, 0.5, 0.5, 1.0);
 
@@ -909,6 +917,20 @@ void Logstalgia::logic(float t, float dt) {
     profile_start("updateGroups logic");
     updateGroups(dt);
     profile_stop();
+
+
+    screen_blank_elapsed += dt;
+
+    if(screen_blank_elapsed-screen_blank_interval > screen_blank_period)
+        screen_blank_elapsed = 0.0f;
+
+    //update font alpha
+    font_alpha = 1.0f;
+
+    if(screen_blank_elapsed>screen_blank_interval) {
+        font_alpha = std::min(1.0, fabs(1.0f - (screen_blank_elapsed-screen_blank_interval)/(screen_blank_period*0.5)));
+        font_alpha *= font_alpha;
+    }
 }
 
 void Logstalgia::addGroup(std::string groupstr) {
@@ -982,11 +1004,11 @@ void Logstalgia::updateGroups(float dt) {
 
 }
 
-void Logstalgia::drawGroups(float dt) {
+void Logstalgia::drawGroups(float dt, float alpha) {
 
     int nogrps = summGroups.size();
     for(int i=0;i<nogrps;i++) {
-        summGroups[i]->draw(dt);
+        summGroups[i]->draw(dt, alpha);
     }
 
 }
@@ -1008,14 +1030,14 @@ void Logstalgia::draw(float t, float dt) {
 
     profile_start("draw ip summarizer");
 
-    ipSummarizer->draw(dt);
+    ipSummarizer->draw(dt, font_alpha);
 
     profile_stop();
 
 
     profile_start("draw groups");
 
-    drawGroups(dt);
+    drawGroups(dt, font_alpha);
 
     profile_stop();
 
@@ -1092,7 +1114,7 @@ void Logstalgia::draw(float t, float dt) {
                      display.height/2 - 45);
 
         glDisable(GL_TEXTURE_2D);
-        glColor4f(0.0f, 0.5f, 1.0f, gSplash * 0.015f);
+        glColor4f(0.0f, 0.5f, 1.0f, font_alpha * gSplash * 0.015f);
         glBegin(GL_QUADS);
             glVertex2f(0.0f,                 corner.y);
             glVertex2f(0.0f,                 corner.y + logoheight);
@@ -1105,21 +1127,21 @@ void Logstalgia::draw(float t, float dt) {
         fontLarge.alignTop(true);
         fontLarge.dropShadow(true);
 
-        glColor4f(1,1,1,1);
+        glColor4f(1,1,1,font_alpha);
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Logstalgia");
-        glColor4f(0,1,1,1);
+        glColor4f(0,1,1,font_alpha);
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Log");
 
-        glColor4f(1,1,1,1);
+        glColor4f(1,1,1,font_alpha);
         fontMedium.draw(display.width/2 - cwidth/2,display.height/2 + 17, "Website Access Log Viewer");
         fontSmall.draw(display.width/2 - awidth/2,display.height/2 + 37, "(C) 2008 Andrew Caudwell");
 
         gSplash-=dt;
     }
 
-    glColor4f(1,1,1,1);
-
     if(!gDisableProgress) slider.draw(dt);
+
+    glColor4f(1,1,1,font_alpha);
 
     if(info) {
         fontMedium.print(2,2, "FPS %d", (int) fps);
@@ -1129,7 +1151,7 @@ void Logstalgia::draw(float t, float dt) {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());
     }
-    glColor4f(1,1,1,1);
+    glColor4f(1,1,1,font_alpha);
 
     int counter_width = fontLarge.getWidth("00000000");
 

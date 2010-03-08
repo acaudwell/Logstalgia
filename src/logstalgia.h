@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "0.9.9"
+#define LOGSTALGIA_VERSION "1.0.0"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -85,6 +85,12 @@ class Logstalgia : public SDLApp {
     long currtime;
     long lasttime;
 
+    float screen_blank_interval;
+    float screen_blank_period;
+    float screen_blank_elapsed;
+
+    float font_alpha;
+
     float elapsed_time;
 
     float simu_speed;
@@ -147,7 +153,7 @@ class Logstalgia : public SDLApp {
 
     RequestBall* findNearest(Paddle* paddle, std::string paddle_proc);
     void updateGroups(float dt);
-    void drawGroups(float dt);
+    void drawGroups(float dt, float alpha);
 
     void addBall(LogEntry& le,  float head_start);
     void removeBall(RequestBall* ball);

@@ -1,3 +1,6 @@
+1.0.0:
+ * Every 60 minutes fade static text out and back in over a period of a minute.
+
 0.9.9:
  * Support for more common Apache access log formats.
  * Added --paddle-mode (vhost,pid,single) which spawns separate paddles.

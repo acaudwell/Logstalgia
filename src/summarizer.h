@@ -97,7 +97,7 @@ public:
 
     void setDest(vec2f dest, bool depart = false);
     void logic(float dt);
-    void draw();
+    void draw(float alpha);
 
     void updateUnit(SummUnit& unit);
     SummItem(SummUnit unit, vec2f pos, vec2f dest, float target_x, vec3f* icol, FXFont font, bool showcount);
@@ -158,7 +158,7 @@ public:
 
     void recalc_display();
     void logic(float dt);
-    void draw(float dt);
+    void draw(float dt, float alpha);
 
 };
 
