@@ -44,8 +44,6 @@ public:
     virtual ~BaseLog() {};
     virtual bool getNextLine(std::string& line) { return false; };
     virtual bool isFinished() { return false; };
-
-    void consume();
 };
 
 class StreamLog : public BaseLog {
@@ -53,8 +51,10 @@ class StreamLog : public BaseLog {
     bool fcntl_fail;
 public:
     StreamLog();
-    StreamLog(std::istream* stream);
     ~StreamLog();
+
+    void consume();
+
     bool getNextLine(std::string& line);
     bool isFinished();
 };
