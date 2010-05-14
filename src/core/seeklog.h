@@ -49,11 +49,12 @@ public:
 class StreamLog : public BaseLog {
 
     bool fcntl_fail;
+#ifdef _WIN32
+    HANDLE stdin_handle;
+#endif
 public:
     StreamLog();
     ~StreamLog();
-
-    void consume();
 
     bool getNextLine(std::string& line);
     bool isFinished();

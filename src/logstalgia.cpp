@@ -27,6 +27,7 @@ float gStartPosition = 0.0;
 float gStopPosition  = 1.0;
 
 bool  gDisableProgress = false;
+bool  gSyncLog         = false;
 
 std::string profile_name;
 Uint32 profile_start_msec;
@@ -78,7 +79,7 @@ void logstalgia_help() {
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n\n");
 
-    printf("  --sync                     Begin with the next entry received (implies STDIN)\n");
+    printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
     printf("  --stop-position  POSITION  Stop at some position\n\n");
 
@@ -112,7 +113,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     paused     = false;
     recentre   = false;
     next       = false;
-    sync       = false;
 
     this->simu_speed  = simu_speed;
     this->update_rate = update_rate;
@@ -127,6 +127,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     ipSummarizer  = 0;
 
+    mintime       = gSyncLog ? time(0) : 0;
     seeklog       = 0;
     streamlog     = 0;
 
@@ -216,11 +217,6 @@ Logstalgia::~Logstalgia() {
         summGroups[i]=0;
     }
 
-}
-
-void Logstalgia::syncLog() {
-    if(streamlog == 0) return;
-    sync = true;
 }
 
 void Logstalgia::togglePause() {
@@ -487,7 +483,7 @@ std::string whitespaces (" \t\f\v\n\r");
 void Logstalgia::readLog() {
     debugLog("readLog()\n");
 
-    int lineno=0;
+    int entries_read = 0;
 
     std::string linestr;
     BaseLog* baselog = getLog();
@@ -508,15 +504,15 @@ void Logstalgia::readLog() {
 
         LogEntry le;
 
+        bool parsed_entry;
+
         //determine format
         if(accesslog==0) {
 
             //is this an apache access log?
             ApacheLog* apachelog = new ApacheLog();
-            if(apachelog->parseLine(linestr, le)) {
+            if((parsed_entry = apachelog->parseLine(linestr, le))) {
                 accesslog = apachelog;
-                entries.push_back(le);
-                total_entries++;
             } else {
                 delete apachelog;
             }
@@ -524,10 +520,8 @@ void Logstalgia::readLog() {
             if(accesslog==0) {
                 //is this a custom log?
                 CustomAccessLog* customlog = new CustomAccessLog();
-                if(customlog->parseLine(linestr, le)) {
+                if((parsed_entry = customlog->parseLine(linestr, le))) {
                     accesslog = customlog;
-                    entries.push_back(le);
-                    total_entries++;
                 } else {
                     delete customlog;
                 }
@@ -535,18 +529,21 @@ void Logstalgia::readLog() {
 
         } else {
 
-            if(accesslog->parseLine(linestr, le)) {
-                entries.push_back(le);
-                total_entries++;
-            } else {
+            if(!(parsed_entry = accesslog->parseLine(linestr, le))) {
                 debugLog("error: could not read line %s\n", linestr.c_str());
             }
-
         }
 
-        lineno++;
+        if(parsed_entry) {
 
-        if(lineno>=buffer_row_count) break;
+            if(mintime==0 || mintime<=le.timestamp) {
+                entries.push_back(le);
+                total_entries++;
+                entries_read++;
+            }
+        }
+
+        if(entries_read>=buffer_row_count) break;
     }
 
     if(entries.size()==0 && seeklog != 0) {
@@ -573,10 +570,10 @@ void Logstalgia::readLog() {
     }
 
     //set start time if currently 0
-    if(starttime==0 && entries.size())
+    if(starttime==0 && entries.size()) {
         starttime = entries[0].timestamp;
-
-    debugLog("end of readLog()\n");
+        currtime  = 0;
+    }
 }
 
 void Logstalgia::init() {
@@ -607,16 +604,6 @@ void Logstalgia::init() {
     if(gStartPosition > 0.0 && gStartPosition < 1.0) {
         seekTo(gStartPosition);
     }
-
-    if(sync && streamlog != 0) {
-        streamlog->consume();
-        entries.clear();
-
-        starttime     = time(0);
-        elapsed_time  = 0;
-        lasttime      = 0;
-    }
-
 }
 
 void Logstalgia::setBackground(vec3f background) {
@@ -681,7 +668,7 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, std::string paddle_token) {
         }
 
         if(ball->le.successful && !ball->bounced()
-            && (gPaddleMode <= PADDLE_SINGLE 
+            && (gPaddleMode <= PADDLE_SINGLE
                 || gPaddleMode == PADDLE_VHOST && ball->le.vhost == paddle_token
                 || gPaddleMode == PADDLE_PID   && ball->le.pid   == paddle_token
                )
@@ -766,7 +753,7 @@ void Logstalgia::logic(float t, float dt) {
     currtime = starttime + (long)(elapsed_time);
 
     //next will fast forward clock to the time of the next entry, if the next entry is in the future
-    if(next || sync) {
+    if(next) {
         if(entries.size() > 0) {
             LogEntry le = entries[0];
 
@@ -775,7 +762,6 @@ void Logstalgia::logic(float t, float dt) {
                 elapsed_time = entrytime - starttime;
                 currtime = starttime + (long)(elapsed_time);
             }
-            sync = false;
         }
         next = false;
     }
@@ -794,18 +780,24 @@ void Logstalgia::logic(float t, float dt) {
 
         spawn_speed = (items_to_spawn <= 0) ? 0.1f/simu_speed : (1.0f / items_to_spawn) / simu_speed;
         spawn_delay = 0.0f;
-        debugLog("spawn_speed = %.2f\n", spawn_speed);
+        //debugLog("spawn_speed = %.2f\n", spawn_speed);
         profile_stop();
 
         //display date
-        char datestr[256];
-        char timestr[256];
-        struct tm* timeinfo = localtime ( &currtime );
-        strftime(datestr, 256, "%A, %B %d, %Y", timeinfo);
-        strftime(timestr, 256, "%X", timeinfo);
+        if(total_entries>0) {
+            char datestr[256];
+            char timestr[256];
 
-        displaydate =datestr;
-        displaytime =timestr;
+            struct tm* timeinfo = localtime ( &currtime );
+            strftime(datestr, 256, "%A, %B %d, %Y", timeinfo);
+            strftime(timestr, 256, "%X", timeinfo);
+
+            displaydate = datestr;
+            displaytime = timestr;
+        } else {
+            displaydate = "";
+            displaytime = "";
+        }
     }
 
     lasttime=currtime;

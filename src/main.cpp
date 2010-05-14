@@ -52,7 +52,6 @@ int main(int argc, char *argv[]) {
     float simu_speed  = 1.0f;
     float update_rate = 5.0f;
     bool multisample  = false;
-    bool sync_log = false;
 
     vec3f background = vec3f(0.0, 0.0, 0.0);
 
@@ -318,7 +317,7 @@ int main(int argc, char *argv[]) {
         }
 
         if(args == "--sync") {
-            sync_log = true;
+            gSyncLog = true;
             if(!logfile.size()) logfile = "-";
             continue;
         }
@@ -395,8 +394,6 @@ int main(int argc, char *argv[]) {
         }
 
         ls->setBackground(background);
-
-        if(sync_log) ls->syncLog();
 
         ls->run();
 

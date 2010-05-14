@@ -81,7 +81,7 @@ options:
 
             single - single paddle (the default).
 
-    --sync  Begin with the next entry received (implies STDIN).
+    --sync  Read from STDIN, ignoring entries before the current time.
 
     --start-position POSITION
             Begin at some position in the log file (between 0.0 and 1.0).

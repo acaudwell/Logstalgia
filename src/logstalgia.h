@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "1.0.0"
+#define LOGSTALGIA_VERSION "1.0.1"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -53,6 +53,7 @@
 
 extern int   gHighscore;
 extern bool  gBounce;
+extern bool  gSyncLog;
 extern bool  gResponseCode;
 extern bool  gDisableProgress;
 extern float gSplash;
@@ -80,6 +81,8 @@ class Logstalgia : public SDLApp {
     bool recentre;
     bool next;
     bool sync;
+
+    time_t mintime;
 
     long starttime;
     long currtime;
@@ -172,8 +175,6 @@ public:
     void addGroup(std::string groupstr);
 
     void setFrameExporter(FrameExporter* exporter, int video_framerate);
-
-    void syncLog();
 
     void setBackground(vec3f background);
 

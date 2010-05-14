@@ -36,7 +36,9 @@ StreamLog::StreamLog() {
 
     fcntl_fail = false;
 
-#ifndef _WIN32
+#ifdef _WIN32
+    stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+#else
     int ret = fcntl(STDIN_FILENO, F_GETFL, 0);
 
     if (fcntl (STDIN_FILENO, F_SETFL, ret | O_NONBLOCK) < 0) {
@@ -49,25 +51,6 @@ StreamLog::StreamLog() {
 StreamLog::~StreamLog() {
 }
 
-void StreamLog::consume() {
-#ifdef _WIN32
-    //read only the available bytes and stop
-
-    DWORD available_bytes;
-    DWORD read_bytes = 0;
-
-    if (!PeekNamedPipe(GetStdHandle(STD_INPUT_HANDLE), 0, 0, 0,
-        &available_bytes, 0)) return;
-
-    while(read_bytes<available_bytes && stream->get() && !stream->fail())
-        read_bytes++;
-#else
-    while(stream->get() && !stream->fail());
-#endif
-
-    stream->clear();
-}
-
 bool StreamLog::getNextLine(std::string& line) {
 
     //try and fix the stream
@@ -76,12 +59,14 @@ bool StreamLog::getNextLine(std::string& line) {
     char buff[1024];
 
 #ifdef _WIN32
+
     DWORD available_bytes;
 
-    if (!PeekNamedPipe(GetStdHandle(STD_INPUT_HANDLE), 0, 0, 0,
+    if (!PeekNamedPipe(stdin_handle, 0, 0, 0,
         &available_bytes, 0)) return false;
 
     if(available_bytes==0) return false;
+
 #endif
 
     stream->getline(buff, 1024);
