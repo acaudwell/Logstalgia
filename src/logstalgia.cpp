@@ -28,6 +28,7 @@ float gStopPosition  = 1.0;
 
 bool  gDisableProgress = false;
 bool  gSyncLog         = false;
+bool  gHideURLPrefix   = false;
 
 std::string profile_name;
 Uint32 profile_start_msec;
@@ -86,7 +87,8 @@ void logstalgia_help() {
     printf("  --no-bounce                No bouncing\n\n");
 
     printf("  --hide-response-code       Hide response code\n");
-    printf("  --hide-paddle              Hide paddle\n\n");
+    printf("  --hide-paddle              Hide paddle\n");
+    printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
 
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
@@ -403,6 +405,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
 Regex ls_url_hostname_regex("^http://[^/]+(.+)$");
 
 std::string Logstalgia::filterURLHostname(std::string hostname) {
+
     std::vector<std::string> matches;
 
     if(ls_url_hostname_regex.match(hostname, &matches)) {
@@ -451,7 +454,7 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
     }
 
 
-    pageurl = filterURLHostname(pageurl);
+    if(gHideURLPrefix) pageurl = filterURLHostname(pageurl);
 
     float dest_y = pageSummarizer->addString(pageurl);
 
@@ -482,7 +485,7 @@ std::string whitespaces (" \t\f\v\n\r");
 
 void Logstalgia::readLog() {
     if(entries.size() >= buffer_row_count) return;
-    
+
     int entries_read = 0;
 
     std::string linestr;
@@ -691,7 +694,7 @@ void Logstalgia::removeBall(RequestBall* ball) {
     for(int i=0;i<nogroups;i++) {
         if(summGroups[i]->supportedString(url)) {
 
-            url = filterURLHostname(url);
+            if(gHideURLPrefix) url = filterURLHostname(url);
 
             summGroups[i]->removeString(url);
             break;

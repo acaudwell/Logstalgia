@@ -98,6 +98,9 @@ options:
     --hide-paddle
             Hide paddle.
 
+    --hide-url-prefix
+            Hide URL protocol and hostname prefix of requests.
+
     --disable-progress
             Disable the progress bar.
 

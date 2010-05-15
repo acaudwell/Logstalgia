@@ -86,6 +86,11 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--hide-url-prefix") {
+            gHideURLPrefix = true;
+            continue;
+        }
+
         if(args == "-s" || args == "--speed") {
 
             if((i+1)>=arguments.size()) {

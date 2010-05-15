@@ -56,6 +56,7 @@ extern bool  gBounce;
 extern bool  gSyncLog;
 extern bool  gResponseCode;
 extern bool  gDisableProgress;
+extern bool  gHideURLPrefix;
 extern float gSplash;
 extern float gStartPosition;
 extern float gStopPosition;
