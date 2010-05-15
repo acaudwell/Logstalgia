@@ -812,7 +812,7 @@ void Logstalgia::logic(float t, float dt) {
 
         int added=0;
 
-        while(added<max_entries_per_frame) {
+        while(added<max_entries_per_frame && entries.size()>0) {
             LogEntry le = entries[0];
             if(le.timestamp > currtime) break;
 
