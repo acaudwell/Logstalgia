@@ -481,14 +481,14 @@ BaseLog* Logstalgia::getLog() {
 std::string whitespaces (" \t\f\v\n\r");
 
 void Logstalgia::readLog() {
-    debugLog("readLog()\n");
-
+    if(entries.size() >= buffer_row_count) return;
+    
     int entries_read = 0;
 
     std::string linestr;
     BaseLog* baselog = getLog();
 
-    while( baselog->getNextLine(linestr) ) {
+    while( entries.size() < buffer_row_count && baselog->getNextLine(linestr) ) {
 
         //trim whitespace
         if(linestr.size()>0) {
@@ -542,8 +542,6 @@ void Logstalgia::readLog() {
                 entries_read++;
             }
         }
-
-        if(entries_read>=buffer_row_count) break;
     }
 
     if(entries.size()==0 && seeklog != 0) {
@@ -780,7 +778,8 @@ void Logstalgia::logic(float t, float dt) {
 
         spawn_speed = (items_to_spawn <= 0) ? 0.1f/simu_speed : (1.0f / items_to_spawn) / simu_speed;
         spawn_delay = 0.0f;
-        //debugLog("spawn_speed = %.2f\n", spawn_speed);
+
+        //fprintf(stderr, "spawn_speed for %d items is %.2f\n", items_to_spawn, spawn_speed);
         profile_stop();
 
         //display date
@@ -802,20 +801,31 @@ void Logstalgia::logic(float t, float dt) {
 
     lasttime=currtime;
 
+    int max_entries_per_frame = (int) std::max(1.0f, dt / spawn_speed);
+
     //see if entries show appear
     if(entries.size() > 0 && spawn_delay<=0) {
         profile_start("add entries");
 
-        LogEntry le = entries[0];
-        if(le.timestamp < currtime) {
-            addBall(le, -spawn_delay);
+        int added=0;
 
+        while(added<max_entries_per_frame) {
+            LogEntry le = entries[0];
+            if(le.timestamp > currtime) break;
+
+            added++;
+            addBall(le, -(spawn_delay + (dt/(float)added)));
             entries.pop_front();
         }
+
+        //fprintf(stderr, "added %d of maximum %d (spawn_speed = %.4f)\n", added, max_entries_per_frame, spawn_speed);
 
         profile_stop();
     }
 
+    readLog();
+
+    /*
     //read log if we run out
     if(entries.size()==0) {
         profile_start("readLog");
@@ -825,7 +835,7 @@ void Logstalgia::logic(float t, float dt) {
 
 
         profile_stop();
-    }
+    }*/
 
     spawn_delay -= sdt;
 
