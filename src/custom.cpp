@@ -58,16 +58,24 @@ bool CustomAccessLog::parseLine(std::string& line, LogEntry& entry) {
     } else entry.setResponseColour();
 
     //referrer
-    entry.referrer   = matches[7];
+    if(matches.size()>7) {
+        entry.referrer   = matches[7];
+    }
 
     //user agent
-    entry.user_agent = matches[8];
+    if(matches.size()>8) {
+        entry.user_agent = matches[8];
+    }
 
     //user agent
-    entry.vhost      = matches[9];
+    if(matches.size()>9) {
+        entry.vhost = matches[9];
+    }
 
     //pid or some other identifier
-    entry.pid        = matches[10];
+    if(matches.size()>10) {
+        entry.pid = matches[10];
+    }
 
     return entry.validate();
 }

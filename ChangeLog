@@ -2,6 +2,7 @@
  * Made STDIN non-blocking on Windows using PeekNamedPipe (thanks Rui Lopes).
  * Added --hide-url-prefix option to remove protocol and hostname from requests.
  * Removed arbitrary 1024 maximum length limit for log entries.
+ * Fixed custom log format not working when optional fields are omitted.
 
 1.0.0:
  * Every 60 minutes fade static text out and back in over a period of a minute.
