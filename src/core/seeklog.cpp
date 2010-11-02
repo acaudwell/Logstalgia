@@ -56,8 +56,6 @@ bool StreamLog::getNextLine(std::string& line) {
     //try and fix the stream
     if(isFinished()) stream->clear();
 
-    char buff[1024];
-
 #ifdef _WIN32
 
     DWORD available_bytes;
@@ -69,9 +67,7 @@ bool StreamLog::getNextLine(std::string& line) {
 
 #endif
 
-    stream->getline(buff, 1024);
-    line = std::string(buff);
-
+    std::getline(*stream, line);
 
     //remove carriage returns
     if (line.size() > 0 && line[line.size()-1] == '\r') {
@@ -79,11 +75,6 @@ bool StreamLog::getNextLine(std::string& line) {
     }
 
     if(isFinished()) {
-        //clear the failbit if only failed because the line was too long
-        if(!stream->bad() && stream->gcount() >= (1024-1)) {
-            stream->clear();
-        }
-
         return false;
     }
 
@@ -184,22 +175,14 @@ bool SeekLog::getNextLine(std::string& line) {
     //try and fix the stream
     if(isFinished()) stream->clear();
 
-    char buff[1024];
-
-    stream->getline(buff, 1024);
-    line = std::string(buff);
-
+    std::getline(*stream, line);
+    
     //remove carriage returns
     if (line.size() > 0 && line[line.size()-1] == '\r') {
         line.resize(line.size() - 1);
     }
 
     if(stream->fail()) {
-        //clear the failbit if only failed because the line was too long
-        if(!stream->bad() && stream->gcount() >= (1024-1)) {
-            stream->clear();
-        }
-
         return false;
     }
 
