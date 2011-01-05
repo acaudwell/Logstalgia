@@ -28,17 +28,15 @@ float gGlowIntensity  = 0.5;
 float gGlowMultiplier = 1.25;
 float gGlowDuration   = 0.15;
 
-RequestBall::RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed) {
-    this->le  = le;
+RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed) {
+    this->le   = le;
+    this->tex  = tex;
     this->font = font;
-    this->tex = tex;
-
-    font.dropShadow(true);
-
+    
     vec2f vel = dest - pos;
     vel.normalize();
 
-    int bytes = le.response_size;
+    int bytes = le->response_size;
     float size = log((float)bytes) + 1.0f;
     if(size<5.0f) size = 5.0f;
 
@@ -51,20 +49,21 @@ RequestBall::RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f 
     start = pos;
     this->dest  = finish();
 
-    if(!le.successful) dontBounce();
+    if(!le->successful) dontBounce();
 
     char buff[16];
-    snprintf(buff, 16, "%s", le.response_code.c_str());
+    snprintf(buff, 16, "%s", le->response_code.c_str());
     response_code = std::string(buff);
 
     response_colour = responseColour();
 }
 
 RequestBall::~RequestBall() {
+    delete le;
 }
 
 vec3f RequestBall::responseColour() {
-    return le.response_colour;
+    return le->response_colour;
 }
 
 bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
@@ -73,15 +72,15 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
 
         std::vector<std::string> content;
 
-        content.push_back( std::string( le.path ) );
+        content.push_back( std::string( le->path ) );
         content.push_back( " " );
 
-        if(le.vhost.size()>0) content.push_back( std::string("Virtual-Host: ") + le.vhost );
+        if(le->vhost.size()>0) content.push_back( std::string("Virtual-Host: ") + le->vhost );
 
-        content.push_back( std::string("Remote-Host:  ") + le.hostname );
+        content.push_back( std::string("Remote-Host:  ") + le->hostname );
 
-        if(le.referrer.size()>0)   content.push_back( std::string("Referrer:     ") + le.referrer );
-        if(le.user_agent.size()>0) content.push_back( std::string("User-Agent:   ") + le.user_agent );
+        if(le->referrer.size()>0)   content.push_back( std::string("Referrer:     ") + le->referrer );
+        if(le->user_agent.size()>0) content.push_back( std::string("User-Agent:   ") + le->user_agent );
 
         textarea.setText(content);
         textarea.setPos(mouse);
@@ -97,14 +96,13 @@ void RequestBall::logic(float dt) {
     ProjectedBall::logic(dt);
 }
 
-void RequestBall::drawGlow() {
-    if(!bounced()) return;
+void RequestBall::drawGlow() const {
+    if(!hasBounced()) return;
 
-    float prog = progress();
+    float prog = getProgress();
 
     float glow_radius = size * size * gGlowMultiplier;
 
-//    float alpha = std::min(1.0f, std::min(prog/0.02f, 1.0f-(prog/0.15f)));
     float alpha = std::min(1.0f, 1.0f-(prog/gGlowDuration));
 
     vec3f glow_col = colour * gGlowIntensity * alpha;
@@ -115,7 +113,7 @@ void RequestBall::drawGlow() {
         glTranslatef(pos.x, pos.y, 0.0);
 
         glBegin(GL_QUADS);
-        glTexCoord2f(1.0, 1.0);
+            glTexCoord2f(1.0, 1.0);
             glVertex2f(glow_radius,glow_radius);
             glTexCoord2f(1.0, 0.0);
             glVertex2f(glow_radius,-glow_radius);
@@ -127,20 +125,15 @@ void RequestBall::drawGlow() {
     glPopMatrix();
 }
 
-void RequestBall::draw(float dt) {
-//    glDisable(GL_TEXTURE_2D);
+void RequestBall::draw(float dt) const {
 
-    bool hasBounced = bounced();
+    bool has_bounced = hasBounced();
 
-    glEnable(GL_TEXTURE_2D);
-
-    if(gBounce || !hasBounced || no_bounce) {
+    if(gBounce || !has_bounced || no_bounce) {
         glBindTexture(GL_TEXTURE_2D, tex->textureid);
 
         float halfsize = size * 0.5f;
         vec2f offsetpos = pos - vec2f(halfsize, halfsize);
-
-        glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
 
         glColor4f(colour.x, colour.y, colour.z, 1.0f);
 
@@ -159,21 +152,14 @@ void RequestBall::draw(float dt) {
         glEnd();
     }
 
-    glEnable(GL_TEXTURE_2D);
-//   	glEnable(GL_BLEND);
-//	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    vec3f hostcol = colour;
-    vec3f pagecol = pagecolour;
-
-    if(hasBounced && gResponseCode) {
-        float prog = progress();
+    if(has_bounced && gResponseCode) {
+        float prog = getProgress();
         float drift = prog * 100.0f;
 
-        if(!le.successful) drift *= -1.0f;
+        if(!le->successful) drift *= -1.0f;
         vec2f msgpos = (vel * drift) + vec2f(dest.x-45.0f, dest.y);
 
         glColor4f(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f) );
-        font.draw((int)msgpos.x, (int)msgpos.y, response_code.c_str());
+        font->draw((int)msgpos.x, (int)msgpos.y, response_code.c_str());
     }
 }

@@ -20,7 +20,7 @@
 //Logstalgia
 
 //turn performance profiling
-//#DEFINE LS_PERFORMANCE_PROFILE
+//#define LS_PERFORMANCE_PROFILE
 
 float gSplash = -1.0f;
 float gStartPosition = 0.0;
@@ -142,7 +142,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
         streamlog = new StreamLog();
         gDisableProgress = true;
 
-        //buffer STDIN
         buffer_row_count = 500;
 
     } else {
@@ -153,7 +152,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
             throw SDLAppException("unable to read log file");
         }
 
-        //dont buffer
         buffer_row_count = 1;
     }
 
@@ -166,6 +164,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
     fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
+    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
     fontSmall  = fontmanager.grab("FreeMonoBold.ttf", 14);
 
     fontLarge.dropShadow(true);
@@ -319,7 +318,7 @@ void Logstalgia::reset() {
         summGroups[i]->recalc_display();
     }
 
-    entries.clear();
+    queued_entries.clear();
 
     // reset settings
     elapsed_time  = 0;
@@ -415,17 +414,40 @@ std::string Logstalgia::filterURLHostname(std::string hostname) {
     return hostname;
 }
 
-void Logstalgia::addBall(LogEntry& le, float head_start) {
-    debugLog("adding ball for log entry\n");
+void Logstalgia::addStrings(LogEntry* le) {
+
+    std::string hostname = le->hostname;
+    std::string pageurl  = le->path;
+
+    int nogroups = summGroups.size();
+    Summarizer* pageSummarizer= 0;
+
+    for(int i=0;i<nogroups;i++) {
+        if(summGroups[i]->supportedString(pageurl)) {
+            pageSummarizer = summGroups[i];
+            break;
+        }
+    }
+
+    if(pageSummarizer==0) return;
+
+    if(gHideURLPrefix) pageurl = filterURLHostname(pageurl);
+
+    pageSummarizer->addString(pageurl);
+    ipSummarizer->addString(hostname);
+}
+
+void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     gHighscore++;
 
-    std::string hostname = le.hostname;
-    std::string pageurl  = le.path;
+    std::string hostname = le->hostname;
+    std::string pageurl  = le->path;
 
     //find appropriate summarizer for url
     int nogroups = summGroups.size();
     Summarizer* pageSummarizer= 0;
+
     for(int i=0;i<nogroups;i++) {
         if(summGroups[i]->supportedString(pageurl)) {
             pageSummarizer = summGroups[i];
@@ -439,7 +461,7 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
 
     if(gPaddleMode > PADDLE_SINGLE) {
 
-        std::string paddle_token = (gPaddleMode == PADDLE_VHOST) ? le.vhost : le.pid;
+        std::string paddle_token = (gPaddleMode == PADDLE_VHOST) ? le->vhost : le->pid;
 
         entry_paddle = paddles[paddle_token];
 
@@ -453,26 +475,25 @@ void Logstalgia::addBall(LogEntry& le, float head_start) {
         entry_paddle = paddles[""];
     }
 
-
     if(gHideURLPrefix) pageurl = filterURLHostname(pageurl);
 
-    float dest_y = pageSummarizer->addString(pageurl);
+    float dest_y = pageSummarizer->getMiddlePosY(pageurl);
+    float pos_y  = ipSummarizer->getMiddlePosY(hostname);
+    
+    float start_x = -(entry_paddle->getX()/ 5.0f);
+    
+    vec2f ball_start = vec2f(start_x, pos_y);
+    vec2f ball_dest  = vec2f(entry_paddle->getX(), dest_y);
 
-    float pos_y  = ipSummarizer->addString(hostname);
-
-    vec2f pos  = vec2f(1, pos_y);
-    vec2f dest = vec2f(entry_paddle->getX(), dest_y);
-
-    std::string match = ipSummarizer->getBestMatchStr(hostname);
-
+    const std::string& match = ipSummarizer->getBestMatchStr(hostname);
 
     vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
 
-    RequestBall* ball = new RequestBall(le, fontMedium, balltex, colour, pos, dest, simu_speed);
-    ball->setElapsed(head_start);
+    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
 
+    ball->setElapsed( start_offset );
+    
     balls.push_back(ball);
-    spawn_delay=spawn_speed;
 }
 
 BaseLog* Logstalgia::getLog() {
@@ -484,14 +505,17 @@ BaseLog* Logstalgia::getLog() {
 std::string whitespaces (" \t\f\v\n\r");
 
 void Logstalgia::readLog() {
-    if(entries.size() >= buffer_row_count) return;
 
+    profile_start("readLog");
+    
     int entries_read = 0;
 
     std::string linestr;
     BaseLog* baselog = getLog();
 
-    while( entries.size() < buffer_row_count && baselog->getNextLine(linestr) ) {
+    time_t read_timestamp = 0;
+    
+    while( baselog->getNextLine(linestr) ) {
 
         //trim whitespace
         if(linestr.size()>0) {
@@ -539,15 +563,25 @@ void Logstalgia::readLog() {
 
         if(parsed_entry) {
 
-            if(mintime==0 || mintime<=le.timestamp) {
-                entries.push_back(le);
+            if(mintime == 0 || mintime <= le.timestamp) {
+                               
+                queued_entries.push_back(new LogEntry(le));
+
                 total_entries++;
                 entries_read++;
+
+                //read at least the buffered row count
+                //read all entries with same timestamp
+                if(entries_read >= buffer_row_count && read_timestamp && read_timestamp < le.timestamp) break;
+                
+                read_timestamp = le.timestamp;
             }
         }
     }
+    
+    profile_stop();
 
-    if(entries.size()==0 && seeklog != 0) {
+    if(queued_entries.empty() && seeklog != 0) {
 
         if(total_entries==0) {
             logstalgia_quit("could not parse first entry");
@@ -571,8 +605,8 @@ void Logstalgia::readLog() {
     }
 
     //set start time if currently 0
-    if(starttime==0 && entries.size()) {
-        starttime = entries[0].timestamp;
+    if(starttime==0 && !queued_entries.empty()) {
+        starttime = queued_entries.front()->timestamp;
         currtime  = 0;
     }
 }
@@ -664,14 +698,14 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, std::string paddle_token) {
         RequestBall* ball = *it;
 
         //special case if failed response code
-        if(!ball->le.successful) {
+        if(!ball->le->successful) {
             continue;
         }
 
-        if(ball->le.successful && !ball->bounced()
+        if(ball->le->successful && !ball->hasBounced()
             && (gPaddleMode <= PADDLE_SINGLE
-                || gPaddleMode == PADDLE_VHOST && ball->le.vhost == paddle_token
-                || gPaddleMode == PADDLE_PID   && ball->le.pid   == paddle_token
+                || gPaddleMode == PADDLE_VHOST && ball->le->vhost == paddle_token
+                || gPaddleMode == PADDLE_PID   && ball->le->pid   == paddle_token
                )
             ) {
             float dist = (paddle->getX() - ball->getX())/ball->speed;
@@ -686,8 +720,8 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, std::string paddle_token) {
 }
 
 void Logstalgia::removeBall(RequestBall* ball) {
-    std::string url  = ball->le.path;
-    std::string host = ball->le.hostname;
+    std::string url  = ball->le->path;
+    std::string host = ball->le->hostname;
 
     int nogroups = summGroups.size();
 
@@ -755,10 +789,10 @@ void Logstalgia::logic(float t, float dt) {
 
     //next will fast forward clock to the time of the next entry, if the next entry is in the future
     if(next) {
-        if(entries.size() > 0) {
-            LogEntry le = entries[0];
+        if(!queued_entries.empty()) {
+            LogEntry* le = queued_entries.front();
 
-            long entrytime = le.timestamp;
+            long entrytime = le->timestamp;
             if(entrytime > currtime) {
                 elapsed_time = entrytime - starttime;
                 currtime = starttime + (long)(elapsed_time);
@@ -769,23 +803,63 @@ void Logstalgia::logic(float t, float dt) {
 
     //recalc spawn speed each second by
     if(currtime != lasttime) {
-        profile_start("calc spawn speed");
-        int items_to_spawn=-1;
-        for(std::deque<LogEntry>::iterator it = entries.begin(); it != entries.end(); it++) {
-            if((*it).timestamp <= currtime) {
-                items_to_spawn++;
-                continue;
-            }
-            break;
+        
+        profile_start("determine new entries");
+        
+        int items_to_spawn=0;
+
+        for(std::list<LogEntry*>::iterator it = queued_entries.begin(); it != queued_entries.end(); it++) {
+            LogEntry* le = *it;
+
+            if(le->timestamp > currtime) break;
+                          
+            items_to_spawn++;
+
+            addStrings(le);
         }
-
-        spawn_speed = (items_to_spawn <= 0) ? 0.1f/simu_speed : (1.0f / items_to_spawn) / simu_speed;
-        spawn_delay = 0.0f;
-
-        //fprintf(stderr, "spawn_speed for %d items is %.2f\n", items_to_spawn, spawn_speed);
+        
         profile_stop();
 
-        //display date
+        //debugLog("items to spawn %d\n", items_to_spawn);
+
+        if(items_to_spawn > 0) {
+            
+            profile_start("add new strings");
+            
+            //re-summarize
+            ipSummarizer->summarize();
+     
+            int nogrps = summGroups.size();
+
+            for(int i=0;i<nogrps;i++) {
+                summGroups[i]->summarize();
+            }
+
+            profile_stop();
+
+            profile_start("add new entries");
+            
+            float item_offset = 1.0 / (float) (items_to_spawn);
+
+            int item_no = 0;            
+            
+            while(!queued_entries.empty()) {
+
+                LogEntry* le = queued_entries.front();
+
+                if(le->timestamp > currtime) break;
+
+                float pos_offset   = item_offset * (float) item_no++;
+                float start_offset = std::min(1.0f, pos_offset);
+                
+                addBall(le, start_offset);
+                
+                queued_entries.pop_front();
+            }
+        
+        }
+
+        //update date
         if(total_entries>0) {
             char datestr[256];
             char timestr[256];
@@ -800,47 +874,13 @@ void Logstalgia::logic(float t, float dt) {
             displaydate = "";
             displaytime = "";
         }
-    }
 
-    lasttime=currtime;
-
-    int max_entries_per_frame = (int) std::max(1.0f, dt / spawn_speed);
-
-    //see if entries show appear
-    if(entries.size() > 0 && spawn_delay<=0) {
-        profile_start("add entries");
-
-        int added=0;
-
-        while(added<max_entries_per_frame && entries.size()>0) {
-            LogEntry le = entries[0];
-            if(le.timestamp > currtime) break;
-
-            added++;
-            addBall(le, -(spawn_delay + (dt/(float)added)));
-            entries.pop_front();
-        }
-
-        //fprintf(stderr, "added %d of maximum %d (spawn_speed = %.4f)\n", added, max_entries_per_frame, spawn_speed);
+        lasttime=currtime;
 
         profile_stop();
+        
+        readLog();        
     }
-
-    readLog();
-
-    /*
-    //read log if we run out
-    if(entries.size()==0) {
-        profile_start("readLog");
-
-        readLog();
-        if(appFinished) return;
-
-
-        profile_stop();
-    }*/
-
-    spawn_delay -= sdt;
 
     std::list<Paddle*> inactivePaddles;
 
@@ -859,8 +899,8 @@ void Logstalgia::logic(float t, float dt) {
 
                 RequestBall* ball = *bit;
 
-                if(   gPaddleMode == PADDLE_VHOST && ball->le.vhost == paddle_token
-                   || gPaddleMode == PADDLE_PID   && ball->le.pid   == paddle_token) {
+                if(   gPaddleMode == PADDLE_VHOST && ball->le->vhost == paddle_token
+                   || gPaddleMode == PADDLE_PID   && ball->le->pid   == paddle_token) {
                     token_match = true;
                     break;
                 }
@@ -905,7 +945,7 @@ void Logstalgia::logic(float t, float dt) {
 
         ball->logic(dt);
 
-        if(ball->finished()) {
+        if(ball->isFinished()) {
             it = balls.erase(it);
             removeBall(ball);
         } else {

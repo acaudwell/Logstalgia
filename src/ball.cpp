@@ -32,23 +32,23 @@ bool Line::intersects(Line& l, vec2f *p) {
     vec2f a = end   - start;
     vec2f b = l.end - l.start;
 
-	float d = a.x*b.y - a.y * b.x;
+    float d = a.x*b.y - a.y * b.x;
 
     //parallel test
-	if (!d) return false;
+    if (!d) return false;
 
-	vec2f w = start - l.start;
+    vec2f w = start - l.start;
 
     //check if outside either line segment
-	float s = b.x * w.y - b.y * w.x;
+    float s = b.x * w.y - b.y * w.x;
 
     float sd = s/d;
-	if (sd < 0.0f || sd > 1.0f) return false;
+    if (sd < 0.0f || sd > 1.0f) return false;
 
-	float t = a.x * w.y - a.y * w.x;
+    float t = a.x * w.y - a.y * w.x;
 
     float td = t/d;
-	if (td < 0.0f || td > 1.0f) return false;
+    if (td < 0.0f || td > 1.0f) return false;
 
     //calculate intersect
     if(p != 0) *p = a * sd + start;
@@ -90,6 +90,7 @@ ProjectedBall::~ProjectedBall() {
 
 void ProjectedBall::project() {
     elapsed = 0.0f;
+    progress = 0.0f;
     points.clear();
     vec2f p = pos;
     points.push_back(p);
@@ -109,6 +110,13 @@ void ProjectedBall::project() {
 
     while(!finished) {
         Line proj(p, p + currvel*inc);
+
+        /*
+        debugLog("proj = (%.2f, %.2f), (%.2f, %.2f)\n", proj.start.x, proj.start.y, proj.end.x, proj.end.y);
+        debugLog("finish = (%.2f, %.2f), (%.2f, %.2f)\n", finish.start.x, finish.start.y, finish.end.x, finish.end.y);
+        debugLog("top = (%.2f, %.2f), (%.2f, %.2f)\n", top.start.x, top.start.y, top.end.x, top.end.y);
+        debugLog("bottom = (%.2f, %.2f), (%.2f, %.2f)\n", bottom.start.x, bottom.start.y, bottom.end.x, bottom.end.y);
+        */
 
         vec2f intersect;
 
@@ -130,21 +138,17 @@ void ProjectedBall::project() {
         float length = (intersect-p).length();
 
         p = intersect;
-        debugLog("projecting to %.2f, %.2f\n", p.x, p.y);
         points.push_back(intersect);
         line_lengths.push_back(length);
         total_length +=length;
     }
-
-    debugLog("total length = %.2f\n", total_length);
-    debugLog("no points = %d\n", points.size());
 }
 
-bool ProjectedBall::bounced() {
+bool ProjectedBall::hasBounced() const {
     return has_bounced;
 }
 
-bool ProjectedBall::finished() {
+bool ProjectedBall::isFinished() const {
     return has_bounced && elapsed>=eta;
 }
 
@@ -155,7 +159,7 @@ void ProjectedBall::bounce() {
 
     if(!no_bounce) {
         vel.x  = -vel.x;
-        dest_x = start_x;
+        dest_x = 0;
     } else {
         dest_x = display.width;
     }
@@ -164,7 +168,7 @@ void ProjectedBall::bounce() {
     has_bounced=true;
 }
 
-bool ProjectedBall::arrived() {
+bool ProjectedBall::arrived() const {
     return elapsed>=eta;
 }
 
@@ -176,8 +180,8 @@ float ProjectedBall::arrivalTime() {
     return (eta-elapsed)/speed;
 }
 
-float ProjectedBall::progress() {
-    return elapsed/eta;
+float ProjectedBall::getProgress() const {
+    return progress;
 }
 
 void ProjectedBall::dontBounce() {
@@ -186,10 +190,9 @@ void ProjectedBall::dontBounce() {
 
 void ProjectedBall::logic(float dt) {
     elapsed += (dt * speed);
+    progress = elapsed / eta;
 
-    float percent = progress();
-
-    if(percent>1.0f) {
+    if(progress>1.0f) {
         if(!has_bounced) {
             bounce();
             return;
@@ -202,7 +205,7 @@ void ProjectedBall::logic(float dt) {
     int nolines = points.size()-1;
 
     //progress
-    float currposf = percent*total_length;
+    float currposf = progress * total_length;
 
     int pointno = 0;
     float len=0;

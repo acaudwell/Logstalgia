@@ -44,7 +44,7 @@ void Paddle::moveTo(int y, float eta, vec4f nextcol) {
     this->dest_elapsed = 0.0f;
     this->nextcol = nextcol;
 
-    debugLog("move to %d over %.2f\n", dest_y, dest_eta);
+    //debugLog("move to %d over %.2f\n", dest_y, dest_eta);
 }
 
 bool Paddle::visible() {
@@ -106,7 +106,7 @@ void Paddle::logic(float dt) {
         float remaining = dest_eta - dest_elapsed;
 
         if(remaining<0.0f) {
-            debugLog("paddle end point reached\n");
+            //debugLog("paddle end point reached\n");
             pos.y = dest_y;
             dest_y = -1;
             colour = nextcol;

@@ -43,6 +43,7 @@ protected:
     int start_x;
     float eta;
     float elapsed;
+    float progress;
     bool has_bounced;
     bool no_bounce;
 
@@ -62,17 +63,20 @@ public:
     void setElapsed(float e);
     void project();
     vec2f finish();
+
     void bounce();
+    
     void dontBounce();
 
     float getX();
 
-    bool finished();
-    bool bounced();
-    bool arrived();
+    bool isFinished() const;
+    bool hasBounced() const;
+
+    bool arrived() const;
 
     float arrivalTime();
-    float progress();
+    float getProgress() const;
 
     void logic(float dt);
 };

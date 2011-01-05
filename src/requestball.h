@@ -33,8 +33,7 @@ protected:
     vec3f pagecolour;
     vec3f responseColour();
 
-    FXFont font;
-
+    FXFont* font;
     TextureResource* tex;
 
 //    TextArea textarea;
@@ -42,17 +41,16 @@ protected:
     std::string response_code;
     vec3f       response_colour;
 public:
-    LogEntry le;
+    LogEntry* le;
 
-    RequestBall(LogEntry& le, FXFont font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed = 10.0f);
-
+    RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed = 10.0f);
     ~RequestBall();
+
     bool mouseOver(TextArea& textarea, vec2f& mouse);
     void logic(float dt);
 
-    void drawGlow();
-
-    void draw(float dt);
+    void drawGlow() const;
+    void draw(float dt) const;
 
 };
 

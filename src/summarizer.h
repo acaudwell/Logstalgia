@@ -53,7 +53,7 @@ public:
     SummNode* parent;
 
     SummNode();
-    SummNode(std::string& str, SummNode* parent);
+    SummNode(const std::string& str, SummNode* parent);
     char c;
     int words;
     int refs;
@@ -62,8 +62,8 @@ public:
     std::vector<bool> exception;
 
     void debug(int indent = 0);
-    bool addWord(std::string& str);
-    bool removeWord(std::string& str);
+    bool addWord(const std::string& str);
+    bool removeWord(const std::string& str);
 
     void expand(std::string prefix, std::vector<std::string>& expansion, bool exceptions);
 
@@ -119,15 +119,14 @@ class Summarizer {
     bool showcount;
     bool right;
     bool mouseover;
-
+    bool changed;
+    
     float incrementf;
 
     float top_gap, bottom_gap;
 
     float refresh_delay;
     float refresh_elapsed;
-
-    void summarize();
 
     std::string title;
     Regex matchre;
@@ -148,13 +147,17 @@ public:
 
     bool supportedString(std::string& str);
 
-    void  removeString(std::string& str);
-    float addString(std::string& str);
-    std::string getBestMatchStr(std::string& str);
-    int   getBestMatch(std::string& str);
+    void removeString(const std::string& str);
+    void addString(const std::string& str);
+
+    const std::string& getBestMatchStr(const std::string& str);
+    int         getBestMatch(const  std::string& str);
+    float       getPosY(const std::string& str);
+    float       getMiddlePosY(const std::string& str);
+
     float calcPosY(int i);
-    float getPosY(std::string& str);
-    float getMiddlePosY(std::string& str);
+
+    void summarize();
 
     void recalc_display();
     void logic(float dt);

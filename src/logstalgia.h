@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "1.0.1"
+#define LOGSTALGIA_VERSION "1.0.2"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -44,7 +44,6 @@
 #include <dirent.h>
 #include <string>
 #include <vector>
-#include <deque>
 #include <list>
 #include <map>
 #include <time.h>
@@ -123,6 +122,7 @@ class Logstalgia : public SDLApp {
     FXFont fontSmall;
     FXFont fontMedium;
     FXFont fontLarge;
+    FXFont fontBall;
 
     Summarizer* ipSummarizer;
 
@@ -135,7 +135,7 @@ class Logstalgia : public SDLApp {
     SeekLog* seeklog;
     StreamLog* streamlog;
 
-    std::deque<LogEntry> entries;
+    std::list<LogEntry*> queued_entries;
     std::list<RequestBall*> balls;
 
     TextArea infowindow;
@@ -159,7 +159,9 @@ class Logstalgia : public SDLApp {
     void updateGroups(float dt);
     void drawGroups(float dt, float alpha);
 
-    void addBall(LogEntry& le,  float head_start);
+    void addStrings(LogEntry* le);
+    
+    void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
     void addGroup(std::string grouptitle, std::string groupregex, int percent = 0, vec3f colour = vec3f(0.0f, 0.0f, 0.0f));
     void togglePause();
@@ -167,8 +169,9 @@ class Logstalgia : public SDLApp {
     BaseLog* getLog();
 
     void reset();
-	void logic(float t, float dt);
-	void draw(float t, float dt);
+
+    void logic(float t, float dt);
+    void draw(float t, float dt);
 public:
 	Logstalgia(std::string logfile, float simu_speed, float update_rate);
 	~Logstalgia();

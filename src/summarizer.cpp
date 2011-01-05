@@ -68,7 +68,7 @@ SummNode::SummNode() {
     parent=0;
 }
 
-SummNode::SummNode(std::string& str, SummNode* parent) {
+SummNode::SummNode(const std::string& str, SummNode* parent) {
     c = str[0];
     words=0;
     refs=0;
@@ -80,7 +80,7 @@ SummNode::SummNode(std::string& str, SummNode* parent) {
     }
 }
 
-bool SummNode::removeWord(std::string& str) {
+bool SummNode::removeWord(const std::string& str) {
 
     bool removed=false;
 
@@ -126,7 +126,7 @@ void SummNode::debug(int indent) {
     }
 }
 
-bool SummNode::addWord(std::string& str) {
+bool SummNode::addWord(const std::string& str) {
 
     //debugLog("adding %s to node '%c'\n", str.c_str(), c);
     bool added=false;
@@ -398,6 +398,7 @@ Summarizer::Summarizer(FXFont font, float x, float top_gap, float bottom_gap, fl
     this->item_colour=0;
     this->showcount=false;
 
+    changed = false;
 
     font_gap    = font.getHeight() + 4;
     max_strings = (int) ((display.height-top_gap-bottom_gap)/font_gap);
@@ -468,6 +469,10 @@ bool Summarizer::supportedString(std::string& str) {
 }
 
 void Summarizer::summarize() {
+    if(!changed) return;
+
+    changed = false;
+    
     strings.clear();
     root.summarize(strings,max_strings);
 
@@ -533,16 +538,16 @@ void Summarizer::recalc_display() {
     }
 }
 
-void Summarizer::removeString(std::string& str) {
+void Summarizer::removeString(const std::string& str) {
     root.removeWord(str);
-    summarize();
+    changed = true;    
 }
 
 float Summarizer::calcPosY(int i) {
     return top_gap + (incrementf * i) ;
 }
 
-int Summarizer::getBestMatch(std::string& str) {
+int Summarizer::getBestMatch(const std::string& str) {
 
     int bestdiff = -1;
     int best = -1;
@@ -587,17 +592,18 @@ int Summarizer::getBestMatch(std::string& str) {
     return best;
 }
 
-std::string Summarizer::getBestMatchStr(std::string& str) {
+const std::string& Summarizer::getBestMatchStr(const std::string& str) {
     int pos = getBestMatch(str);
+        
     return strings[pos].str;
 }
 
 
-float Summarizer::getMiddlePosY(std::string& str) {
+float Summarizer::getMiddlePosY(const std::string& str) {
     return getPosY(str) + (font.getHeight()) / 2;
 }
 
-float Summarizer::getPosY(std::string& str) {
+float Summarizer::getPosY(const std::string& str) {
 
     int best= getBestMatch(str);
 
@@ -612,14 +618,14 @@ void Summarizer::showCount(bool showcount) {
     this->showcount = showcount;
 }
 
-float Summarizer::addString(std::string& str) {
+void Summarizer::addString(const std::string& str) {
     root.addWord(str);
-    summarize();
-
-    return getMiddlePosY(str);
+    changed = true;
 }
 
 void Summarizer::logic(float dt) {
+
+    if(changed) summarize();
 
     refresh_elapsed+=dt;
     if(refresh_elapsed>=refresh_delay) {
@@ -638,7 +644,7 @@ void Summarizer::logic(float dt) {
                 break;
             }
         }
-    }
+    }    
 }
 
 void Summarizer::draw(float dt, float alpha) {

@@ -1,3 +1,7 @@
+1.0.2:
+ * Performance improvements.
+ * Stopped frame-rate being a bottle neck for the number of requests shown.
+
 1.0.1:
  * Made STDIN non-blocking on Windows using PeekNamedPipe (thanks Rui Lopes).
  * Added --hide-url-prefix option to remove protocol and hostname from requests.
