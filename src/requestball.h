@@ -47,7 +47,8 @@ public:
     ~RequestBall();
 
     bool mouseOver(TextArea& textarea, vec2f& mouse);
-    void logic(float dt);
+
+    int logic(float dt);
 
     void drawGlow() const;
     void draw(float dt) const;

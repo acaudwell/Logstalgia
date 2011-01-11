@@ -17,8 +17,6 @@
 
 #include "requestball.h"
 
-int gHighscore = 0;
-
 bool gBounce=true;
 bool gResponseCode=true;
 
@@ -91,9 +89,13 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
     return false;
 }
 
-//increment score by response code
-void RequestBall::logic(float dt) {
+int RequestBall::logic(float dt) {
+    float old_x = pos.x;
+
     ProjectedBall::logic(dt);
+
+    //returns 1 if just became visible (for score incrementing)
+    return (old_x<0.0f && pos.x>=0.0f);
 }
 
 void RequestBall::drawGlow() const {

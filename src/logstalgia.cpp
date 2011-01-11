@@ -123,7 +123,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     spawn_delay=0;
 
-    gHighscore = 0;
+    highscore = 0;
 
     uimessage_timer=0.0f;
 
@@ -291,7 +291,7 @@ void Logstalgia::reset() {
 
     end_reached = false;
     
-    gHighscore = 0;
+    highscore = 0;
 
     for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
         delete it->second;
@@ -436,9 +436,7 @@ void Logstalgia::addStrings(LogEntry* le) {
 }
 
 void Logstalgia::addBall(LogEntry* le, float start_offset) {
-
-    gHighscore++;
-
+    
     std::string hostname = le->hostname;
     std::string pageurl  = le->path;
 
@@ -958,7 +956,7 @@ void Logstalgia::logic(float t, float dt) {
 
         RequestBall* ball = *it;
 
-        ball->logic(dt);
+        highscore += ball->logic(dt);
 
         if(ball->isFinished()) {
             it = balls.erase(it);
@@ -1229,5 +1227,5 @@ void Logstalgia::draw(float t, float dt) {
 
     fontLarge.alignTop(false);
 
-    fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", gHighscore);
+    fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 }

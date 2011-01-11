@@ -81,6 +81,8 @@ class Logstalgia : public SDLApp {
     bool sync;
     bool end_reached;
     
+    int highscore;
+    
     time_t mintime;
 
     time_t starttime;
