@@ -20,3 +20,5 @@ config.guess
 *.swp
 *.d
 .objs
+.deps
+.dirstamp
