@@ -142,8 +142,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
         streamlog = new StreamLog();
         gDisableProgress = true;
 
-        buffer_row_count = 500;
-
     } else {
         try {
             seeklog = new SeekLog(logfile);
@@ -151,8 +149,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
         } catch(SeekLogException& exception) {
             throw SDLAppException("unable to read log file");
         }
-
-        buffer_row_count = 1;
     }
 
     total_space = display.height - 40;
@@ -234,10 +230,10 @@ void Logstalgia::togglePause() {
 }
 
 void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
-	if (e->type == SDL_KEYDOWN) {
+    if (e->type == SDL_KEYDOWN) {
 
-		if (e->keysym.sym == SDLK_ESCAPE) {
-		    appFinished=true;
+        if (e->keysym.sym == SDLK_ESCAPE) {
+            appFinished=true;
         }
 
         if(e->keysym.sym == SDLK_q) {
@@ -288,11 +284,13 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             }
         }
 
-	}
+    }
 }
 
 void Logstalgia::reset() {
 
+    end_reached = false;
+    
     gHighscore = 0;
 
     for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
@@ -486,9 +484,9 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     vec2f ball_dest  = vec2f(entry_paddle->getX(), dest_y);
 
     const std::string& match = ipSummarizer->getBestMatchStr(hostname);
-
+    
     vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
-
+    
     RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
 
     ball->setElapsed( start_offset );
@@ -504,7 +502,7 @@ BaseLog* Logstalgia::getLog() {
 
 std::string whitespaces (" \t\f\v\n\r");
 
-void Logstalgia::readLog() {
+void Logstalgia::readLog(int buffer_rows) {
 
     profile_start("readLog");
     
@@ -570,9 +568,13 @@ void Logstalgia::readLog() {
                 total_entries++;
                 entries_read++;
 
-                //read at least the buffered row count
-                //read all entries with same timestamp
-                if(entries_read >= buffer_row_count && read_timestamp && read_timestamp < le.timestamp) break;
+                //read at least the buffered row count if specified
+                //otherwise read all entries with the same time
+                if(buffer_rows) {
+                    if(entries_read > buffer_rows) break;
+                } else {
+                    if(read_timestamp && read_timestamp < le.timestamp) break;
+                }
                 
                 read_timestamp = le.timestamp;
             }
@@ -588,7 +590,8 @@ void Logstalgia::readLog() {
         }
 
         //no more entries
-        appFinished=true;
+        end_reached = true;
+
         return;
     }
 
@@ -596,10 +599,9 @@ void Logstalgia::readLog() {
         float percent = seeklog->getPercent();
 
         if(percent > gStopPosition) {
-            appFinished = true;
+            end_reached = true;
             return;
         }
-
 
         if(!gDisableProgress) slider.setPercent(percent);
     }
@@ -754,6 +756,11 @@ void Logstalgia::logic(float t, float dt) {
 
     infowindow.hide();
 
+    if(end_reached && balls.empty()) {
+        appFinished = true;
+        return;
+    }
+    
     //if paused, dont move anything, only check what is under mouse
     if(paused) {
 
@@ -803,7 +810,12 @@ void Logstalgia::logic(float t, float dt) {
 
     //recalc spawn speed each second by
     if(currtime != lasttime) {
-        
+
+        //dont bother reading the log if we dont need to
+        if(queued_entries.empty() || queued_entries.back()->timestamp <= currtime) {
+            readLog();
+        }
+
         profile_start("determine new entries");
         
         int items_to_spawn=0;
@@ -823,7 +835,7 @@ void Logstalgia::logic(float t, float dt) {
         //debugLog("items to spawn %d\n", items_to_spawn);
 
         if(items_to_spawn > 0) {
-            
+
             profile_start("add new strings");
             
             //re-summarize
@@ -877,11 +889,14 @@ void Logstalgia::logic(float t, float dt) {
 
         lasttime=currtime;
 
-        profile_stop();
-        
-        readLog();        
+        profile_stop();        
+    } else {
+        //do small reads per frame if we havent buffered the next second
+        if(queued_entries.empty() || queued_entries.back()->timestamp <= currtime+1) {
+            readLog(50);
+        }
     }
-
+    
     std::list<Paddle*> inactivePaddles;
 
     //update paddles
@@ -1090,15 +1105,28 @@ void Logstalgia::draw(float t, float dt) {
     profile_start("draw balls");
 
     glEnable(GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, balltex->textureid);
 
     for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
         (*it)->draw(dt);
     }
 
     profile_stop();
+    
+    profile_start("draw response codes");
+ 
+    for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
+        RequestBall* r = *it;
 
-    profile_start("draw paddle(s)");
+        if(gResponseCode && r->hasBounced()) {
+            r->drawResponseCode();
+        }
+    }
+
+    profile_stop();
 
     glDisable(GL_TEXTURE_2D);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1117,8 +1145,6 @@ void Logstalgia::draw(float t, float dt) {
         }
 
     }
-
-    profile_stop();
 
     if(!gDisableGlow) {
 
@@ -1191,7 +1217,8 @@ void Logstalgia::draw(float t, float dt) {
     if(info) {
         fontMedium.print(2,2, "FPS %d", (int) fps);
         fontMedium.print(2,19,"Balls %03d", balls.size());
-        fontMedium.print(2,49,"Paddles %03d", paddles.size());
+        fontMedium.print(2,36,"Queue %03d", queued_entries.size());
+        fontMedium.print(2,53,"Paddles %03d", paddles.size());
     } else {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());

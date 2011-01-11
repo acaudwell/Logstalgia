@@ -69,8 +69,6 @@ class Logstalgia : public SDLApp {
 
     std::map<std::string,Paddle*> paddles;
 
-    int buffer_row_count;
-
     std::string logfile;
 
     std::string displaydate;
@@ -81,12 +79,13 @@ class Logstalgia : public SDLApp {
     bool recentre;
     bool next;
     bool sync;
-
+    bool end_reached;
+    
     time_t mintime;
 
-    long starttime;
-    long currtime;
-    long lasttime;
+    time_t starttime;
+    time_t currtime;
+    time_t lasttime;
 
     float screen_blank_interval;
     float screen_blank_period;
@@ -153,7 +152,7 @@ class Logstalgia : public SDLApp {
     std::string dateAtPosition(float percent);
     void seekTo(float percent);
 
-    void readLog();
+    void readLog(int buffer_rows = 0);
 
     RequestBall* findNearest(Paddle* paddle, std::string paddle_proc);
     void updateGroups(float dt);

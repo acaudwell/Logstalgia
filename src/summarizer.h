@@ -53,7 +53,7 @@ public:
     SummNode* parent;
 
     SummNode();
-    SummNode(const std::string& str, SummNode* parent);
+    SummNode(const std::string& str, size_t offset, SummNode* parent);
     char c;
     int words;
     int refs;
@@ -62,8 +62,8 @@ public:
     std::vector<bool> exception;
 
     void debug(int indent = 0);
-    bool addWord(const std::string& str);
-    bool removeWord(const std::string& str);
+    bool addWord(const std::string& str, size_t offset);
+    bool removeWord(const std::string& str, size_t offset);
 
     void expand(std::string prefix, std::vector<std::string>& expansion, bool exceptions);
 
@@ -150,12 +150,12 @@ public:
     void removeString(const std::string& str);
     void addString(const std::string& str);
 
-    const std::string& getBestMatchStr(const std::string& str);
-    int         getBestMatch(const  std::string& str);
-    float       getPosY(const std::string& str);
-    float       getMiddlePosY(const std::string& str);
+    const std::string& getBestMatchStr(const std::string& str) const;
+    int         getBestMatchIndex(const std::string& str) const;
+    float       getPosY(const std::string& str) const;
+    float       getMiddlePosY(const std::string& str) const;
 
-    float calcPosY(int i);
+    float calcPosY(int i) const;
 
     void summarize();
 

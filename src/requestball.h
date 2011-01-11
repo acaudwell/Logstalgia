@@ -51,7 +51,7 @@ public:
 
     void drawGlow() const;
     void draw(float dt) const;
-
+    void drawResponseCode() const;
 };
 
 extern bool gDisableGlow;

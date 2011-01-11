@@ -144,10 +144,6 @@ void ProjectedBall::project() {
     }
 }
 
-bool ProjectedBall::hasBounced() const {
-    return has_bounced;
-}
-
 bool ProjectedBall::isFinished() const {
     return has_bounced && elapsed>=eta;
 }

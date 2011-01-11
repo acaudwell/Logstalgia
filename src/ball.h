@@ -71,7 +71,7 @@ public:
     float getX();
 
     bool isFinished() const;
-    bool hasBounced() const;
+    bool hasBounced() const { return has_bounced; }
 
     bool arrived() const;
 

@@ -130,7 +130,6 @@ void RequestBall::draw(float dt) const {
     bool has_bounced = hasBounced();
 
     if(gBounce || !has_bounced || no_bounce) {
-        glBindTexture(GL_TEXTURE_2D, tex->textureid);
 
         float halfsize = size * 0.5f;
         vec2f offsetpos = pos - vec2f(halfsize, halfsize);
@@ -151,15 +150,15 @@ void RequestBall::draw(float dt) const {
             glVertex2f(offsetpos.x, offsetpos.y+size);
         glEnd();
     }
+}
 
-    if(has_bounced && gResponseCode) {
-        float prog = getProgress();
-        float drift = prog * 100.0f;
+void RequestBall::drawResponseCode() const {
+    float prog = getProgress();
+    float drift = prog * 100.0f;
 
-        if(!le->successful) drift *= -1.0f;
-        vec2f msgpos = (vel * drift) + vec2f(dest.x-45.0f, dest.y);
+    if(!le->successful) drift *= -1.0f;
+    vec2f msgpos = (vel * drift) + vec2f(dest.x-45.0f, dest.y);
 
-        glColor4f(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f) );
-        font->draw((int)msgpos.x, (int)msgpos.y, response_code.c_str());
-    }
+    glColor4f(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f) );
+    font->draw((int)msgpos.x, (int)msgpos.y, response_code.c_str());
 }

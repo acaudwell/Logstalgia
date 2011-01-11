@@ -68,46 +68,44 @@ SummNode::SummNode() {
     parent=0;
 }
 
-SummNode::SummNode(const std::string& str, SummNode* parent) {
-    c = str[0];
+SummNode::SummNode(const std::string& str, size_t offset, SummNode* parent) {
+    c = str[offset];
     words=0;
     refs=0;
     this->parent=parent;
 
     //if leaf
-    if(!addWord(str)) {
+    if(!addWord(str, ++offset)) {
          words=1;
     }
 }
 
-bool SummNode::removeWord(const std::string& str) {
-
-    bool removed=false;
-
-    if(str.size()>1) {
-        std::string substr = parent==0 ? str : std::string(str, 1, str.size()-1);
-
-        for(size_t i=0;i<children.size();i++) {
-            if(children[i]->c == substr[0]) {
-                removed = children[i]->removeWord(substr);
-
-                if(children[i]->refs==0) {
-                    //debugLog("removing child at %d with char %c\n", substr[0]);
-                    std::vector<SummNode*>::iterator it = children.begin()+i;
-                    delete *it;
-                    children.erase(it);
-                    removed=true;
-                }
-
-                break;
-            }
-        }
-    }
+bool SummNode::removeWord(const std::string& str, size_t offset) {
 
     refs--;
 
-    if(removed) {
-        words--;
+    size_t str_size = str.size() - offset;
+    
+    if(!str_size) return false;
+
+    words--;
+
+    size_t no_children = children.size();
+    
+    bool removed = false;
+    
+    for(size_t i=0;i<no_children;i++) {
+        if(children[i]->c == str[offset]) {
+            removed = children[i]->removeWord(str,++offset);
+
+            if(children[i]->refs == 0) {
+                std::vector<SummNode*>::iterator it = children.begin()+i;
+                delete *it;
+                children.erase(it);
+            }
+
+            break;
+        }
     }
 
     return removed;
@@ -116,7 +114,6 @@ bool SummNode::removeWord(const std::string& str) {
 void SummNode::debug(int indent) {
     for(int i=0;i<indent;i++)
         debugLog(" ");
-
     debugLog("node c=%c refs=%d words=%d\n", c, refs, words);
     indent++;
 
@@ -126,38 +123,27 @@ void SummNode::debug(int indent) {
     }
 }
 
-bool SummNode::addWord(const std::string& str) {
-
-    //debugLog("adding %s to node '%c'\n", str.c_str(), c);
-    bool added=false;
-
-    if(str.size()>1) {
-        std::string substr = parent==0 ? str : std::string(str, 1, str.size()-1);
-
-        SummNode* child = 0;
-        for(size_t i=0;i<children.size();i++) {
-            if(children[i]->c ==substr[0]) {
-                child = children[i];
-                break;
-            }
-        }
-
-        if(child!=0) {
-            added = child->addWord(substr);
-        } else {
-            children.push_back(new SummNode(substr, this));
-            added=true;
-        }
-    }
-
+bool SummNode::addWord(const std::string& str, size_t offset) {
+    
     refs++;
 
-    if(added) {
-        words++;
+    size_t str_size = str.size() - offset;
+
+    if(!str_size) return false;
+    
+    words++;
+        
+    size_t no_children = children.size();
+
+    for(size_t i=0;i<no_children;i++) {
+        if(children[i]->c == str[offset]) {
+            return children[i]->addWord(str, ++offset);
+        }
     }
 
-    //debugLog("total words for %c = %d\n", c, words);
-    return added;
+    children.push_back(new SummNode(str, offset, this));
+
+    return true;
 }
 
 std::string format_node(std::string str, int refs) {
@@ -539,73 +525,69 @@ void Summarizer::recalc_display() {
 }
 
 void Summarizer::removeString(const std::string& str) {
-    root.removeWord(str);
+    root.removeWord(str,0);
     changed = true;    
 }
 
-float Summarizer::calcPosY(int i) {
+float Summarizer::calcPosY(int i) const {
     return top_gap + (incrementf * i) ;
 }
 
-int Summarizer::getBestMatch(const std::string& str) {
+int Summarizer::getBestMatchIndex(const std::string& input) const {
 
-    int bestdiff = -1;
-    int best = -1;
-    int bestsize = -1;
+    int best_diff = -1;
+    int best      = -1;
+    int best_size = -1;
 
     size_t nostrs = strings.size();
 
-    for(size_t i=0;i<nostrs;i++) {
-        std::string strn = strings[i].str;
-        std::string tmpstr = str;
+    for(size_t i = 0;i < nostrs; i++) {
+        
+        size_t strn_size  = strings[i].str.size();
+        size_t input_size = input.size();
 
-        // if its not the same size, count against it
-        int size_diff = strn.size() - tmpstr.size();
+        int size_diff = strn_size - input_size;
 
-        if(size_diff>0) {
-            strn = std::string(strn,0,tmpstr.size());
-        }
+        size_t min_size   = size_diff == 0 ? input_size : std::min ( strn_size, input_size ); 
 
-        if(size_diff<0) {
-            tmpstr = std::string(tmpstr,0,strn.size());
-        }
+        int min_common_diff = abs( strings[i].str.compare(0, min_size, input, 0, min_size) );       
 
-        int truncated_diff = abs(strn.compare(tmpstr));
-
-        //found it
-        if(truncated_diff==0 && size_diff ==0) {
+        //found
+        if(size_diff == 0 && min_common_diff == 0) {
             best = i;
             break;
         }
+        
+        if(    best_diff == -1
+            || min_common_diff < best_diff
+            || (min_common_diff == best_diff //remove this?
+               && min_size > best_size
+               && strn_size < input_size)) {
 
-        if(bestdiff==-1
-            || truncated_diff<bestdiff
-            || truncated_diff==bestdiff
-               && tmpstr.size()>bestsize
-               && strings[i].str.size()<str.size()) {
             best = i;
-            bestdiff = truncated_diff;
-            bestsize = tmpstr.size();
+
+            best_diff = min_common_diff;
+            best_size = min_size;
         }
     }
 
     return best;
 }
 
-const std::string& Summarizer::getBestMatchStr(const std::string& str) {
-    int pos = getBestMatch(str);
+const std::string& Summarizer::getBestMatchStr(const std::string& str) const {
+    int pos = getBestMatchIndex(str);
         
     return strings[pos].str;
 }
 
 
-float Summarizer::getMiddlePosY(const std::string& str) {
+float Summarizer::getMiddlePosY(const std::string& str) const {
     return getPosY(str) + (font.getHeight()) / 2;
 }
 
-float Summarizer::getPosY(const std::string& str) {
+float Summarizer::getPosY(const std::string& str) const {
 
-    int best= getBestMatch(str);
+    int best = getBestMatchIndex(str);
 
     if(best!=-1) {
         return calcPosY(best);
@@ -619,7 +601,7 @@ void Summarizer::showCount(bool showcount) {
 }
 
 void Summarizer::addString(const std::string& str) {
-    root.addWord(str);
+    root.addWord(str,0);
     changed = true;
 }
 
