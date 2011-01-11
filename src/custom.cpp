@@ -67,7 +67,7 @@ bool CustomAccessLog::parseLine(std::string& line, LogEntry& entry) {
         entry.user_agent = matches[8];
     }
 
-    //user agent
+    //vhost
     if(matches.size()>9) {
         entry.vhost = matches[9];
     }
