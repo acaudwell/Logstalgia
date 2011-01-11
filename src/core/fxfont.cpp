@@ -48,7 +48,7 @@ void FXFont::init() {
     align_top       = true;
 }
 
-FTFont* FXFont::getFTFont() {
+FTFont* FXFont::getFTFont() const{
     return ft;
 }
 
@@ -76,15 +76,15 @@ void FXFont::dropShadow(bool shadow) {
     this->shadow = shadow;
 }
 
-int FXFont::getFontSize() {
+int FXFont::getFontSize() const{
     return ft->FaceSize();
 }
 
-float FXFont::getHeight() {
+float FXFont::getHeight() const{
     return ft->Ascender() + ft->Descender();
 }
 
-float FXFont::getWidth(std::string text) {
+float FXFont::getWidth(const std::string & text) const{
     FTBBox bb = ft->BBox(text.c_str());
 
     float width = (bb.Upper().X() - bb.Lower().X());
@@ -92,7 +92,7 @@ float FXFont::getWidth(std::string text) {
     return width;
 }
 
-void FXFont::render(float x, float y, std::string text) {
+void FXFont::render(float x, float y, const std::string & text) const{
 
 
     if(round) {
@@ -107,7 +107,7 @@ void FXFont::render(float x, float y, std::string text) {
     glPopMatrix();
 }
 
-void FXFont::print(float x, float y, const char *str, ...) {
+void FXFont::print(float x, float y, const char *str, ...) const{
     char buf[4096];
 
     va_list vl;
@@ -121,7 +121,7 @@ void FXFont::print(float x, float y, const char *str, ...) {
     draw(x, y, text);
 }
 
-void FXFont::draw(float x, float y, std::string text) {
+void FXFont::draw(float x, float y, const std::string & text) const{
 
     if(align_right) {
         x -= getWidth(text);
@@ -150,8 +150,13 @@ void FXFontManager::setDir(std::string font_dir) {
 
 void FXFontManager::purge() {
 
-    for(std::map<std::string, FTFont*>::iterator it= fonts.begin(); it!=fonts.end();it++) {
-        delete it->second;
+    for(std::map<std::string,fontSizeMap*>::iterator it = fonts.begin(); it!=fonts.end();it++) {
+        fontSizeMap* sizemap = it->second;
+
+        for(fontSizeMap::iterator ft_it = sizemap->begin(); ft_it != sizemap->end(); ft_it++) {
+            delete ft_it->second;
+        }
+        delete sizemap;
     }
 
     fonts.clear();
@@ -165,16 +170,23 @@ FXFont FXFontManager::grab(std::string font_file, int size) {
         font_file = font_dir + font_file;
     }
 
-    sprintf(buf, "%s:%i", font_file.c_str(), size);
+    //sprintf(buf, "%s:%i", font_file.c_str(), size);
+    //std::string font_key = std::string(buf);
 
-    std::string font_key = std::string(buf);
-
-    FTFont* ft = fonts[font_key];
-
-    if(ft==0) {
+    fontSizeMap* sizemap = fonts[font_file];
+    
+    if(!sizemap) {
+        sizemap = fonts[font_file] = new fontSizeMap;
+    }
+    
+    fontSizeMap::iterator ft_it = sizemap->find(size);   
+    FTFont* ft;
+    
+    if(ft_it == sizemap->end()) {  
         ft = create(font_file, size);
-
-        fonts[font_key] = ft;
+        sizemap->insert(std::pair<int,FTFont*>(size,ft));
+    } else {
+        ft = ft_it->second;
     }
 
     return FXFont(ft);

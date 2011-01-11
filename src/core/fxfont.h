@@ -41,7 +41,7 @@
 
 class FXFontException : public ResourceException {
 public:
-    FXFontException(std::string& font_file) : ResourceException(font_file) {}
+    FXFontException(std::string & font_file) : ResourceException(font_file) {}
 };
 
 class FXFont {
@@ -56,38 +56,40 @@ class FXFont {
 
     bool align_right, align_top;
 
-    void render(float x, float y, std::string text);
+    void render(float x, float y, const std::string & text) const;
     void init();
 public:
     FXFont();
     FXFont(FTFont* ft);
 
-    FTFont* getFTFont();
+    FTFont* getFTFont() const;
 
-    void print(float x, float y, const char *str, ...);
-    void draw(float x, float y, std::string text);
+    void print(float x, float y, const char *str, ...) const;
+    void draw(float x, float y, const std::string & text) const;
 
-    float getWidth(std::string text);
+    float getWidth(const std::string & text) const;
 
     void alignTop(bool top);
     void alignRight(bool right);
 
     void roundCoordinates(bool round);
 
-    int getFontSize();
+    int getFontSize() const;
 
-    float getHeight();
+    float getHeight() const;
 
     void dropShadow(bool shadow);
     void shadowStrength(float s);
     void shadowOffset(float x, float y);
 };
 
+typedef std::map<int,FTFont*> fontSizeMap;
+
 class FXFontManager {
 
     std::string font_dir;
 
-    std::map<std::string, FTFont*> fonts;
+    std::map<std::string, fontSizeMap*> fonts;
 
     FTFont* create(std::string font_file, int size);
 public:
