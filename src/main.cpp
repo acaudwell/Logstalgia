@@ -352,7 +352,18 @@ int main(int argc, char *argv[]) {
 
     // wait for a character on the file handle if reading stdin
     if(logfile == "-") {
+
+#ifdef _WIN32
+        DWORD available_bytes;
+        HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+
+        while(PeekNamedPipe(stdin_handle, 0, 0, 0,
+            &available_bytes, 0) && available_bytes==0 && !std::cin.fail()) {
+            SDL_Delay(100);
+        }
+#else
         while(std::cin.peek() == EOF && !std::cin.fail()) SDL_Delay(100);
+#endif
         std::cin.clear();
     }
 
