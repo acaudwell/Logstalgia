@@ -288,9 +288,9 @@ void SummItem::updateUnit(SummUnit& unit) {
 
     if(unit.truncated) {
         if(showcount) {
-            snprintf(buff, 1024, "%03d %s (%d)", unit.refs, unit.str.c_str(), unit.expanded.size());
+            snprintf(buff, 1024, "%03d %s (%d)", unit.refs, unit.str.c_str(), (int) unit.expanded.size());
         } else {
-            snprintf(buff, 1024, "%s (%d)", unit.str.c_str(), unit.expanded.size());
+            snprintf(buff, 1024, "%s (%d)", unit.str.c_str(), (int) unit.expanded.size());
         }
     } else {
         if(showcount) {
