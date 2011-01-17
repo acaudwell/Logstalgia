@@ -33,6 +33,8 @@ bool  gHideURLPrefix   = false;
 std::string profile_name;
 Uint32 profile_start_msec;
 
+std::string old_tz;
+
 void profile_start(std::string profile) {
 #ifdef LS_PERFORMANCE_PROFILE
     profile_start_msec = SDL_GetTicks();
@@ -196,6 +198,16 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
         vec4f(0.0f, 0.0f, 0.0f, 0.0f) : vec4f(0.5, 0.5, 0.5, 1.0);
 
     debugLog("Logstalgia end of constructor\n");
+
+    //check if TZ is set, store current value
+    if(old_tz.empty()) {
+        char* current_tz_env = getenv("TZ");
+
+        if(current_tz_env != 0) {
+            old_tz  = std::string("TZ=");
+            old_tz += std::string(current_tz_env);
+        }
+    }
 }
 
 Logstalgia::~Logstalgia() {
@@ -498,23 +510,13 @@ BaseLog* Logstalgia::getLog() {
     return streamlog;
 }
 
-std::string whitespaces (" \t\f\v\n\r");
-
 void Logstalgia::readLog(int buffer_rows) {
 
     profile_start("readLog");
 
     //change TZ to UTC
-    std::string old_tz;
-    char* old_tz_env = getenv("TZ");
-
-    if(old_tz_env!=0) old_tz = std::string(old_tz_env);
-
-    putenv("TZ=UTC+0");
-
-#ifdef _WIN32
-    _tzset();
-#endif
+    putenv((char*)"TZ=UTC");
+    tzset();
 
     int entries_read = 0;
 
@@ -528,7 +530,7 @@ void Logstalgia::readLog(int buffer_rows) {
         //trim whitespace
         if(linestr.size()>0) {
             size_t string_end =
-                linestr.find_last_not_of(whitespaces);
+                linestr.find_last_not_of(" \t\f\v\n\r");
 
             if(string_end == std::string::npos) {
                 linestr = "";
@@ -596,16 +598,16 @@ void Logstalgia::readLog(int buffer_rows) {
     //reset TZ to previous value
 
     if(!old_tz.empty()) {
-        char revert_tz[256];
-        snprintf(revert_tz, 256, "TZ=%s", old_tz.c_str());
-        putenv(revert_tz);
+        putenv((char*)old_tz.c_str());
     } else {
+#ifdef HAVE_UNSETENV
+        unsetenv("TZ");
+#else
         putenv("TZ=");
-    }
-
-#ifdef _WIN32
-    _tzset();
 #endif
+    }
+    
+    tzset();
 
     if(queued_entries.empty() && seeklog != 0) {
 
