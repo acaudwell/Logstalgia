@@ -30,13 +30,13 @@ protected:
     vec2f start;
     vec2f dest;
 
+    vec2f offset;
+    
     vec3f pagecolour;
     vec3f responseColour();
 
     FXFont* font;
     TextureResource* tex;
-
-//    TextArea textarea;
 
     std::string response_code;
     vec3f       response_colour;

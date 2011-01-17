@@ -49,6 +49,9 @@ RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, vec3f
 
     if(!le->successful) dontBounce();
 
+    float halfsize = size * 0.5f;
+    offset = vec2f(halfsize, halfsize);
+
     char buff[16];
     snprintf(buff, 16, "%s", le->response_code.c_str());
     response_code = std::string(buff);
@@ -109,19 +112,19 @@ void RequestBall::drawGlow() const {
 
     vec3f glow_col = colour * gGlowIntensity * alpha;
 
-    glColor4f(glow_col.x, glow_col.y, glow_col.z, 1.0);
+    glColor4f(glow_col.x, glow_col.y, glow_col.z, 1.0f);
 
     glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.0);
+        glTranslatef(pos.x, pos.y, 0.0f);
 
         glBegin(GL_QUADS);
-            glTexCoord2f(1.0, 1.0);
+            glTexCoord2f(1.0f, 1.0f);
             glVertex2f(glow_radius,glow_radius);
-            glTexCoord2f(1.0, 0.0);
+            glTexCoord2f(1.0f, 0.0f);
             glVertex2f(glow_radius,-glow_radius);
-            glTexCoord2f(0.0, 0.0);
+            glTexCoord2f(0.0f, 0.0f);
             glVertex2f(-glow_radius,-glow_radius);
-            glTexCoord2f(0.0, 1.0);
+            glTexCoord2f(0.0f, 1.0f);
             glVertex2f(-glow_radius,glow_radius);
         glEnd();
     glPopMatrix();
@@ -133,24 +136,27 @@ void RequestBall::draw(float dt) const {
 
     if(gBounce || !has_bounced || no_bounce) {
 
-        float halfsize = size * 0.5f;
-        vec2f offsetpos = pos - vec2f(halfsize, halfsize);
-
+        vec2f offsetpos = pos - offset;
+        
         glColor4f(colour.x, colour.y, colour.z, 1.0f);
 
-        glBegin(GL_QUADS);
-            glTexCoord2f(0.0f,0.0f);
-            glVertex2f(offsetpos.x, offsetpos.y);
+        glPushMatrix();
+            glTranslatef(offsetpos.x, offsetpos.y, 0.0f);
 
-            glTexCoord2f(1.0f,0.0f);
-            glVertex2f(offsetpos.x+size, offsetpos.y);
+            glBegin(GL_QUADS);
+                glTexCoord2f(0.0f,0.0f);
+                glVertex2f(0.0f, 0.0f);
 
-            glTexCoord2f(1.0f,1.0f);
-            glVertex2f(offsetpos.x+size, offsetpos.y+size);
+                glTexCoord2f(1.0f,0.0f);
+                glVertex2f(size, 0.0f);
 
-            glTexCoord2f(0.0f,1.0f);
-            glVertex2f(offsetpos.x, offsetpos.y+size);
-        glEnd();
+                glTexCoord2f(1.0f,1.0f);
+                glVertex2f(size, size);
+
+                glTexCoord2f(0.0f,1.0f);
+                glVertex2f(0.0f, size);
+            glEnd();
+        glPopMatrix();
     }
 }
 
@@ -162,5 +168,5 @@ void RequestBall::drawResponseCode() const {
     vec2f msgpos = (vel * drift) + vec2f(dest.x-45.0f, dest.y);
 
     glColor4f(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f) );
-    font->draw((int)msgpos.x, (int)msgpos.y, response_code.c_str());
+    font->draw(msgpos.x, msgpos.y, response_code.c_str());
 }
