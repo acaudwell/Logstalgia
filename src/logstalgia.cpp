@@ -25,7 +25,8 @@
 float gSplash = -1.0f;
 float gStartPosition = 0.0;
 float gStopPosition  = 1.0;
-
+float gPaddlePosition = 0.67;
+int   gFontSize = 14;
 bool  gDisableProgress = false;
 bool  gSyncLog         = false;
 bool  gHideURLPrefix   = false;
@@ -62,7 +63,7 @@ void logstalgia_help() {
     SDLAppCreateWindowsConsole();
 
     //resize window to fit help message
-    SDLAppResizeWindowsConsole(700);
+    SDLAppResizeWindowsConsole(710);
 #endif
 
     printf("Logstalgia v%s\n", LOGSTALGIA_VERSION);
@@ -80,7 +81,8 @@ void logstalgia_help() {
 
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
-    printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n\n");
+    printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
+    printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
@@ -94,6 +96,8 @@ void logstalgia_help() {
 
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
+
+    printf("  --font-size SIZE           Font size\n\n");
 
     printf("  --glow-duration            Duration of the glow (default: 0.15)\n");
     printf("  --glow-multiplier          Adjust the amount of glow (default: 1.25)\n");
@@ -163,7 +167,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
     fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
     fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
-    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", 14);
+    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", gFontSize);
 
     fontLarge.dropShadow(true);
     fontMedium.dropShadow(true);
@@ -194,6 +198,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
+    paddle_x = display.width * gPaddlePosition;
     paddle_colour = (gPaddleMode > PADDLE_SINGLE) ?
         vec4f(0.0f, 0.0f, 0.0f, 0.0f) : vec4f(0.5, 0.5, 0.5, 1.0);
 
@@ -253,7 +258,7 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
         }
 
         if(e->keysym.sym == SDLK_c) {
-            gSplash = 15.0f;
+            gSplash = 10.0f;
         }
 
         if(e->keysym.sym == SDLK_n) {
@@ -311,7 +316,7 @@ void Logstalgia::reset() {
     paddles.clear();
 
     if(gPaddleMode <= PADDLE_SINGLE) {
-        vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
+        vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
         Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
         paddles[""] = paddle;
     }
@@ -606,7 +611,7 @@ void Logstalgia::readLog(int buffer_rows) {
         putenv("TZ=");
 #endif
     }
-    
+
     tzset();
 
     if(queued_entries.empty() && seeklog != 0) {
@@ -1061,15 +1066,13 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
 
     int space = (int) ( ((float)percent/100) * total_space );
 
-    float pos_x = display.width-(display.width/3) + 20;
-
     int top_gap    = total_space - remaining_space;
     int bottom_gap = display.height - (total_space - remaining_space + space);
 
-    debugLog("add group name = %s, regex = %s, remainpc = %d, space = %d, pos_x = %.2f, top_gap = %d, bottom_gap = %d\n",
-        grouptitle.c_str(), groupregex.c_str(), remainpc, space, pos_x, top_gap, bottom_gap);
+    //debugLog("group %s: regex = %s, remainpc = %d, space = %d, top_gap = %d, bottom_gap = %d\n",
+    //    grouptitle.c_str(), groupregex.c_str(), remainpc, space, top_gap, bottom_gap);
 
-    Summarizer* summ = new Summarizer(fontSmall, pos_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
+    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
 //    summ->showCount(true);
 
     if(colour.length2() > 0.01f) {
@@ -1203,15 +1206,18 @@ void Logstalgia::draw(float t, float dt) {
 
     if(gSplash>0.0f) {
         int logowidth = fontLarge.getWidth("Logstalgia");
-        int logoheight = 100;
+        int logoheight = 105;
         int cwidth    = fontMedium.getWidth("Website Access Log Viewer");
-        int awidth    = fontSmall.getWidth("(C) 2008 Andrew Caudwell");
+        int awidth    = fontMedium.getWidth("(C) 2008 Andrew Caudwell");
 
         vec2f corner(display.width/2 - logowidth/2 - 30.0f,
                      display.height/2 - 45);
 
+        float logo_alpha = std::min(1.0f, gSplash/3.0f);
+        float logo_bg    = std::min(0.2f, gSplash/10.0f);
+
         glDisable(GL_TEXTURE_2D);
-        glColor4f(0.0f, 0.5f, 1.0f, font_alpha * gSplash * 0.015f);
+        glColor4f(0.0f, 0.5f, 1.0f, logo_bg);
         glBegin(GL_QUADS);
             glVertex2f(0.0f,                 corner.y);
             glVertex2f(0.0f,                 corner.y + logoheight);
@@ -1224,14 +1230,14 @@ void Logstalgia::draw(float t, float dt) {
         fontLarge.alignTop(true);
         fontLarge.dropShadow(true);
 
-        glColor4f(1,1,1,font_alpha);
+        glColor4f(1,1,1,logo_alpha);
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Logstalgia");
-        glColor4f(0,1,1,font_alpha);
+        glColor4f(0,1,1,logo_alpha);
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Log");
 
-        glColor4f(1,1,1,font_alpha);
+        glColor4f(1,1,1,logo_alpha);
         fontMedium.draw(display.width/2 - cwidth/2,display.height/2 + 17, "Website Access Log Viewer");
-        fontSmall.draw(display.width/2 - awidth/2,display.height/2 + 37, "(C) 2008 Andrew Caudwell");
+        fontMedium.draw(display.width/2 - awidth/2,display.height/2 + 37, "(C) 2008 Andrew Caudwell");
 
         gSplash-=dt;
     }

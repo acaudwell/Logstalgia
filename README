@@ -81,6 +81,9 @@ options:
 
             single - single paddle (the default).
 
+    --paddle-position POSITION
+            Paddle position as a fraction of the view width (0.25 - 0.75).
+
     --sync  Read from STDIN, ignoring entries before the current time.
 
     --start-position POSITION
@@ -106,6 +109,9 @@ options:
 
     --disable-glow
             Disable the glow effect.
+
+    --font-size SIZE
+            Font size (10 - 40).
 
     --glow-duration
             Duration of the glow (between 0.0 and 1.0).

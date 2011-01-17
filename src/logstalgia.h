@@ -59,6 +59,8 @@ extern bool  gHideURLPrefix;
 extern float gSplash;
 extern float gStartPosition;
 extern float gStopPosition;
+extern float gPaddlePosition;
+extern int   gFontSize;
 
 void logstalgia_help();
 void logstalgia_info(std::string msg);
@@ -80,9 +82,9 @@ class Logstalgia : public SDLApp {
     bool next;
     bool sync;
     bool end_reached;
-    
+
     int highscore;
-    
+
     time_t mintime;
 
     time_t starttime;
@@ -112,6 +114,7 @@ class Logstalgia : public SDLApp {
 
     vec3f background;
     vec4f paddle_colour;
+    float paddle_x;
 
     TextureResource* balltex;
     TextureResource* glowtex;
@@ -161,7 +164,7 @@ class Logstalgia : public SDLApp {
     void drawGroups(float dt, float alpha);
 
     void addStrings(LogEntry* le);
-    
+
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
     void addGroup(std::string grouptitle, std::string groupregex, int percent = 0, vec3f colour = vec3f(0.0f, 0.0f, 0.0f));

@@ -158,6 +158,36 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--paddle-position") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify paddle-position (0.25 - 0.75)");
+            }
+
+            gPaddlePosition = atof(arguments[++i].c_str());
+
+            if(gPaddlePosition < 0.25f || gPaddlePosition > 0.75f) {
+                logstalgia_quit("paddle-position outside of range 0.25 - 0.75");
+            }
+
+            continue;
+        }
+
+        if(args == "--font-size") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify font-size (10 - 40)");
+            }
+
+            gFontSize = atoi(arguments[++i].c_str());
+
+            if(gFontSize < 10 || gFontSize > 40) {
+                logstalgia_quit("font-size outside of range 10 - 40");
+            }
+
+            continue;
+        }
+
         if(args == "-b" || args == "--background") {
 
             if((i+1)>=arguments.size()) {

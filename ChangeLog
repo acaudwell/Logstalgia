@@ -3,6 +3,8 @@
  * Stopped frame-rate being a bottle neck for the number of requests shown.
  * Improved STDIN input reliability on windows.
  * Handle log entry timezone offsets.
+ * Added --paddle-position option (to allow more space for URLs).
+ * Added --font-size option.
 
 1.0.1:
  * Made STDIN non-blocking on Windows using PeekNamedPipe (thanks Rui Lopes).
