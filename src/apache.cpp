@@ -75,7 +75,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     int tz_min  = atoi(matches[7].substr(2,2).c_str());
 
     int tz_offset = tz_hour * 3600 + tz_min * 60;
-    
+
     if(matches[6] == "-") {
         tz_offset = -tz_offset;
     }
@@ -88,15 +88,11 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     time_str.tm_sec = second;
     time_str.tm_isdst = -1;
 
-    setenv("TZ", "UTC", 1);
-    
     entry.timestamp = mktime(&time_str);
-
-    unsetenv("TZ");
 
     //apply utc offset
     entry.timestamp -= tz_offset;
-    
+
     matches.clear();
     ls_apache_entry_request.match(request_str, &matches);
 

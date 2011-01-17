@@ -290,7 +290,7 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
 void Logstalgia::reset() {
 
     end_reached = false;
-    
+
     highscore = 0;
 
     for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
@@ -436,7 +436,7 @@ void Logstalgia::addStrings(LogEntry* le) {
 }
 
 void Logstalgia::addBall(LogEntry* le, float start_offset) {
-    
+
     std::string hostname = le->hostname;
     std::string pageurl  = le->path;
 
@@ -475,20 +475,20 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     float dest_y = pageSummarizer->getMiddlePosY(pageurl);
     float pos_y  = ipSummarizer->getMiddlePosY(hostname);
-    
+
     float start_x = -(entry_paddle->getX()/ 5.0f);
-    
+
     vec2f ball_start = vec2f(start_x, pos_y);
     vec2f ball_dest  = vec2f(entry_paddle->getX(), dest_y);
 
     const std::string& match = ipSummarizer->getBestMatchStr(hostname);
-    
+
     vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
-    
+
     RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
 
     ball->setElapsed( start_offset );
-    
+
     balls.push_back(ball);
 }
 
@@ -503,14 +503,26 @@ std::string whitespaces (" \t\f\v\n\r");
 void Logstalgia::readLog(int buffer_rows) {
 
     profile_start("readLog");
-    
+
+    //change TZ to UTC
+    std::string old_tz;
+    char* old_tz_env = getenv("TZ");
+
+    if(old_tz_env!=0) old_tz = std::string(old_tz_env);
+
+    putenv("TZ=UTC+0");
+
+#ifdef _WIN32
+    _tzset();
+#endif
+
     int entries_read = 0;
 
     std::string linestr;
     BaseLog* baselog = getLog();
 
     time_t read_timestamp = 0;
-    
+
     while( baselog->getNextLine(linestr) ) {
 
         //trim whitespace
@@ -560,7 +572,7 @@ void Logstalgia::readLog(int buffer_rows) {
         if(parsed_entry) {
 
             if(mintime == 0 || mintime <= le.timestamp) {
-                               
+
                 queued_entries.push_back(new LogEntry(le));
 
                 total_entries++;
@@ -573,13 +585,27 @@ void Logstalgia::readLog(int buffer_rows) {
                 } else {
                     if(read_timestamp && read_timestamp < le.timestamp) break;
                 }
-                
+
                 read_timestamp = le.timestamp;
             }
         }
     }
-    
+
     profile_stop();
+
+    //reset TZ to previous value
+
+    if(!old_tz.empty()) {
+        char revert_tz[256];
+        snprintf(revert_tz, 256, "TZ=%s", old_tz.c_str());
+        putenv(revert_tz);
+    } else {
+        putenv("TZ=");
+    }
+
+#ifdef _WIN32
+    _tzset();
+#endif
 
     if(queued_entries.empty() && seeklog != 0) {
 
@@ -758,7 +784,7 @@ void Logstalgia::logic(float t, float dt) {
         appFinished = true;
         return;
     }
-    
+
     //if paused, dont move anything, only check what is under mouse
     if(paused) {
 
@@ -815,19 +841,19 @@ void Logstalgia::logic(float t, float dt) {
         }
 
         profile_start("determine new entries");
-        
+
         int items_to_spawn=0;
 
         for(std::list<LogEntry*>::iterator it = queued_entries.begin(); it != queued_entries.end(); it++) {
             LogEntry* le = *it;
 
             if(le->timestamp > currtime) break;
-                          
+
             items_to_spawn++;
 
             addStrings(le);
         }
-        
+
         profile_stop();
 
         //debugLog("items to spawn %d\n", items_to_spawn);
@@ -835,10 +861,10 @@ void Logstalgia::logic(float t, float dt) {
         if(items_to_spawn > 0) {
 
             profile_start("add new strings");
-            
+
             //re-summarize
             ipSummarizer->summarize();
-     
+
             int nogrps = summGroups.size();
 
             for(int i=0;i<nogrps;i++) {
@@ -848,11 +874,11 @@ void Logstalgia::logic(float t, float dt) {
             profile_stop();
 
             profile_start("add new entries");
-            
+
             float item_offset = 1.0 / (float) (items_to_spawn);
 
-            int item_no = 0;            
-            
+            int item_no = 0;
+
             while(!queued_entries.empty()) {
 
                 LogEntry* le = queued_entries.front();
@@ -861,12 +887,12 @@ void Logstalgia::logic(float t, float dt) {
 
                 float pos_offset   = item_offset * (float) item_no++;
                 float start_offset = std::min(1.0f, pos_offset);
-                
+
                 addBall(le, start_offset);
-                
+
                 queued_entries.pop_front();
             }
-        
+
         }
 
         //update date
@@ -887,14 +913,14 @@ void Logstalgia::logic(float t, float dt) {
 
         lasttime=currtime;
 
-        profile_stop();        
+        profile_stop();
     } else {
         //do small reads per frame if we havent buffered the next second
         if(queued_entries.empty() || queued_entries.back()->timestamp <= currtime+1) {
             readLog(50);
         }
     }
-    
+
     std::list<Paddle*> inactivePaddles;
 
     //update paddles
@@ -1113,9 +1139,9 @@ void Logstalgia::draw(float t, float dt) {
     }
 
     profile_stop();
-    
+
     profile_start("draw response codes");
- 
+
     for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
         RequestBall* r = *it;
 
