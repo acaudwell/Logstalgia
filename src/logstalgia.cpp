@@ -63,7 +63,7 @@ void logstalgia_help() {
     SDLAppCreateWindowsConsole();
 
     //resize window to fit help message
-    SDLAppResizeWindowsConsole(710);
+    SDLAppResizeWindowsConsole(700);
 #endif
 
     printf("Logstalgia v%s\n", LOGSTALGIA_VERSION);
@@ -84,7 +84,7 @@ void logstalgia_help() {
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
 
-    printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
+    printf("  --sync                     Read from STDIN, ignoring entries before now\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
     printf("  --stop-position  POSITION  Stop at some position\n\n");
 
@@ -92,8 +92,7 @@ void logstalgia_help() {
 
     printf("  --hide-response-code       Hide response code\n");
     printf("  --hide-paddle              Hide paddle\n");
-    printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
-
+    printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n");
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
 
