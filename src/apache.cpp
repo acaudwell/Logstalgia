@@ -44,7 +44,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     //parse timestamp
     struct tm time_str;
 
-    int day, month, year, hour, minute, second, zone;
+    int day, month, year, hour, minute, second;
 
     std::string request_str = matches[4];
     std::string datestr     = matches[3];
@@ -61,12 +61,6 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     hour   = atoi(matches[3].c_str());
     minute = atoi(matches[4].c_str());
     second = atoi(matches[5].c_str());
-    zone   = atoi(matches[7].c_str());
-
-    //negative timezone
-    if(strcmp(matches[6].c_str(), "-")==0) {
-        zone = -zone;
-    }
 
     month=0;
     for(int i=0;i<12;i++) {
@@ -74,6 +68,16 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
             month=i;
             break;
         }
+    }
+
+    //convert zone to utc offset
+    int tz_hour = atoi(matches[7].substr(0,2).c_str());
+    int tz_min  = atoi(matches[7].substr(2,2).c_str());
+
+    int tz_offset = tz_hour * 3600 + tz_min * 60;
+    
+    if(matches[6] == "-") {
+        tz_offset = -tz_offset;
     }
 
     time_str.tm_year = year - 1900;
@@ -84,8 +88,15 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     time_str.tm_sec = second;
     time_str.tm_isdst = -1;
 
+    setenv("TZ", "UTC", 1);
+    
     entry.timestamp = mktime(&time_str);
 
+    unsetenv("TZ");
+
+    //apply utc offset
+    entry.timestamp -= tz_offset;
+    
     matches.clear();
     ls_apache_entry_request.match(request_str, &matches);
 
