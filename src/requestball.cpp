@@ -26,7 +26,7 @@ float gGlowIntensity  = 0.5;
 float gGlowMultiplier = 1.25;
 float gGlowDuration   = 0.15;
 
-RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, vec3f colour, vec2f pos, vec2f dest, float speed) {
+RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3f& colour, const vec2f& pos, const vec2f& dest, float speed) {
     this->le   = le;
     this->tex  = tex;
     this->font = font;

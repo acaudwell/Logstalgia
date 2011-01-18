@@ -60,11 +60,11 @@ bool Line::intersects(Line& l, vec2f *p) {
 ProjectedBall::ProjectedBall() {
 }
 
-ProjectedBall::ProjectedBall(vec2f pos, vec2f vel, vec3f colour, int dest_x, float eta, float size, float speed) {
+ProjectedBall::ProjectedBall(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed) {
     init(pos, vel, colour, dest_x, eta, size, speed);
 }
 
-void ProjectedBall::init(vec2f pos, vec2f vel, vec3f colour, int dest_x, float eta, float size, float speed) {
+void ProjectedBall::init(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed) {
     this->pos = pos;
     this->vel = vel;
     this->colour = colour;

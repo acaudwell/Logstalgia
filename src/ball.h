@@ -55,10 +55,10 @@ public:
     float speed;
 
     ProjectedBall();
-    ProjectedBall(vec2f pos, vec2f vel, vec3f colour, int dest_x, float eta, float size, float speed = 10.0f);
+    ProjectedBall(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed = 10.0f);
     ~ProjectedBall();
 
-    void init(vec2f pos, vec2f vel, vec3f colour, int dest_x, float eta, float size, float speed);
+    void init(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed);
 
     void setElapsed(float e);
     void project();
