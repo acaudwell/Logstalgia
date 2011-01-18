@@ -40,7 +40,7 @@ class RegexCompilationException : public std::exception {
 protected:
     std::string regex;
 public:
-    RegexCompilationException(std::string& regex) : regex(regex) {}
+    RegexCompilationException(const std::string& regex) : regex(regex) {}
     virtual ~RegexCompilationException() throw () {};
 
     virtual const char* what() const throw() { return regex.c_str(); }
@@ -55,9 +55,9 @@ class Regex {
     bool valid;
 
 public:
-    Regex(std::string regex, bool test = false);
+    Regex(const std::string& regex, bool test = false);
     ~Regex();
-    bool match(std::string& str, std::vector<std::string>* results = 0);
+    bool match(const std::string& str, std::vector<std::string>* results = 0);
 
     bool isValid();
 

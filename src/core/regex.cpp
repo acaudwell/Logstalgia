@@ -27,7 +27,7 @@
 
 #include "regex.h"
 
-Regex::Regex(std::string regex, bool test) {
+Regex::Regex(const std::string& regex, bool test) {
 
     re = pcre_compile(
         regex.c_str(),
@@ -58,7 +58,7 @@ bool Regex::isValid() {
     return valid;
 }
 
-bool Regex::match(std::string& str, std::vector<std::string>* results) {
+bool Regex::match(const std::string& str, std::vector<std::string>* results) {
 
     int ovector[REGEX_MAX_MATCHES];
 

@@ -152,14 +152,14 @@ class Logstalgia : public SDLApp {
     int frameskip;
     FrameExporter* frameExporter;
 
-    std::string filterURLHostname(std::string hostname);
+    std::string filterURLHostname(const std::string& hostname);
 
     std::string dateAtPosition(float percent);
     void seekTo(float percent);
 
     void readLog(int buffer_rows = 0);
 
-    RequestBall* findNearest(Paddle* paddle, std::string paddle_proc);
+    RequestBall* findNearest(Paddle* paddle, const std::string& paddle_token);
     void updateGroups(float dt);
     void drawGroups(float dt, float alpha);
 

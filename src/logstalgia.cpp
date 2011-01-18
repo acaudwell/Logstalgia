@@ -417,7 +417,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
 
 Regex ls_url_hostname_regex("^http://[^/]+(.+)$");
 
-std::string Logstalgia::filterURLHostname(std::string hostname) {
+std::string Logstalgia::filterURLHostname(const std::string& hostname) {
 
     std::vector<std::string> matches;
 
@@ -721,7 +721,7 @@ void Logstalgia::update(float t, float dt) {
    framecount++;
 }
 
-RequestBall* Logstalgia::findNearest(Paddle* paddle, std::string paddle_token) {
+RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_token) {
 
     float min_dist = -1.0f;
     RequestBall* nearest = 0;
@@ -884,14 +884,14 @@ void Logstalgia::logic(float t, float dt) {
             float item_offset = 1.0 / (float) (items_to_spawn);
 
             int item_no = 0;
-
+            
             while(!queued_entries.empty()) {
 
                 LogEntry* le = queued_entries.front();
 
                 if(le->timestamp > currtime) break;
 
-                float pos_offset   = item_offset * (float) item_no++;
+                float pos_offset   = 1.0 - item_offset * (float) item_no++;
                 float start_offset = std::min(1.0f, pos_offset);
 
                 addBall(le, start_offset);
