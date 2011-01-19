@@ -550,12 +550,12 @@ void Logstalgia::readLog(int buffer_rows) {
         //determine format
         if(accesslog==0) {
 
-            //is this an apache access log?
-            ApacheLog* apachelog = new ApacheLog();
-            if((parsed_entry = apachelog->parseLine(linestr, le))) {
-                accesslog = apachelog;
+            //is this a recognized NCSA access log?
+            NCSALog* ncsalog = new NCSALog();
+            if((parsed_entry = ncsalog->parseLine(linestr, le))) {
+                accesslog = ncsalog;
             } else {
-                delete apachelog;
+                delete ncsalog;
             }
 
             if(accesslog==0) {

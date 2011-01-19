@@ -10,7 +10,7 @@ is a visualization tool that replays or streams web server access logs as a retr
 .SH REQUIREMENTS
 \fIlogstalgia\fR's display is rendered using OpenGL and requires a 3D accelerated video card to run.
 
-Currently \fIlogstalgia\fR supports several access.log formats used by Apache web servers (common/custom format).
+Logstalgia supports several standardized access.log formats used by web servers such as Apache and Nginx (see 'SUPPORTED LOG FORMATS' below).
 
 As \fIlogstalgia\fR is designed to playback logs in real time you will need a log from a fairly busy webserver to achieve interesting results (eg 100s of requests each minute).
 .SH OPTIONS
@@ -102,12 +102,12 @@ The path to the access log file to read or '\-' if you wish to supply log entrie
 
 .SH EXAMPLES
 
-Watch an example Apache access.log using the default settings:
+Watch an example access.log using the default settings:
 
 .ti 10
 \fIlogstalgia\fR SDLAPP_RESOURCE_DIR/example.log
 
-Watch the live Apache access.log, starting from the most recent batch of entries in the log (requires tail). Note than '\-' at the end is required for
+Watch the live access.log, starting from the most recent batch of entries in the log (requires tail). Note than '\-' at the end is required for
 \fIlogstalgia\fR
 to know it needs to read from STDIN:
 
@@ -119,22 +119,22 @@ To follow the log in real time, use the \-\-sync option. This will start reading
 .ti 10
 tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-\-sync
 
-Watch a remote Apache access.log via ssh:
+Watch a remote access.log via ssh:
 
 .ti 10
 ssh user@example.com tail \-f /var/log/apache2/access.log | \fIlogstalgia\fR \-\-sync
 
-.SH SUPPORTED APACHE LOG FORMATS
+.SH SUPPORTED LOG FORMATS
 
-Logstalgia supports the following widely used Apache log formats:
+Logstalgia supports the following standardized log formats used by web servers like Apache and Nginx:
 
 .ti 10
-Common Log Format (CLF)
+NCSA Common Log Format (CLF)
 .ti 10
     "%h %l %u %t \\"%r\\" %\>s %b"
 
 .ti 10
-Common Log Format with Virtual Host
+NCSA Common Log Format with Virtual Host
 .ti 10
     "%v %h %l %u %t \\"%r\\" %\>s %b"
 

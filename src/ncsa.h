@@ -15,15 +15,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef APACHE_ACCESS_LOG
-#define APACHE_ACCESS_LOG
+#ifndef NCSA_ACCESS_LOG
+#define NCSA_ACCESS_LOG
 
 #include "logentry.h"
 
-class ApacheLog : public AccessLog {
+class NCSALog : public AccessLog {
 
 public:
-    ApacheLog();
+    NCSALog();
     bool parseLine(std::string& line, LogEntry& entry);
 };
 

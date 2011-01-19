@@ -1,3 +1,7 @@
+1.0.3:
+ * Updated docs to reflect support for NCSA log formats, not just 'Apache'.
+ * Support log entry dates with a valid numeric month in place of MMM.
+
 1.0.2:
  * Performance improvements.
  * Stopped frame-rate being a bottle neck for the number of requests shown.

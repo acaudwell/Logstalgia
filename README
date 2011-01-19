@@ -27,8 +27,8 @@ logs as a retro arcade game simulation.
 Logstalgia's display is rendered using OpenGL and requires a 3D accelerated
 video card to run.
 
-Currently Logstalgia supports several access.log formats used by
-Apache web servers (common/custom format).
+Logstalgia supports several standardized access.log formats used by web servers
+such as Apache and Nginx (see 'Supported Log Formats' below).
 
 As Logstalgia is designed to playback logs in real time you will need a log from
 a fairly  busy  webserver to achieve interesting results (eg 100s of requests
@@ -134,11 +134,11 @@ options:
 
 Examples:
 
-Watch an example Apache access.log file using the default settings:
+Watch an example access.log file using the default settings:
 
     logstalgia data/example.log
 
-Watch the live Apache access.log, starting from the most recent batch of entries
+Watch the live access.log, starting from the most recent batch of entries
 in the log (requires tail). Note than '-' at the end is required for logstalgia 
 to know it needs to read from STDIN:
 
@@ -149,18 +149,18 @@ from the next entry received on STDIN:
 
     tail -f /var/log/apache2/access.log | logstalgia --sync
 
-Watch a remote Apache access.log via ssh:
+Watch a remote access.log via ssh:
 
     ssh user@example.com tail -f /var/log/apache2/access.log | logstalgia --sync
 
-Supported Apache Log Formats:
+Supported Log Formats:
 
-Logstalgia supports the following widely used Apache log formats:
+Logstalgia supports the following standardized log formats used by web servers like Apache and Nginx:
 
-Common Log Format (CLF)
+NCSA Common Log Format (CLF)
     "%h %l %u %t \"%r\" %>s %b"
 
-Common Log Format with Virtual Host
+NCSA Common Log Format with Virtual Host
     "%v %h %l %u %t \"%r\" %>s %b"
 
 NCSA extended/combined log format

@@ -15,22 +15,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "apache.h"
+#include "ncsa.h"
 
-const char* ls_apache_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
-Regex ls_apache_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
-Regex ls_apache_entry_date("(\\d+)/([A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
-Regex ls_apache_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
-Regex ls_apache_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?(?: +\([^ ]+))?");
+const char* ls_ncsa_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
+Regex ls_ncsa_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
+Regex ls_ncsa_entry_date("(\\d+)/(\\d+|[A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
+Regex ls_ncsa_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
+Regex ls_ncsa_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?(?: +\([^ ]+))?");
 
-ApacheLog::ApacheLog() {
+NCSALog::NCSALog() {
 }
 
-//parse apache access.log entry into components
-bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
+//parse NCSA format access.log entry into components
+bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
 
     std::vector<std::string> matches;
-    ls_apache_entry_start.match(line, &matches);
+    ls_ncsa_entry_start.match(line, &matches);
 
     if(matches.size()!=5) {
         return 0;
@@ -50,26 +50,34 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     std::string datestr     = matches[3];
 
     matches.clear();
-    ls_apache_entry_date.match(datestr, &matches);
+    ls_ncsa_entry_date.match(datestr, &matches);
 
     if(matches.size()!=8) {
         return 0;
     }
 
     day    = atoi(matches[0].c_str());
+    month  = atoi(matches[1].c_str());
     year   = atoi(matches[2].c_str());
     hour   = atoi(matches[3].c_str());
     minute = atoi(matches[4].c_str());
     second = atoi(matches[5].c_str());
 
-    month=0;
-    for(int i=0;i<12;i++) {
-        if(strcmp(matches[1].c_str(), ls_apache_months[i])==0) {
-            month=i;
-            break;
+    if(month) {
+        month--;
+    } else {
+        //parse non numeric month
+        for(int i=0;i<12;i++) {
+            if(strcmp(matches[1].c_str(), ls_ncsa_months[i])==0) {
+                month=i;
+                break;
+            }
         }
     }
 
+    //could not parse month (range 0-11 as used by mktime)
+    if(month<0 || month>11) return 0;
+    
     //convert zone to utc offset
     int tz_hour = atoi(matches[7].substr(0,2).c_str());
     int tz_min  = atoi(matches[7].substr(2,2).c_str());
@@ -94,7 +102,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     entry.timestamp -= tz_offset;
 
     matches.clear();
-    ls_apache_entry_request.match(request_str, &matches);
+    ls_ncsa_entry_request.match(request_str, &matches);
 
     if(matches.size() < 5) {
         return 0;
@@ -110,7 +118,7 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     if(matches.size() > 5) {
         std::string agentstr = matches[5];
         matches.clear();
-        ls_apache_entry_agent.match(agentstr, &matches);
+        ls_ncsa_entry_agent.match(agentstr, &matches);
 
         if(matches.size()==3) {
             entry.referrer   = matches[0];
@@ -120,7 +128,6 @@ bool ApacheLog::parseLine(std::string& line, LogEntry& entry) {
     }
 
     //successful if response code less than 400
-    //for apache
     int code = atoi(entry.response_code.c_str());
 
     entry.setSuccess();
