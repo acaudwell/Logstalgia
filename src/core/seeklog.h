@@ -82,8 +82,8 @@ public:
     SeekLog(std::string logfile);
     ~SeekLog();
 
-    void setPointer(long pointer);
-    long getPointer();
+    void setPointer(std::streampos pointer);
+    std::streampos getPointer();
 
     void seekTo(float percent);
     bool getNextLine(std::string& line);
