@@ -60,6 +60,7 @@ extern float gSplash;
 extern float gStartPosition;
 extern float gStopPosition;
 extern float gPaddlePosition;
+extern bool  gAutoSkip;
 extern int   gFontSize;
 
 void logstalgia_help();

@@ -256,6 +256,11 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        //disable automatic skipping of empty time periods
+        if(args == "--disable-auto-skip") {
+            gAutoSkip = false;
+            continue;
+        }
 
         //disable progress bar
         if(args == "--disable-progress") {

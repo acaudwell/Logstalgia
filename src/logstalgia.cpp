@@ -26,6 +26,7 @@ float gSplash = -1.0f;
 float gStartPosition = 0.0;
 float gStopPosition  = 1.0;
 float gPaddlePosition = 0.67;
+bool  gAutoSkip = true;
 int   gFontSize = 14;
 bool  gDisableProgress = false;
 bool  gSyncLog         = false;
@@ -78,7 +79,6 @@ void logstalgia_help() {
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --speed                 Simulation speed (default: 1)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
-
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
@@ -92,7 +92,8 @@ void logstalgia_help() {
 
     printf("  --hide-response-code       Hide response code\n");
     printf("  --hide-paddle              Hide paddle\n");
-    printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n");
+    printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
+    printf("  --disable-auto-skip        Disable skipping of empty time periods\n");
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
 
@@ -824,8 +825,9 @@ void Logstalgia::logic(float t, float dt) {
     elapsed_time += sdt;
     currtime = starttime + (long)(elapsed_time);
 
-    //next will fast forward clock to the time of the next entry, if the next entry is in the future
-    if(next) {
+    //next will fast forward clock to the time of the next entry, 
+    //if the next entry is in the future
+    if(next || gAutoSkip && balls.empty()) {
         if(!queued_entries.empty()) {
             LogEntry* le = queued_entries.front();
 
@@ -894,7 +896,7 @@ void Logstalgia::logic(float t, float dt) {
                 float pos_offset   = 1.0 - item_offset * (float) item_no++;
                 float start_offset = std::min(1.0f, pos_offset);
 
-                addBall(le, start_offset);
+		addBall(le, start_offset);
 
                 queued_entries.pop_front();
             }

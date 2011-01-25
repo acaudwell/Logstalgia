@@ -1,4 +1,5 @@
 1.0.3:
+ * Added automatic skipping of empty periods (--disable-auto-skip to turn off).
  * Updated docs to reflect support for NCSA log formats, not just 'Apache'.
  * Support log entry dates with a valid numeric month in place of MMM.
 

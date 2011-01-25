@@ -104,6 +104,9 @@ options:
     --hide-url-prefix
             Hide URL protocol and hostname prefix of requests.
 
+    --disable-auto-skip
+            Disable automatic skipping of empty time periods.
+
     --disable-progress
             Disable the progress bar.
 
