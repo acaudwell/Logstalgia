@@ -26,8 +26,6 @@
 			<Add library="SDL_image" />
 			<Add library="pcre" />
 		</Linker>
-		<Unit filename="src\apache.cpp" />
-		<Unit filename="src\apache.h" />
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
 		<Unit filename="src\core\bounds.h" />
@@ -69,6 +67,8 @@
 		<Unit filename="src\logstalgia.h" />
 		<Unit filename="src\main.cpp" />
 		<Unit filename="src\main.h" />
+		<Unit filename="src\ncsa.cpp" />
+		<Unit filename="src\ncsa.h" />
 		<Unit filename="src\paddle.cpp" />
 		<Unit filename="src\paddle.h" />
 		<Unit filename="src\ppm.cpp" />
