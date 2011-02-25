@@ -159,12 +159,12 @@ void SeekLog::seekTo(float percent) {
 
     if(isFinished()) stream->clear();
 
-    std::streampos mem_pointer = (std::streampos) (percent * file_size);
+    std::streampos mem_offset = (std::streampos) (percent * file_size);
 
-    setPointer(mem_pointer);
+    setPointer(mem_offset);
     
     //throw away end of line
-    if(mem_pointer!=0) {
+    if(mem_offset != (std::streampos)0) {
         std::string eol;
         getNextLine(eol);
     }
