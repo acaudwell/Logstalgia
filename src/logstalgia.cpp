@@ -78,6 +78,7 @@ void logstalgia_help() {
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --speed                 Simulation speed (default: 1)\n");
+    printf("  -t --time-scale            Time scale (default: 1)\n\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
@@ -116,7 +117,7 @@ void logstalgia_help() {
     exit(0);
 }
 
-Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate) : SDLApp() {
+Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate, float time_scale) : SDLApp() {
     info       = false;
     paused     = false;
     recentre   = false;
@@ -124,6 +125,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     this->simu_speed  = simu_speed;
     this->update_rate = update_rate;
+    this->time_scale = time_scale;
 
     this->logfile = logfile;
 
@@ -179,8 +181,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     infowindow = TextArea(fontSmall);
 
     mousehide_timeout = 0.0f;
-
-    time_scale = 1.0;
 
     runtime = 0.0;
     frameExporter = 0;
@@ -775,7 +775,7 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
 void Logstalgia::logic(float t, float dt) {
 
-    float sdt = dt*simu_speed;;
+    float sdt = dt * simu_speed;
 
 
     if(mousehide_timeout>0.0f) {
