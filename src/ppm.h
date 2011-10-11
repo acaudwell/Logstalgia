@@ -24,9 +24,21 @@
 
 #include "SDL_thread.h"
 
+#ifndef INT64_C
+#define INT64_C(c) (c ## LL)
+#define UINT64_C(c) (c ## ULL)
+#endif
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavutil/mathematics.h>
+#include <libswscale/swscale.h> 
+}
+
 #include "core/sdlapp.h"
 #include "core/display.h"
 
+#define MPEG_BUF_SIZE 100000
 enum { FRAME_EXPORTER_WAIT,
        FRAME_EXPORTER_DUMP,
        FRAME_EXPORTER_EXIT };
@@ -36,7 +48,6 @@ protected:
 
     char* pixels1;
     char* pixels2;
-    char* pixels_out;
 
     char* pixels_shared_ptr;
 
@@ -72,6 +83,7 @@ protected:
     std::ostream* output;
     std::string filename;
     char ppmheader[1024];
+    char* pixels_out;
 
 public:
     PPMExporter(std::string outputfile);
@@ -79,5 +91,32 @@ public:
     virtual void dumpImpl();
 };
 
+class MPEGExporterException : public std::exception {
+protected:
+    const char* cause;
+public:
+    MPEGExporterException(const char* cause) : cause(cause) {}
+    MPEGExporterException(std::string& cause) : cause(cause.c_str()) {}
+    virtual ~MPEGExporterException() throw () {};
+
+    virtual const char* what() const throw() { return cause; }
+};
+
+class MPEGExporter : public FrameExporter {
+protected:
+    std::ostream* output;
+    std::string filename;
+    AVCodec *codec;
+    AVCodecContext *c, *c_yuv;
+    AVFrame *picture_yuv, *picture;
+    SwsContext *img_convert_ctx;
+    uint8_t *outbuf;
+    int out_size;
+
+public:
+    MPEGExporter(std::string outputfile);
+    virtual ~MPEGExporter();
+    virtual void dumpImpl();
+};
 
 #endif
