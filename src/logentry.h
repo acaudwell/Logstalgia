@@ -41,7 +41,7 @@ public:
     void setSuccess();
     void setResponseColour();
 
-    long timestamp;
+    time_t timestamp;
 
     std::string hostname;
     std::string vhost;

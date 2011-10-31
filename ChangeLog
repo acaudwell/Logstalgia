@@ -1,3 +1,6 @@
+1.0.4:
+ * Changed type of log entry timestamp to time_t.
+
 1.0.3:
  * Added automatic skipping of empty periods (--disable-auto-skip to turn off).
  * Updated docs to reflect support for NCSA log formats, not just 'Apache'.
