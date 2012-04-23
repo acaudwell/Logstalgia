@@ -51,14 +51,13 @@ CXXFLAGS="$CXXFLAGS $FTGL_CFLAGS"
 CPPFLAGS="$CPPFLAGS $FTGL_CFLAGS"
 LIBS="$LIBS $FTGL_LIBS"
 
-#PNG library
-AC_CHECK_LIB(png, png_read_info, , AC_MSG_ERROR([PNG library required. Please see INSTALL]))
-
-#JPEG library
-AC_CHECK_LIB(jpeg, jpeg_read_header, , AC_MSG_ERROR([JPEG library required. Please see INSTALL]))
-
 #SDL_image library with PNG support
-AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, LIBS="$LIBS -lSDL_image", AC_MSG_ERROR([SDL_image required. Please see INSTALL]))
+AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, LIBS="$LIBS", AC_MSG_ERROR([SDL_image with PNG support required. Please see INSTALL]))
+
+#SDL_image library with JPG support
+AC_CHECK_LIB(SDL_image, IMG_LoadJPG_RW, LIBS="$LIBS", AC_MSG_ERROR([SDL_image with JPG support required. Please see INSTALL]))
+
+LIBS="$LIBS -lSDL_image"
 
 #PCRE
 AC_CHECK_LIB([pcre], [pcre_compile],, AC_MSG_ERROR(PCRE is required. Please see INSTALL))

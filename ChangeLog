@@ -1,5 +1,6 @@
 1.0.4:
  * Changed type of log entry timestamp to time_t.
+ * Stopped directly linking PNG/JPG libraries.
 
 1.0.3:
  * Added automatic skipping of empty periods (--disable-auto-skip to turn off).
