@@ -19,7 +19,7 @@
 
 const char* ls_ncsa_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
 Regex ls_ncsa_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
-Regex ls_ncsa_entry_date("(\\d+)/(\\d+|[A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
+Regex ls_ncsa_entry_date("(\\d+)/(\\d+|[A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ?([+-])?(\\d+)?");
 Regex ls_ncsa_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
 Regex ls_ncsa_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?(?: +\([^ ]+))?");
 
@@ -52,7 +52,7 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
     matches.clear();
     ls_ncsa_entry_date.match(datestr, &matches);
 
-    if(matches.size()!=8) {
+    if(matches.size() != 6 && matches.size() != 8) {
         return 0;
     }
 
@@ -78,14 +78,20 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
     //could not parse month (range 0-11 as used by mktime)
     if(month<0 || month>11) return 0;
     
-    //convert zone to utc offset
-    int tz_hour = atoi(matches[7].substr(0,2).c_str());
-    int tz_min  = atoi(matches[7].substr(2,2).c_str());
+    int tz_offset = 0;
 
-    int tz_offset = tz_hour * 3600 + tz_min * 60;
+    //there is a timezone delta
+    if (matches.size() == 8) {
 
-    if(matches[6] == "-") {
-        tz_offset = -tz_offset;
+        //convert zone to utc offset
+        int tz_hour = atoi(matches[7].substr(0,2).c_str());
+        int tz_min  = atoi(matches[7].substr(2,2).c_str());
+
+        tz_offset = tz_hour * 3600 + tz_min * 60;
+
+        if(matches[6] == "-") {
+            tz_offset = -tz_offset;
+        }
     }
 
     time_str.tm_year = year - 1900;
