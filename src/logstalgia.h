@@ -31,6 +31,7 @@
 
 #include "ncsa.h"
 #include "custom.h"
+#include "naxsi_log.h"
 #include "logentry.h"
 #include "paddle.h"
 #include "requestball.h"
@@ -132,7 +133,7 @@ class Logstalgia : public SDLApp {
     Summarizer* ipSummarizer;
 
     std::vector<Summarizer*> summGroups;
-
+    
     PositionSlider slider;
 
     AccessLog* accesslog;

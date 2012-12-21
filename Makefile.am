@@ -31,7 +31,8 @@ logstalgia_SOURCES = \
 	src/requestball.cpp src/requestball.h \
 	src/slider.cpp src/slider.h \
 	src/summarizer.cpp src/summarizer.h \
-	src/textarea.cpp src/textarea.h
+	src/textarea.cpp src/textarea.h \
+	src/naxsi_log.cpp src/naxsi_log.h
 
 CPPFLAGS = -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
 

@@ -59,6 +59,7 @@ public:
     vec3f response_colour;
 
     bool successful;
+    int  set_group;
 };
 
 class AccessLog {

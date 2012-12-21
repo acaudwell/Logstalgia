@@ -121,7 +121,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     paused     = false;
     recentre   = false;
     next       = false;
-
+    
     this->simu_speed  = simu_speed;
     this->update_rate = update_rate;
 
@@ -437,13 +437,17 @@ void Logstalgia::addStrings(LogEntry* le) {
     int nogroups = summGroups.size();
     Summarizer* pageSummarizer= 0;
 
-    for(int i=0;i<nogroups;i++) {
-        if(summGroups[i]->supportedString(pageurl)) {
-            pageSummarizer = summGroups[i];
-            break;
-        }
+    if (le->set_group != -1) {
+      pageSummarizer = summGroups[le->set_group];
     }
-
+    else
+      for(int i=0;i<nogroups;i++) {
+        if(summGroups[i]->supportedString(pageurl)) {
+	  pageSummarizer = summGroups[i];
+	  break;
+        }
+      }
+    
     if(pageSummarizer==0) return;
 
     if(gHideURLPrefix) pageurl = filterURLHostname(pageurl);
@@ -460,13 +464,17 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     //find appropriate summarizer for url
     int nogroups = summGroups.size();
     Summarizer* pageSummarizer= 0;
-
-    for(int i=0;i<nogroups;i++) {
-        if(summGroups[i]->supportedString(pageurl)) {
-            pageSummarizer = summGroups[i];
-            break;
-        }
+    //XXXS
+    if (le->set_group != -1) {
+      pageSummarizer = summGroups[le->set_group];
     }
+    else 
+      for(int i=0;i<nogroups;i++) {
+        if(summGroups[i]->supportedString(pageurl)) {
+	  pageSummarizer = summGroups[i];
+	  break;
+        }
+      }
 
     if(pageSummarizer==0) return;
 
@@ -568,6 +576,16 @@ void Logstalgia::readLog(int buffer_rows) {
                     delete customlog;
                 }
             }
+	    if (accesslog==0) {
+	      //is this a nasi log?
+	      NaxsiErrorLog* naxsilog = new NaxsiErrorLog();
+	      if ((parsed_entry = naxsilog->parseLine(linestr, le))) {
+		accesslog = naxsilog;
+	      } else {
+		delete naxsilog;
+	      }
+	      
+	    }
 
         } else {
 
@@ -655,16 +673,22 @@ void Logstalgia::init() {
 
     //add default groups
     if(summGroups.size()==0) {
-        //images - file is under images or
-        addGroup("CSS", "\\.css\\b", 15);
-        addGroup("Script", "\\.js\\b", 15);
-        addGroup("Images", "/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
+      //images - file is under images or
+      addGroup("SQLi", "", 25);
+      addGroup("RFI", "", 15);
+      addGroup("XSS", "", 25);
+      addGroup("UPLOADS", "", 10);
+      addGroup("EVADE", "", 10);
+      addGroup("TRAVERSAL", "", 15);
+      // addGroup("CSS", "\\.css\\b", 15);
+      // addGroup("Script", "\\.js\\b", 15);
+      // addGroup("Images", "/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
-    if(remaining_space>50) {
-        addGroup(summGroups.size()>0 ? "Misc" : "", ".*");
-    }
+    // if(remaining_space>50) {
+    //     addGroup(summGroups.size()>0 ? "Misc" : "", ".*");
+    // }
 
     SDL_ShowCursor(false);
 
@@ -753,24 +777,28 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
 }
 
 void Logstalgia::removeBall(RequestBall* ball) {
-    std::string url  = ball->le->path;
-    std::string host = ball->le->hostname;
+  std::string url  = ball->le->path;
+  std::string host = ball->le->hostname;
 
-    int nogroups = summGroups.size();
-
+  int nogroups = summGroups.size();
+  if (ball->le->set_group != -1) {
+    if(gHideURLPrefix) url = filterURLHostname(url);
+    summGroups[ball->le->set_group]->removeString(url);
+  }
+  else 
     for(int i=0;i<nogroups;i++) {
-        if(summGroups[i]->supportedString(url)) {
-
-            if(gHideURLPrefix) url = filterURLHostname(url);
-
-            summGroups[i]->removeString(url);
-            break;
-        }
+      if(summGroups[i]->supportedString(url)) {
+	  
+	if(gHideURLPrefix) url = filterURLHostname(url);
+	  
+	summGroups[i]->removeString(url);
+	break;
+      }
     }
 
-    ipSummarizer->removeString(host);
+  ipSummarizer->removeString(host);
 
-    delete ball;
+  delete ball;
 }
 
 void Logstalgia::logic(float t, float dt) {

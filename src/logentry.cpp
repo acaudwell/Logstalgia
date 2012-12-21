@@ -28,10 +28,11 @@ AccessLog::AccessLog() {
 //LogEntry
 
 LogEntry::LogEntry() {
-    timestamp = 0;
-    response_size = 0;
-    successful = false;
-    response_colour = vec3f(1.0, 0.0, 0.0);
+  set_group = -1;
+  timestamp = 0;
+  response_size = 0;
+  successful = false;
+  response_colour = vec3f(1.0, 0.0, 0.0);
 }
 
 Regex logentry_hostname_parts("([^.]+)(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?$");
