@@ -26,7 +26,7 @@ AS_IF([test "$with_x" != yes], [
 #Raspberry Pi GLES2 handholding
 AS_IF([grep -q BCM2708 /proc/cpuinfo], [
     LIBS="$LIBS -L/opt/vc/lib -lGLESv2 -lEGL -lbcm_host"
-    CPPFLAGS="$CXXFLAGS -D_RPI=1  -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux"
+    CXXFLAGS="$CXXFLAGS -D_RPI=1  -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux"
 ], [])
 
 #GL
