@@ -40,6 +40,7 @@
 #include "ppm.h"
 
 #include <unistd.h>
+#include <bcm_host.h>
 
 #include <dirent.h>
 #include <string>

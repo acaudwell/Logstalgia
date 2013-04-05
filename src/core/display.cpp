@@ -98,6 +98,8 @@ void SDLAppDisplay::init(std::string window_title, int width, int height, bool f
 #ifdef _WIN32
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     surface = SDL_SetVideoMode(width, height, 32, flags);
+#elif _RPI
+    surface = SDL_SetVideoMode(0, 0, 0, SDL_SWSURFACE | SDL_FULLSCREEN);
 #else
     if(enable_shaders) {
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -112,7 +114,6 @@ void SDLAppDisplay::init(std::string window_title, int width, int height, bool f
         std::string sdlerr(SDL_GetError());
         throw SDLInitException(sdlerr);
     }
-
 
 #ifdef SDLAPP_SHADER_SUPPORT
     if(enable_shaders) {
