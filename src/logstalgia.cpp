@@ -1267,9 +1267,12 @@ void Logstalgia::draw(float t, float dt) {
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 
     // draw avg. requests per second
-    if (starttime) {
-        int requests = ceil(highscore / (currtime - starttime));
-        fontSmall.print(display.width-10-reqs_width,display.height-50, "%05d req/s", requests);
-
+    if (starttime && currtime) {
+        int diff = currtime - starttime;
+        if (diff > 0) {
+            int requests = ceil(highscore / (currtime - starttime));
+            fontSmall.print(display.width-10-reqs_width,display.height-50, "%05d req/s", requests);
+        }
     }
+
 }
