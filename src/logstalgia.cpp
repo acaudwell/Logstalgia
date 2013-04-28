@@ -1205,6 +1205,7 @@ void Logstalgia::draw(float t, float dt) {
         uimessage_timer-=dt;
     }
 
+
     if(gSplash>0.0f) {
         int logowidth = fontLarge.getWidth("Logstalgia");
         int logoheight = 105;
@@ -1259,8 +1260,16 @@ void Logstalgia::draw(float t, float dt) {
     glColor4f(1,1,1,font_alpha);
 
     int counter_width = fontLarge.getWidth("00000000");
+    int reqs_width = fontSmall.getWidth("00000 req/s");
 
     fontLarge.alignTop(false);
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
+
+    // draw avg. requests per second
+    if (starttime) {
+        int requests = ceil(highscore / (currtime - starttime));
+        fontSmall.print(display.width-10-reqs_width,display.height-50, "%05d req/s", requests);
+
+    }
 }
