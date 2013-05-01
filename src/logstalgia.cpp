@@ -82,7 +82,7 @@ void logstalgia_help() {
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
-    printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
+    printf("  --paddle-position POSITION Paddle position as a fraction of the view width (default: 0.67)\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
@@ -479,7 +479,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
         entry_paddle = paddles[paddle_token];
 
         if(entry_paddle == 0) {
-            vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
+            vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
             Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
             entry_paddle = paddles[paddle_token] = paddle;
         }
