@@ -503,7 +503,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
 
-    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
+    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed*time_scale);
 
     ball->setElapsed( start_offset );
 
@@ -776,7 +776,7 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
 void Logstalgia::logic(float t, float dt) {
 
-    float sdt = dt * simu_speed;
+    float sdt = dt * simu_speed / time_scale;
 
 
     if(mousehide_timeout>0.0f) {
