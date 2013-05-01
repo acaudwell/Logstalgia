@@ -1260,9 +1260,10 @@ void Logstalgia::draw(float t, float dt) {
     glColor4f(1,1,1,font_alpha);
 
     int counter_width = fontLarge.getWidth("00000000");
-    int reqs_width = fontSmall.getWidth("00000 req/s");
-
+    fontLarge.alignRight(false);
     fontLarge.alignTop(false);
+    fontSmall.alignRight(true);
+    fontSmall.alignTop(false);
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 
@@ -1271,7 +1272,7 @@ void Logstalgia::draw(float t, float dt) {
         int diff = currtime - starttime;
         if (diff > 0) {
             int requests = ceil(highscore / (currtime - starttime));
-            fontSmall.print(display.width-10-reqs_width,display.height-50, "%05d req/s", requests);
+            fontSmall.print(display.width-10,display.height-45, "%d req/s", requests);
         }
     }
 
