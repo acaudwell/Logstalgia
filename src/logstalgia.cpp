@@ -92,6 +92,7 @@ void logstalgia_help() {
 
     printf("  --hide-response-code       Hide response code\n");
     printf("  --hide-paddle              Hide paddle\n");
+    printf("  --hide-paddle-tokens       Hide paddle tokens in pid and vhost paddle modes\n");
     printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
     printf("  --disable-auto-skip        Disable skipping of empty time periods\n");
     printf("  --disable-progress         Disable the progress bar\n");
