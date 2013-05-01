@@ -154,6 +154,6 @@ void Paddle::draw() {
       font.alignRight(true);
       font.dropShadow(true);
       
-      font.draw(pos.x-width/2, pos.y+height/2, token);
+      font.draw(pos.x-width/2, pos.y, token);
     }
 }
