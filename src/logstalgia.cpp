@@ -78,11 +78,12 @@ void logstalgia_help() {
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --speed                 Simulation speed (default: 1)\n");
-    printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
+    printf("  -t --time-scale            Time scale (default: 1)\n\n");
+    printf("  -u --update-rate           Page summary update rate (default: 2)\n\n");
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
-    printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
+    printf("  --paddle-position POSITION Paddle position as a fraction of the view width (default: 0.67)\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
@@ -117,7 +118,7 @@ void logstalgia_help() {
     exit(0);
 }
 
-Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate) : SDLApp() {
+Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate, float time_scale) : SDLApp() {
     info       = false;
     paused     = false;
     recentre   = false;
@@ -125,6 +126,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     this->simu_speed  = simu_speed;
     this->update_rate = update_rate;
+    this->time_scale = time_scale;
 
     this->logfile = logfile;
 
@@ -180,8 +182,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     infowindow = TextArea(fontSmall);
 
     mousehide_timeout = 0.0f;
-
-    time_scale = 1.0;
 
     runtime = 0.0;
     frameExporter = 0;
@@ -480,7 +480,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
         entry_paddle = paddles[paddle_token];
 
         if(entry_paddle == 0) {
-            vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
+            vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
             Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token, fontSmall);
             entry_paddle = paddles[paddle_token] = paddle;
         }
@@ -503,7 +503,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
 
-    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
+    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed*time_scale);
 
     ball->setElapsed( start_offset );
 
@@ -648,7 +648,7 @@ void Logstalgia::readLog(int buffer_rows) {
 void Logstalgia::init() {
     debugLog("init called\n");
 
-    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f*time_scale);
 
     reset();
 
@@ -657,9 +657,9 @@ void Logstalgia::init() {
     //add default groups
     if(summGroups.size()==0) {
         //images - file is under images or
-        addGroup("CSS", "\\.css\\b", 15);
-        addGroup("Script", "\\.js\\b", 15);
-        addGroup("Images", "/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
+        addGroup("CSS", "(?i)\\.css\\b", 15);
+        addGroup("Script", "(?i)\\.js\\b", 15);
+        addGroup("Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
@@ -776,7 +776,7 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
 void Logstalgia::logic(float t, float dt) {
 
-    float sdt = dt*simu_speed;;
+    float sdt = dt * simu_speed / time_scale;
 
 
     if(mousehide_timeout>0.0f) {
@@ -1074,7 +1074,7 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
     //debugLog("group %s: regex = %s, remainpc = %d, space = %d, top_gap = %d, bottom_gap = %d\n",
     //    grouptitle.c_str(), groupregex.c_str(), remainpc, space, top_gap, bottom_gap);
 
-    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
+    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate*time_scale, groupregex, grouptitle);
 //    summ->showCount(true);
 
     if(colour.length2() > 0.01f) {

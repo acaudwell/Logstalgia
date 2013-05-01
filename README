@@ -55,6 +55,9 @@ options:
     -s, --speed
             Simulation speed. Defaults to 1 (1 second-per-second).
 
+    -t --time-scale
+            Time scale. Defaults to 1 (1 second-per-second).
+
     -u, --update-rate
             Page Summary update speed. Defaults to 5 (5 seconds).
 
@@ -221,7 +224,7 @@ Interactive keyboard commands:
    (C)   Displays Logstalgia logo
    (N)   Jump forward in time to next log entry
    (+-)  Adjust simulation speed
-   (<>)  Adjust time scale
+   (,.)  Adjust time scale
    (ESC) Quit
 
 4. Copyright

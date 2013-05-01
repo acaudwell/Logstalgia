@@ -49,8 +49,14 @@ int main(int argc, char *argv[]) {
     int   height      = 768;
     bool  fullscreen  = false;
 
+#ifdef _RPI
+    bcm_host_init();           
+    atexit(bcm_host_deinit);
+#endif
+
     float simu_speed  = 1.0f;
-    float update_rate = 5.0f;
+    float update_rate = 2.0f;
+    float time_scale = 1.0f;
     bool multisample  = false;
 
     vec3f background = vec3f(0.0, 0.0, 0.0);
@@ -101,6 +107,21 @@ int main(int argc, char *argv[]) {
 
             if(simu_speed < 1.0f || simu_speed > 30.0f) {
                 logstalgia_quit("speed should be between 1 and 30\n");
+            }
+
+            continue;
+        }
+
+        if(args == "-t" || args == "--time-scale") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify time scale (0.25 to 4)");
+            }
+
+            time_scale = atof(arguments[++i].c_str());
+
+            if(time_scale < 0.25f || time_scale > 4.0f) {
+                logstalgia_quit("time scale should be between 0.25 and 4\n");
             }
 
             continue;
@@ -226,7 +247,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        //no paddle
+        //no paddle tokens
         if(args == "--hide-paddle-tokens") {
           gPaddleTokens = PADDLE_TOKENS_HIDDEN;
           continue;
@@ -439,7 +460,7 @@ int main(int argc, char *argv[]) {
     Logstalgia* ls = 0;
 
     try {
-        ls = new Logstalgia(logfile, simu_speed, update_rate);
+        ls = new Logstalgia(logfile, simu_speed, update_rate, time_scale);
 
         //init frame exporter
         if(ppm_file_name.size() > 0) {
