@@ -185,7 +185,7 @@ void ProjectedBall::dontBounce() {
 }
 
 void ProjectedBall::logic(float dt) {
-    elapsed += (dt * speed);
+    elapsed += (dt);// * speed);
     progress = elapsed / eta;
 
     if(progress>1.0f) {

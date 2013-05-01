@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <string>
+#include <X11/Xlib.h>
 
 #include "logstalgia.h"
 

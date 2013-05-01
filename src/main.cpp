@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
 
     float simu_speed  = 1.0f;
     float update_rate = 2.0f;
+    float time_scale = 1.0f;
     bool multisample  = false;
 
     vec3f background = vec3f(0.0, 0.0, 0.0);
@@ -63,12 +64,15 @@ int main(int argc, char *argv[]) {
     int video_framerate = 60;
     std::string ppm_file_name;
 
+    std::string mpeg_file_name;
+
     std::string logfile = "";
 
     std::vector<std::string> groupstr;
 
     std::vector<std::string> arguments;
 
+    XInitThreads();
     SDLAppInit("Logstalgia", "logstalgia");
 
     SDLAppParseArgs(argc, argv, &width, &height, &fullscreen, &arguments);
@@ -106,6 +110,21 @@ int main(int argc, char *argv[]) {
 
             if(simu_speed < 1.0f || simu_speed > 30.0f) {
                 logstalgia_quit("speed should be between 1 and 30\n");
+            }
+
+            continue;
+        }
+
+        if(args == "-t" || args == "--time-scale") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify time scale (0.25 to 4)");
+            }
+
+            time_scale = atof(arguments[++i].c_str());
+
+            if(time_scale < 0.25f || time_scale > 4.0f) {
+                logstalgia_quit("time scale should be between 0.25 and 4\n");
             }
 
             continue;
@@ -350,6 +369,23 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--output-mpeg-stream") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify mpeg output file or '-' for stdout");
+            }
+
+            mpeg_file_name = arguments[++i];
+
+#ifdef _WIN32
+            if(mpeg_file_name == "-") {
+                logstalgia_quit("stdout MPEG mode not supported on Windows");
+            }
+#endif
+
+            continue;
+        }
+
         if(args == "--output-framerate") {
 
             if((i+1)>=arguments.size()) {
@@ -437,6 +473,19 @@ int main(int argc, char *argv[]) {
 
             logstalgia_quit(errormsg);
         }
+    }else if(mpeg_file_name.size() > 0) {
+
+        try {
+
+            exporter = new MPEGExporter(mpeg_file_name);
+
+        } catch(MPEGExporterException& exception) {
+
+            char errormsg[1024];
+            snprintf(errormsg, 1024, "could not write to '%s'", exception.what());
+
+            logstalgia_quit(errormsg);
+        }
     }
 
     if(multisample) glEnable(GL_MULTISAMPLE_ARB);
@@ -444,10 +493,10 @@ int main(int argc, char *argv[]) {
     Logstalgia* ls = 0;
 
     try {
-        ls = new Logstalgia(logfile, simu_speed, update_rate);
+        ls = new Logstalgia(logfile, simu_speed, update_rate, time_scale);
 
         //init frame exporter
-        if(ppm_file_name.size() > 0) {
+        if(ppm_file_name.size() > 0 || mpeg_file_name.size() > 0) {
             ls->setFrameExporter(exporter, video_framerate);
         }
 

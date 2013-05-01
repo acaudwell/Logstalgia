@@ -182,7 +182,7 @@ class Logstalgia : public SDLApp {
     void logic(float t, float dt);
     void draw(float t, float dt);
 public:
-	Logstalgia(std::string logfile, float simu_speed, float update_rate);
+	Logstalgia(std::string logfile, float simu_speed, float update_rate, float time_scale);
 	~Logstalgia();
 
     void addGroup(std::string groupstr);
