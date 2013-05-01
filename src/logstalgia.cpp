@@ -648,7 +648,7 @@ void Logstalgia::readLog(int buffer_rows) {
 void Logstalgia::init() {
     debugLog("init called\n");
 
-    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f*time_scale);
 
     reset();
 
@@ -1074,7 +1074,7 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
     //debugLog("group %s: regex = %s, remainpc = %d, space = %d, top_gap = %d, bottom_gap = %d\n",
     //    grouptitle.c_str(), groupregex.c_str(), remainpc, space, top_gap, bottom_gap);
 
-    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
+    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate*time_scale, groupregex, grouptitle);
 //    summ->showCount(true);
 
     if(colour.length2() > 0.01f) {
