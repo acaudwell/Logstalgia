@@ -226,9 +226,9 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        //no paddle
-        if(args == "--hide-paddle-token") {
-          gPaddleToken = PADDLE_TOKEN_HIDDEN;
+        //no paddle tokens
+        if(args == "--hide-paddle-tokens") {
+          gPaddleTokens = PADDLE_TOKENS_HIDDEN;
           continue;
         }
 
