@@ -656,9 +656,9 @@ void Logstalgia::init() {
     //add default groups
     if(summGroups.size()==0) {
         //images - file is under images or
-        addGroup("CSS", "\\.css\\b", 15);
-        addGroup("Script", "\\.js\\b", 15);
-        addGroup("Images", "/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
+        addGroup("CSS", "(?i)\\.css\\b", 15);
+        addGroup("Script", "(?i)\\.js\\b", 15);
+        addGroup("Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
