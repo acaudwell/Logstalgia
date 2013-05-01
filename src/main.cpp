@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     float simu_speed  = 1.0f;
-    float update_rate = 5.0f;
+    float update_rate = 2.0f;
     bool multisample  = false;
 
     vec3f background = vec3f(0.0, 0.0, 0.0);

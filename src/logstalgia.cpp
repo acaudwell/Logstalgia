@@ -78,7 +78,7 @@ void logstalgia_help() {
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --speed                 Simulation speed (default: 1)\n");
-    printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
+    printf("  -u --update-rate           Page summary update rate (default: 2)\n\n");
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
