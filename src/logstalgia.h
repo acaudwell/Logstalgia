@@ -40,7 +40,10 @@
 #include "ppm.h"
 
 #include <unistd.h>
+
+#ifdef _RPI
 #include <bcm_host.h>
+#endif
 
 #include <dirent.h>
 #include <string>
