@@ -68,11 +68,6 @@ LIBS="$LIBS -lSDL_image"
 #PCRE
 AC_CHECK_LIB([pcre], [pcre_compile],, AC_MSG_ERROR(PCRE is required. Please see INSTALL))
 
-#ffmpeg library
-AC_CHECK_LIB(avformat, avcodec_encode_video, LIBS="$LIBS -lavformat", AC_MSG_ERROR([ffmpeg library required. Please see INSTALL]))
-AC_CHECK_LIB(avcodec, avcodec_encode_video, LIBS="$LIBS -lavcodec", AC_MSG_ERROR([ffmpeg library required. Please see INSTALL]))
-AC_CHECK_LIB(swscale, sws_scale, LIBS="$LIBS -lswscale", AC_MSG_ERROR([ffmpeg library required. Please see INSTALL]))
-
 #Check for required headers
 AC_CHECK_HEADER([SDL.h],, AC_MSG_ERROR(SDL.h is required. Please see INSTALL))
 AC_CHECK_HEADER([SDL_image.h],, AC_MSG_ERROR(SDL_image.h is required. Please see INSTALL))
