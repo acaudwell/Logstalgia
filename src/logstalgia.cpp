@@ -481,7 +481,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
         if(entry_paddle == 0) {
             vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
-            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
+            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token, fontSmall);
             entry_paddle = paddles[paddle_token] = paddle;
         }
 
