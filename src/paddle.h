@@ -30,11 +30,11 @@
 #define PADDLE_PID    2
 #define PADDLE_VHOST  3
 
-#define PADDLE_TOKEN_HIDDEN 0
-#define PADDLE_TOKEN_VISIBLE 1
+#define PADDLE_TOKENS_HIDDEN 0
+#define PADDLE_TOKENS_VISIBLE 1
 
 extern int gPaddleMode;
-extern int gPaddleToken;
+extern int gPaddleTokens;
 
 class Paddle {
 

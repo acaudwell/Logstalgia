@@ -18,7 +18,7 @@
 #include "paddle.h"
 
 int gPaddleMode = PADDLE_SINGLE;
-int gPaddleToken = PADDLE_TOKEN_VISIBLE;
+int gPaddleTokens = PADDLE_TOKENS_VISIBLE;
 
 Paddle::Paddle(vec2f pos, vec4f colour, std::string token, FXFont font) {
     this->token = token;
@@ -149,7 +149,7 @@ void Paddle::draw() {
         glVertex2f(pos.x+width,pos.y-(height/2));
     glEnd();
     
-    if((gPaddleMode > PADDLE_SINGLE) && (gPaddleToken)) {
+    if((gPaddleMode > PADDLE_SINGLE) && (gPaddleTokens)) {
       font.alignTop(false);
       font.alignRight(true);
       font.dropShadow(true);
