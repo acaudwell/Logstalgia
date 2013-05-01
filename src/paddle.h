@@ -21,6 +21,7 @@
 #include "core/vectors.h"
 #include "core/sdlapp.h"
 #include "core/stringhash.h"
+#include "core/fxfont.h"
 
 #include "requestball.h"
 
@@ -53,9 +54,11 @@ protected:
     int   dest_y;
     float dest_eta;
     float dest_elapsed;
+    
+    FXFont font;
 
 public:
-    Paddle(vec2f pos, vec4f colour, std::string token);
+    Paddle(vec2f pos, vec4f colour, std::string token, FXFont font = 0);
     ~Paddle();
     void moveTo(int y, float eta, vec4f nextcol);
     bool moving();
