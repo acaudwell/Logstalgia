@@ -44,6 +44,8 @@ std::string win32LogSelector() {
 
 int main(int argc, char *argv[]) {
 
+    int log_level = LOG_LEVEL_OFF;
+
     //defaults
     int   width       = 1024;
     int   height      = 768;
@@ -53,7 +55,7 @@ int main(int argc, char *argv[]) {
     float update_rate = 5.0f;
     bool multisample  = false;
 
-    vec3f background = vec3f(0.0, 0.0, 0.0);
+    vec3 background = vec3(0.0, 0.0, 0.0);
 
     int video_framerate = 60;
     std::string ppm_file_name;
@@ -65,6 +67,10 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> arguments;
 
     SDLAppInit("Logstalgia", "logstalgia");
+
+#ifdef _WIN32
+        SDLApp::initConsole();
+#endif
 
     SDLAppParseArgs(argc, argv, &width, &height, &fullscreen, &arguments);
 
@@ -198,7 +204,7 @@ int main(int argc, char *argv[]) {
             std::string colstring = arguments[++i];
 
             if(colstring.size()==6 && sscanf(colstring.c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
-                background = vec3f(r,g,b);
+                background = vec3(r,g,b);
                 background /= 255.0f;
             } else {
                 logstalgia_quit("invalid colour string");
@@ -322,7 +328,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        if(args == "--output-ppm-stream") {
+        if(args == "-o" || args == "--output-ppm-stream") {
 
             if((i+1)>=arguments.size()) {
                 logstalgia_quit("specify ppm output file or '-' for stdout");
@@ -362,6 +368,30 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if(args == "--log-level") {
+
+            if((i+1)>=arguments.size()) {
+                logstalgia_quit("specify log-level");
+            }
+
+            std::string log_level_name = std::string(arguments[++i].c_str());
+
+            if(log_level_name == "warn") {
+                log_level = LOG_LEVEL_WARN;
+            } else if(log_level_name == "debug") {
+                log_level = LOG_LEVEL_DEBUG;
+            } else if(log_level_name == "info") {
+                log_level = LOG_LEVEL_INFO;
+            } else if(log_level_name == "error") {
+                log_level = LOG_LEVEL_ERROR;
+            } else if(log_level_name == "pedantic") {
+                log_level = LOG_LEVEL_PEDANTIC;
+            } else {
+                logstalgia_quit("invalid log-level");
+            }
+            continue;
+        }
+
         //if given a non option arg treat it as a file, or if it is '-', pass that too (stdin)
         if(args == "-" || args.size() >= 1 && args[0] != '-') {
             logfile = args;
@@ -373,6 +403,16 @@ int main(int argc, char *argv[]) {
 
         logstalgia_quit(arg_error);
     }
+
+        //set log level
+        Logger::getDefault()->setLevel(log_level);
+
+#ifdef _WIN32
+        // hide console if not needed
+        if(log_level == LOG_LEVEL_OFF && !SDLApp::existing_console) {
+            SDLApp::showConsole(false);
+        }
+#endif
 
 #ifdef _WIN32
     if(!logfile.size()) {
@@ -413,7 +453,7 @@ int main(int argc, char *argv[]) {
     //init frame exporter
     FrameExporter* exporter = 0;
 
-    if(ppm_file_name.size() > 0) {
+    if(!ppm_file_name.empty()) {
 
         try {
 

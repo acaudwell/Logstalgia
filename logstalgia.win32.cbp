@@ -13,30 +13,30 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-std=gnu++0x" />
 			<Add option="-Dmain=SDL_main" />
+			<Add option="-DGLM_SWIZZLE" />
 		</Compiler>
 		<Linker>
-			<Add option="ftgl.dll" />
+			<Add option="glew32.dll" />
 			<Add option="-static-libstdc++" />
 			<Add option="-static-libgcc" />
+			<Add option="-mconsole" />
 			<Add library="mingw32" />
 			<Add library="SDLmain" />
 			<Add library="SDL" />
 			<Add library="opengl32" />
-			<Add library="glut32" />
 			<Add library="glu32" />
 			<Add library="SDL_image" />
 			<Add library="pcre" />
+			<Add library="glew32" />
+			<Add library="freetype" />
 		</Linker>
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
 		<Unit filename="src\core\bounds.h" />
-		<Unit filename="src\core\camera.cpp" />
-		<Unit filename="src\core\camera.h" />
 		<Unit filename="src\core\display.cpp" />
 		<Unit filename="src\core\display.h" />
-		<Unit filename="src\core\extensions.cpp" />
-		<Unit filename="src\core\extensions.h" />
 		<Unit filename="src\core\frustum.cpp" />
 		<Unit filename="src\core\frustum.h" />
 		<Unit filename="src\core\fxfont.cpp" />
@@ -46,6 +46,8 @@
 		<Unit filename="src\core\pi.h" />
 		<Unit filename="src\core\plane.cpp" />
 		<Unit filename="src\core\plane.h" />
+		<Unit filename="src\core\ppm.cpp" />
+		<Unit filename="src\core\ppm.h" />
 		<Unit filename="src\core\quadtree.cpp" />
 		<Unit filename="src\core\quadtree.h" />
 		<Unit filename="src\core\regex.cpp" />
@@ -56,10 +58,17 @@
 		<Unit filename="src\core\sdlapp.h" />
 		<Unit filename="src\core\seeklog.cpp" />
 		<Unit filename="src\core\seeklog.h" />
+		<Unit filename="src\core\shader.cpp" />
+		<Unit filename="src\core\shader.h" />
+		<Unit filename="src\core\shader_common.cpp" />
+		<Unit filename="src\core\shader_common.h" />
 		<Unit filename="src\core\stringhash.cpp" />
 		<Unit filename="src\core\stringhash.h" />
 		<Unit filename="src\core\texture.cpp" />
 		<Unit filename="src\core\texture.h" />
+		<Unit filename="src\core\vbo.cpp" />
+		<Unit filename="src\core\vbo.h" />
+		<Unit filename="src\core\vectors.cpp" />
 		<Unit filename="src\core\vectors.h" />
 		<Unit filename="src\custom.cpp" />
 		<Unit filename="src\custom.h" />
@@ -73,8 +82,6 @@
 		<Unit filename="src\ncsa.h" />
 		<Unit filename="src\paddle.cpp" />
 		<Unit filename="src\paddle.h" />
-		<Unit filename="src\ppm.cpp" />
-		<Unit filename="src\ppm.h" />
 		<Unit filename="src\requestball.cpp" />
 		<Unit filename="src\requestball.h" />
 		<Unit filename="src\slider.cpp" />
