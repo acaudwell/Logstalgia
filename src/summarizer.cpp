@@ -85,15 +85,15 @@ bool SummNode::removeWord(const std::string& str, size_t offset) {
     refs--;
 
     size_t str_size = str.size() - offset;
-    
+
     if(!str_size) return false;
 
     words--;
 
     size_t no_children = children.size();
-    
+
     bool removed = false;
-    
+
     for(size_t i=0;i<no_children;i++) {
         if(children[i]->c == str[offset]) {
             removed = children[i]->removeWord(str,++offset);
@@ -124,15 +124,15 @@ void SummNode::debug(int indent) {
 }
 
 bool SummNode::addWord(const std::string& str, size_t offset) {
-    
+
     refs++;
 
     size_t str_size = str.size() - offset;
 
     if(!str_size) return false;
-    
+
     words++;
-        
+
     size_t no_children = children.size();
 
     for(size_t i=0;i<no_children;i++) {
@@ -281,8 +281,8 @@ void SummItem::updateUnit(SummUnit& unit) {
 
     this->unit = unit;
 
-    vec3f col = icol!=0 ? *icol : colourHash(unit.str);
-    this->colour = vec4f(col, 1.0f);
+    vec3 col = icol!=0 ? *icol : colourHash(unit.str);
+    this->colour = vec4(col, 1.0f);
 
     char buff[1024];
 
@@ -305,7 +305,7 @@ void SummItem::updateUnit(SummUnit& unit) {
 
 }
 
-SummItem::SummItem(SummUnit unit, vec2f pos, vec2f dest, float target_x, vec3f* icol, FXFont font, bool showcount) {
+SummItem::SummItem(SummUnit unit, vec2 pos, vec2 dest, float target_x, vec3* icol, FXFont font, bool showcount) {
     this->pos  = pos;
     this->target_x = target_x;
     this->icol = icol;
@@ -320,8 +320,10 @@ SummItem::SummItem(SummUnit unit, vec2f pos, vec2f dest, float target_x, vec3f* 
     setDest(dest);
 }
 
-void SummItem::setDest(vec2f dest, bool depart) {
-    if(moving && (this->dest - dest).length2()<1.0f) return;
+void SummItem::setDest(vec2 dest, bool depart) {
+    vec2 dist = this->dest - dest;
+
+    if(moving && glm::dot(dist, dist) < 1.0f) return;
 
     this->oldpos = pos;
     this->dest   = dest;
@@ -363,7 +365,7 @@ void SummItem::logic(float dt) {
 }
 
 void SummItem::draw(float alpha) {
-    glColor4f(colour.x, colour.y, colour.z, colour.w * alpha);
+    font.setColour(vec4(colour.x, colour.y, colour.z, colour.w * alpha));
     font.draw((int)pos.x, (int)pos.y, displaystr.c_str());
 }
 
@@ -386,7 +388,7 @@ Summarizer::Summarizer(FXFont font, float x, float top_gap, float bottom_gap, fl
 
     changed = false;
 
-    font_gap    = font.getHeight() + 4;
+    font_gap    = font.getMaxHeight() + 4;
     max_strings = (int) ((display.height-top_gap-bottom_gap)/font_gap);
     incrementf   =0;
     root = SummNode();
@@ -404,7 +406,7 @@ void Summarizer::mouseOut() {
     mouseover=false;
 }
 
-bool Summarizer::mouseOver(TextArea& textarea, vec2f mouse) {
+bool Summarizer::mouseOver(TextArea& textarea, vec2 mouse) {
     mouseover=false;
 
     if(right && mouse.x < pos_x) return false;
@@ -418,13 +420,13 @@ bool Summarizer::mouseOver(TextArea& textarea, vec2f mouse) {
         SummItem* si = &(*it);
         if(si->departing) continue;
 
-        if(si->pos.y<=y && (si->pos.y+font.getHeight()+4) > y) {
+        if(si->pos.y<=y && (si->pos.y+font.getMaxHeight()+4) > y) {
             if(mouse.x< si->pos.x || mouse.x > si->pos.x + si->width) continue;
 
             std::vector<std::string> content;
 
             textarea.setText(si->unit.expanded);
-            textarea.setColour(si->colour.truncate());
+            textarea.setColour(si->colour.xyz());
             textarea.setPos(mouse);
             mouseover=true;
             return true;
@@ -434,15 +436,15 @@ bool Summarizer::mouseOver(TextArea& textarea, vec2f mouse) {
     return false;
 }
 
-void Summarizer::setColour(vec3f col) {
-    this->item_colour = new vec3f(col);
+void Summarizer::setColour(vec3 col) {
+    this->item_colour = new vec3(col);
 }
 
 bool Summarizer::isColoured() {
     return (item_colour!=0);
 }
 
-vec3f Summarizer::getColour() {
+vec3 Summarizer::getColour() {
     return *item_colour;
 }
 
@@ -458,7 +460,7 @@ void Summarizer::summarize() {
     if(!changed) return;
 
     changed = false;
-    
+
     strings.clear();
     root.summarize(strings,max_strings);
 
@@ -506,10 +508,10 @@ void Summarizer::recalc_display() {
 
         if(match!= -1) {
             float destY = calcPosY(match);
-            item->setDest(vec2f(pos_x, destY));
+            item->setDest(vec2(pos_x, destY));
         } else {
             float destX = right ? (display.width + 100) : -100;
-            item->setDest(vec2f(destX, item->pos.y), true);
+            item->setDest(vec2(destX, item->pos.y), true);
         }
     }
 
@@ -520,13 +522,13 @@ void Summarizer::recalc_display() {
         float startX = right ? display.width + 100 : -100;
         float destY  = getPosY(strings[i].str);
 
-        items.push_back(SummItem(strings[i], vec2f(startX, destY), vec2f(pos_x, destY),pos_x, item_colour, font, showcount));
+        items.push_back(SummItem(strings[i], vec2(startX, destY), vec2(pos_x, destY),pos_x, item_colour, font, showcount));
     }
 }
 
 void Summarizer::removeString(const std::string& str) {
     root.removeWord(str,0);
-    changed = true;    
+    changed = true;
 }
 
 float Summarizer::calcPosY(int i) const {
@@ -542,22 +544,22 @@ int Summarizer::getBestMatchIndex(const std::string& input) const {
     size_t nostrs = strings.size();
 
     for(size_t i = 0;i < nostrs; i++) {
-        
+
         size_t strn_size  = strings[i].str.size();
         size_t input_size = input.size();
 
         int size_diff = strn_size - input_size;
 
-        size_t min_size   = size_diff == 0 ? input_size : std::min ( strn_size, input_size ); 
+        size_t min_size   = size_diff == 0 ? input_size : std::min ( strn_size, input_size );
 
-        int min_common_diff = abs( strings[i].str.compare(0, min_size, input, 0, min_size) );       
+        int min_common_diff = abs( strings[i].str.compare(0, min_size, input, 0, min_size) );
 
         //found
         if(size_diff == 0 && min_common_diff == 0) {
             best = i;
             break;
         }
-        
+
         if(    best_diff == -1
             || min_common_diff < best_diff
             || (min_common_diff == best_diff //remove this?
@@ -576,13 +578,13 @@ int Summarizer::getBestMatchIndex(const std::string& input) const {
 
 const std::string& Summarizer::getBestMatchStr(const std::string& str) const {
     int pos = getBestMatchIndex(str);
-        
+
     return strings[pos].str;
 }
 
 
 float Summarizer::getMiddlePosY(const std::string& str) const {
-    return getPosY(str) + (font.getHeight()) / 2;
+    return getPosY(str) + (font.getMaxHeight()) / 2;
 }
 
 float Summarizer::getPosY(const std::string& str) const {
@@ -626,7 +628,7 @@ void Summarizer::logic(float dt) {
                 break;
             }
         }
-    }    
+    }
 }
 
 void Summarizer::draw(float dt, float alpha) {
@@ -635,7 +637,7 @@ void Summarizer::draw(float dt, float alpha) {
 	glEnable(GL_TEXTURE_2D);
 
     if(title.size()) {
-        glColor4f(1.0f, 1.0f, 1.0f, alpha);
+        font.setColour(vec4(1.0f, 1.0f, 1.0f, alpha));
         font.draw((int)pos_x, (int)(top_gap - font_gap), title.c_str());
     }
 

@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "1.0.4"
+#define LOGSTALGIA_VERSION "1.0.5"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -28,6 +28,7 @@
 #include "core/fxfont.h"
 #include "core/stringhash.h"
 #include "core/seeklog.h"
+#include "core/ppm.h"
 
 #include "ncsa.h"
 #include "custom.h"
@@ -37,7 +38,6 @@
 #include "summarizer.h"
 #include "textarea.h"
 #include "slider.h"
-#include "ppm.h"
 
 #include <unistd.h>
 
@@ -113,15 +113,15 @@ class Logstalgia : public SDLApp {
     int remaining_space;
     int total_entries;
 
-    vec3f background;
-    vec4f paddle_colour;
+    vec3 background;
+    vec4 paddle_colour;
     float paddle_x;
 
     TextureResource* balltex;
     TextureResource* glowtex;
 
     float mousehide_timeout;
-    vec2f mousepos;
+    vec2 mousepos;
     RequestBall* paddle_target;
 
     FXFont fontSmall;
@@ -168,7 +168,7 @@ class Logstalgia : public SDLApp {
 
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
-    void addGroup(std::string grouptitle, std::string groupregex, int percent = 0, vec3f colour = vec3f(0.0f, 0.0f, 0.0f));
+    void addGroup(std::string grouptitle, std::string groupregex, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
     void togglePause();
 
     BaseLog* getLog();
@@ -185,7 +185,7 @@ public:
 
     void setFrameExporter(FrameExporter* exporter, int video_framerate);
 
-    void setBackground(vec3f background);
+    void setBackground(vec3 background);
 
     //inherited methods
     void init();

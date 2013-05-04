@@ -61,10 +61,9 @@ void logstalgia_quit(std::string error) {
 void logstalgia_help() {
 
 #ifdef _WIN32
-    SDLAppCreateWindowsConsole();
-
     //resize window to fit help message
-    SDLAppResizeWindowsConsole(700);
+    SDLApp::resizeConsole(700);
+    SDLApp::showConsole(true);
 #endif
 
     printf("Logstalgia v%s\n", LOGSTALGIA_VERSION);
@@ -109,8 +108,10 @@ void logstalgia_help() {
     printf("FILE should be a log file or '-' to read STDIN.\n\n");
 
 #ifdef _WIN32
-    printf("Press Enter\n");
-    getchar();
+    if(!SDLApp::existing_console) {
+        printf("Press Enter\n");
+        getchar();
+    }
 #endif
 
     exit(0);
@@ -162,7 +163,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     total_entries=0;
 
-    background = vec3f(0.0, 0.0, 0.0);
+    background = vec3(0.0, 0.0, 0.0);
 
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
     fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
@@ -200,9 +201,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     paddle_x = display.width * gPaddlePosition;
     paddle_colour = (gPaddleMode > PADDLE_SINGLE) ?
-        vec4f(0.0f, 0.0f, 0.0f, 0.0f) : vec4f(0.5, 0.5, 0.5, 1.0);
-
-    debugLog("Logstalgia end of constructor\n");
+        vec4(0.0f, 0.0f, 0.0f, 0.0f) : vec4(0.5, 0.5, 0.5, 1.0);
 
     //check if TZ is set, store current value
     if(old_tz.empty()) {
@@ -316,7 +315,7 @@ void Logstalgia::reset() {
     paddles.clear();
 
     if(gPaddleMode <= PADDLE_SINGLE) {
-        vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
+        vec2 paddle_pos = vec2(paddle_x - 20, rand() % display.height);
         Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
         paddles[""] = paddle;
     }
@@ -404,7 +403,7 @@ std::string Logstalgia::dateAtPosition(float percent) {
 }
 
 void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
-    mousepos = vec2f(e->x, e->y);
+    mousepos = vec2(e->x, e->y);
     SDL_ShowCursor(true);
     mousehide_timeout = 5.0f;
 
@@ -479,7 +478,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
         entry_paddle = paddles[paddle_token];
 
         if(entry_paddle == 0) {
-            vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
+            vec2 paddle_pos = vec2(display.width-(display.width/3), rand() % display.height);
             Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
             entry_paddle = paddles[paddle_token] = paddle;
         }
@@ -495,12 +494,12 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     float start_x = -(entry_paddle->getX()/ 5.0f);
 
-    vec2f ball_start = vec2f(start_x, pos_y);
-    vec2f ball_dest  = vec2f(entry_paddle->getX(), dest_y);
+    vec2 ball_start = vec2(start_x, pos_y);
+    vec2 ball_dest  = vec2(entry_paddle->getX(), dest_y);
 
     const std::string& match = ipSummarizer->getBestMatchStr(hostname);
 
-    vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
+    vec3 colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
 
     RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
 
@@ -645,7 +644,6 @@ void Logstalgia::readLog(int buffer_rows) {
 }
 
 void Logstalgia::init() {
-    debugLog("init called\n");
 
     ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f);
 
@@ -674,7 +672,7 @@ void Logstalgia::init() {
     }
 }
 
-void Logstalgia::setBackground(vec3f background) {
+void Logstalgia::setBackground(vec3 background) {
     this->background = background;
 }
 
@@ -825,7 +823,7 @@ void Logstalgia::logic(float t, float dt) {
     elapsed_time += sdt;
     currtime = starttime + (long)(elapsed_time);
 
-    //next will fast forward clock to the time of the next entry, 
+    //next will fast forward clock to the time of the next entry,
     //if the next entry is in the future
     if(next || gAutoSkip && balls.empty()) {
         if(!queued_entries.empty()) {
@@ -886,7 +884,7 @@ void Logstalgia::logic(float t, float dt) {
             float item_offset = 1.0 / (float) (items_to_spawn);
 
             int item_no = 0;
-            
+
             while(!queued_entries.empty()) {
 
                 LogEntry* le = queued_entries.front();
@@ -1031,7 +1029,7 @@ void Logstalgia::addGroup(std::string groupstr) {
     Regex groupregex("^([^,]+),([^,]+),([^,]+)(?:,([^,]+))?$");
     groupregex.match(groupstr, &groupdef);
 
-    vec3f colour(0.0f, 0.0f, 0.0f);
+    vec3 colour(0.0f, 0.0f, 0.0f);
 
     if(groupdef.size()>=3) {
         std::string groupname = groupdef[0];
@@ -1043,7 +1041,7 @@ void Logstalgia::addGroup(std::string groupstr) {
             int col;
             int r, g, b;
             if(sscanf(groupdef[3].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
-                colour = vec3f( r, g, b );
+                colour = vec3( r, g, b );
                 debugLog("r = %d, g = %d, b = %d\n", r, g, b);
                 colour /= 255.0f;
             }
@@ -1053,7 +1051,7 @@ void Logstalgia::addGroup(std::string groupstr) {
     }
 }
 
-void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int percent, vec3f colour) {
+void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int percent, vec3 colour) {
 
     if(percent<0) return;
 
@@ -1076,7 +1074,7 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
     Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
 //    summ->showCount(true);
 
-    if(colour.length2() > 0.01f) {
+    if(glm::dot(colour, colour) > 0.01f) {
         summ->setColour(colour);
     }
 
@@ -1197,7 +1195,7 @@ void Logstalgia::draw(float t, float dt) {
     glEnable(GL_TEXTURE_2D);
 
     if(uimessage_timer>0.1f) {
-        glColor4f(1.0,1.0,uimessage_timer/3.0f,uimessage_timer/3.0f);
+        fontLarge.setColour(vec4(1.0f,1.0f,uimessage_timer/3.0f,uimessage_timer/3.0f));
 
         int mwidth = fontLarge.getWidth(uimessage.c_str());
 
@@ -1211,7 +1209,7 @@ void Logstalgia::draw(float t, float dt) {
         int cwidth    = fontMedium.getWidth("Website Access Log Viewer");
         int awidth    = fontMedium.getWidth("(C) 2008 Andrew Caudwell");
 
-        vec2f corner(display.width/2 - logowidth/2 - 30.0f,
+        vec2 corner(display.width/2 - logowidth/2 - 30.0f,
                      display.height/2 - 45);
 
         float logo_alpha = std::min(1.0f, gSplash/3.0f);
@@ -1231,12 +1229,12 @@ void Logstalgia::draw(float t, float dt) {
         fontLarge.alignTop(true);
         fontLarge.dropShadow(true);
 
-        glColor4f(1,1,1,logo_alpha);
+        fontLarge.setColour(vec4(1.0f,1.0f,1.0f,logo_alpha));
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Logstalgia");
-        glColor4f(0,1,1,logo_alpha);
+        fontLarge.setColour(vec4(0.0f,1.0f,1.0f,logo_alpha));
         fontLarge.draw(display.width/2 - logowidth/2,display.height/2 - 30, "Log");
 
-        glColor4f(1,1,1,logo_alpha);
+        fontMedium.setColour(vec4(1.0f,1.0f,1.0f,logo_alpha));
         fontMedium.draw(display.width/2 - cwidth/2,display.height/2 + 17, "Website Access Log Viewer");
         fontMedium.draw(display.width/2 - awidth/2,display.height/2 + 37, "(C) 2008 Andrew Caudwell");
 
@@ -1245,7 +1243,7 @@ void Logstalgia::draw(float t, float dt) {
 
     if(!gDisableProgress) slider.draw(dt);
 
-    glColor4f(1,1,1,font_alpha);
+    fontMedium.setColour(vec4(1.0f,1.0f,1.0f,font_alpha));
 
     if(info) {
         fontMedium.print(2,2, "FPS %d", (int) fps);
@@ -1256,7 +1254,8 @@ void Logstalgia::draw(float t, float dt) {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());
     }
-    glColor4f(1,1,1,font_alpha);
+
+    fontLarge.setColour(vec4(1.0f,1.0f,1.0f,font_alpha));
 
     int counter_width = fontLarge.getWidth("00000000");
 

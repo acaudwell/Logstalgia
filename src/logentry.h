@@ -56,7 +56,7 @@ public:
     std::string referrer;
     std::string user_agent;
 
-    vec3f response_colour;
+    vec3 response_colour;
 
     bool successful;
 };

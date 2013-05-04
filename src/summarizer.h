@@ -71,8 +71,8 @@ public:
 };
 
 class SummItem {
-    vec2f dest;
-    vec2f oldpos;
+    vec2 dest;
+    vec2 oldpos;
 
     bool moving;
 
@@ -80,7 +80,7 @@ class SummItem {
     float eta;
     float target_x;
 
-    vec3f* icol;
+    vec3* icol;
     bool showcount;
     FXFont font;
 public:
@@ -92,15 +92,15 @@ public:
 
     SummUnit unit;
 
-    vec4f colour;
-    vec2f pos;
+    vec4 colour;
+    vec2 pos;
 
-    void setDest(vec2f dest, bool depart = false);
+    void setDest(vec2 dest, bool depart = false);
     void logic(float dt);
     void draw(float alpha);
 
     void updateUnit(SummUnit& unit);
-    SummItem(SummUnit unit, vec2f pos, vec2f dest, float target_x, vec3f* icol, FXFont font, bool showcount);
+    SummItem(SummUnit unit, vec2 pos, vec2 dest, float target_x, vec3* icol, FXFont font, bool showcount);
 };
 
 class Summarizer {
@@ -109,7 +109,7 @@ class Summarizer {
     std::list<SummItem> items;
     SummNode root;
 
-    vec3f* item_colour;
+    vec3* item_colour;
 
     float pos_x;
     int max_strings;
@@ -137,13 +137,13 @@ public:
     ~Summarizer();
 
 
-    bool mouseOver(TextArea& textarea, vec2f mouse);
+    bool mouseOver(TextArea& textarea, vec2 mouse);
     void mouseOut();
 
     bool isColoured();
     void showCount(bool showcount);
-    void setColour(vec3f col);
-    vec3f getColour();
+    void setColour(vec3 col);
+    vec3 getColour();
 
     bool supportedString(std::string& str);
 

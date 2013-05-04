@@ -31,7 +31,7 @@ LogEntry::LogEntry() {
     timestamp = 0;
     response_size = 0;
     successful = false;
-    response_colour = vec3f(1.0, 0.0, 0.0);
+    response_colour = vec3(1.0, 0.0, 0.0);
 }
 
 Regex logentry_hostname_parts("([^.]+)(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?$");
@@ -84,16 +84,16 @@ void LogEntry::setResponseColour() {
 
     //set response colour
     if(code<200) {
-        response_colour = vec3f(0.0f, 1.0f, 0.5f);
+        response_colour = vec3(0.0f, 1.0f, 0.5f);
     }
     else if(code>= 200 && code < 300) {
-        response_colour = vec3f(1.0f, 1.0f, 0.0f);
+        response_colour = vec3(1.0f, 1.0f, 0.0f);
     }
     else if(code>= 300 && code < 400) {
-        response_colour = vec3f(1.0f, 0.5f, 0.0f);
+        response_colour = vec3(1.0f, 0.5f, 0.0f);
     }
     else {
-        response_colour = vec3f(1.0f, 0.0f, 0.0f);
+        response_colour = vec3(1.0f, 0.0f, 0.0f);
     }
 }
 

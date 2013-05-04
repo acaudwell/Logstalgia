@@ -14,14 +14,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 #include "paddle.h"
 
 int gPaddleMode = PADDLE_SINGLE;
 
-Paddle::Paddle(vec2f pos, vec4f colour, std::string token) {
+Paddle::Paddle(vec2 pos, vec4 colour, std::string token) {
     this->token = token;
-    this->token_colour = token.size() > 0 ? colourHash2(token) : vec3f(0.5,0.5,0.5);
+
+// TODO: fix colouring
+//    this->token_colour = token.size() > 0 ? colourHash2(token) : vec3(0.5,0.5,0.5);
+    this->token_colour = token.size() > 0 ? colourHash(token) : vec3(0.5,0.5,0.5);
 
     this->pos = pos;
     this->lastcol = colour;
@@ -37,7 +40,7 @@ Paddle::Paddle(vec2f pos, vec4f colour, std::string token) {
 Paddle::~Paddle() {
 }
 
-void Paddle::moveTo(int y, float eta, vec4f nextcol) {
+void Paddle::moveTo(int y, float eta, vec4 nextcol) {
     this->start_y = (int) this->pos.y;
     this->dest_y = y;
     this->dest_eta = eta;
@@ -75,14 +78,14 @@ void Paddle::setTarget(RequestBall* target) {
         return;
     }
 
-    vec2f dest = target->finish();
-    vec4f col  = (gPaddleMode == PADDLE_VHOST || gPaddleMode == PADDLE_PID)  ?
-        vec4f(token_colour,1.0) : vec4f(target->colour, 1.0f);
+    vec2 dest = target->finish();
+    vec4 col  = (gPaddleMode == PADDLE_VHOST || gPaddleMode == PADDLE_PID)  ?
+        vec4(token_colour,1.0) : vec4(target->colour, 1.0f);
 
     moveTo((int)dest.y, target->arrivalTime(), col);
 }
 
-bool Paddle::mouseOver(TextArea& textarea, vec2f& mouse) {
+bool Paddle::mouseOver(TextArea& textarea, vec2& mouse) {
 
     if(pos.x <= mouse.x && pos.x + width >= mouse.x && abs(pos.y - mouse.y) < height/2) {
 
@@ -92,7 +95,7 @@ bool Paddle::mouseOver(TextArea& textarea, vec2f& mouse) {
 
         textarea.setText(content);
         textarea.setPos(mouse);
-        textarea.setColour(colour.truncate());
+        textarea.setColour(colour.xyz());
 
         return true;
     }
@@ -124,7 +127,7 @@ void Paddle::logic(float dt) {
 void Paddle::drawShadow() {
     if(!gPaddleMode) return;
 
-    vec2f spos = vec2f(pos.x + 1.0f, pos.y + 1.0f);
+    vec2 spos = vec2(pos.x + 1.0f, pos.y + 1.0f);
 
     glColor4f(0.0, 0.0, 0.0, 0.7 * colour.w);
     glBegin(GL_QUADS);
@@ -138,7 +141,7 @@ void Paddle::drawShadow() {
 void Paddle::draw() {
     if(!gPaddleMode) return;
 
-    glColor4fv(colour);
+    glColor4fv(glm::value_ptr(colour));
     glBegin(GL_QUADS);
         glVertex2f(pos.x,pos.y-(height/2));
         glVertex2f(pos.x,pos.y+(height/2));

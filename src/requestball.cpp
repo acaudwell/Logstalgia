@@ -26,13 +26,12 @@ float gGlowIntensity  = 0.5;
 float gGlowMultiplier = 1.25;
 float gGlowDuration   = 0.15;
 
-RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3f& colour, const vec2f& pos, const vec2f& dest, float speed) {
+RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest, float speed) {
     this->le   = le;
     this->tex  = tex;
     this->font = font;
-    
-    vec2f vel = dest - pos;
-    vel.normalize();
+
+    vec2 vel = glm::normalize(dest - pos);
 
     int bytes = le->response_size;
     float size = log((float)bytes) + 1.0f;
@@ -50,7 +49,7 @@ RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const
     if(!le->successful) dontBounce();
 
     float halfsize = size * 0.5f;
-    offset = vec2f(halfsize, halfsize);
+    offset = vec2(halfsize, halfsize);
 
     char buff[16];
     snprintf(buff, 16, "%s", le->response_code.c_str());
@@ -63,13 +62,16 @@ RequestBall::~RequestBall() {
     delete le;
 }
 
-vec3f RequestBall::responseColour() {
+vec3 RequestBall::responseColour() {
     return le->response_colour;
 }
 
-bool RequestBall::mouseOver(TextArea& textarea, vec2f& mouse) {
+bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
+
     //within 3 pixels
-    if((pos - mouse).length2()<36.0f) {
+    vec2 from_mouse = pos - mouse;
+
+    if( glm::dot(from_mouse, from_mouse) < 36.0f) {
 
         std::vector<std::string> content;
 
@@ -110,7 +112,7 @@ void RequestBall::drawGlow() const {
 
     float alpha = std::min(1.0f, 1.0f-(prog/gGlowDuration));
 
-    vec3f glow_col = colour * gGlowIntensity * alpha;
+    vec3 glow_col = colour * gGlowIntensity * alpha;
 
     glColor4f(glow_col.x, glow_col.y, glow_col.z, 1.0f);
 
@@ -136,8 +138,8 @@ void RequestBall::draw(float dt) const {
 
     if(gBounce || !has_bounced || no_bounce) {
 
-        vec2f offsetpos = pos - offset;
-        
+        vec2 offsetpos = pos - offset;
+
         glColor4f(colour.x, colour.y, colour.z, 1.0f);
 
         glPushMatrix();
@@ -165,8 +167,8 @@ void RequestBall::drawResponseCode() const {
     float drift = prog * 100.0f;
 
     if(!le->successful) drift *= -1.0f;
-    vec2f msgpos = (vel * drift) + vec2f(dest.x-45.0f, dest.y);
+    vec2 msgpos = (vel * drift) + vec2(dest.x-45.0f, dest.y);
 
-    glColor4f(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f) );
+    font->setColour(vec4(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f)));
     font->draw(msgpos.x, msgpos.y, response_code.c_str());
 }

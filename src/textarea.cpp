@@ -21,18 +21,18 @@ TextArea::TextArea() {
 }
 
 TextArea::TextArea(FXFont font) {
-    this->colour = vec3f(1.0f,1.0f,1.0f);
+    this->colour = vec3(1.0f,1.0f,1.0f);
     this->font   = font;
-    this->corner = vec2f(0.0f,0.0f);
+    this->corner = vec2(0.0f,0.0f);
     this->visible = false;
 
     this->font.dropShadow(true);
 }
 
-TextArea::TextArea(std::vector<std::string>& content, FXFont font, vec3f colour) {
+TextArea::TextArea(std::vector<std::string>& content, FXFont font, vec3 colour) {
     this->colour = colour;
     this->font   = font;
-    this->corner = vec2f(0.0f,0.0f);
+    this->corner = vec2(0.0f,0.0f);
     setText(content);
 }
 
@@ -40,7 +40,7 @@ void TextArea::hide() {
     this->visible=false;
 }
 
-void TextArea::setColour(vec3f colour) {
+void TextArea::setColour(vec3 colour) {
     this->colour = colour;
 }
 
@@ -49,7 +49,7 @@ void TextArea::setText(std::vector<std::string>& content_) {
 
     //calculate area
     rectwidth  = 0;
-    rectheight = content_.size() * (font.getHeight()+4) + 2;
+    rectheight = content_.size() * (font.getMaxHeight()+4) + 2;
 
     std::vector<std::string>::iterator it;
     for(it = content_.begin(); it != content_.end(); it++) {
@@ -66,11 +66,11 @@ void TextArea::setText(std::vector<std::string>& content_) {
     this->visible=true;
 }
 
-void TextArea::setPos(vec2f pos) {
+void TextArea::setPos(vec2 pos) {
 
     corner = pos;
 
-    int fontheight = font.getHeight() + 4;
+    int fontheight = font.getMaxHeight() + 4;
 
     corner.y -= rectheight;
 
@@ -94,8 +94,8 @@ void TextArea::draw() {
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    vec4f col(colour, 0.2f);
-    glColor4fv(col);
+    vec4 col(colour, 0.2f);
+    glColor4fv(glm::value_ptr(col));
     glBegin(GL_QUADS);
         glVertex2f(corner.x,           corner.y);
         glVertex2f(corner.x,           corner.y + rectheight);
@@ -111,6 +111,6 @@ void TextArea::draw() {
     std::vector<std::string>::iterator it;
     for(it = content.begin(); it != content.end(); it++) {
         font.draw((int)corner.x+2, (int)corner.y+yinc,  (*it).c_str());
-        yinc += font.getHeight() + 4;
+        yinc += font.getMaxHeight() + 4;
     }
 }

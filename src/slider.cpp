@@ -27,10 +27,10 @@ PositionSlider::PositionSlider(float percent) {
     int gapx = display.width / 30;
     int gapy = display.height / 25;
 
-    bounds.update(vec2f(gapx, display.height - gapy*3));
-    bounds.update(vec2f(display.width - gapx, display.height - gapy*2));
+    bounds.update(vec2(gapx, display.height - gapy*3));
+    bounds.update(vec2(display.width - gapx, display.height - gapy*2));
 
-    slidercol = vec3f(1.0, 1.0, 1.0);
+    slidercol = vec3(1.0, 1.0, 1.0);
 
     mouseover = -1.0;
     mouseover_elapsed = 0;
@@ -40,11 +40,11 @@ PositionSlider::PositionSlider(float percent) {
     alpha = 1.0;
 }
 
-void PositionSlider::setColour(vec3f col) {
+void PositionSlider::setColour(vec3 col) {
     slidercol = col;
 }
 
-bool PositionSlider::mouseOver(vec2f pos, float* percent_ptr) {
+bool PositionSlider::mouseOver(vec2 pos, float* percent_ptr) {
     if(bounds.contains(pos)) {
 
         mouseover_elapsed = 0;
@@ -62,7 +62,7 @@ bool PositionSlider::mouseOver(vec2f pos, float* percent_ptr) {
     return false;
 }
 
-bool PositionSlider::click(vec2f pos, float* percent_ptr) {
+bool PositionSlider::click(vec2 pos, float* percent_ptr) {
     if(mouseOver(pos, &percent)) {
 
         if(percent_ptr != 0) {

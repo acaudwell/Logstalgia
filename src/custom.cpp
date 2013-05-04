@@ -50,7 +50,7 @@ bool CustomAccessLog::parseLine(std::string& line, LogEntry& entry) {
         int r, g, b;
         if(colour.size()>0 &&
            sscanf(colour.c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
-            entry.response_colour = vec3f( r, g, b );
+            entry.response_colour = vec3( r, g, b );
             entry.response_colour /= 255.0f;
         } else {
             entry.setResponseColour();

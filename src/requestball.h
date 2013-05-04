@@ -27,26 +27,26 @@
 class RequestBall : public ProjectedBall {
 protected:
 
-    vec2f start;
-    vec2f dest;
+    vec2 start;
+    vec2 dest;
 
-    vec2f offset;
+    vec2 offset;
     
-    vec3f pagecolour;
-    vec3f responseColour();
+    vec3 pagecolour;
+    vec3 responseColour();
 
     FXFont* font;
     TextureResource* tex;
 
     std::string response_code;
-    vec3f       response_colour;
+    vec3       response_colour;
 public:
     LogEntry* le;
 
-    RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3f& colour, const vec2f& pos, const vec2f& dest, float speed = 10.0f);
+    RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest, float speed = 10.0f);
     ~RequestBall();
 
-    bool mouseOver(TextArea& textarea, vec2f& mouse);
+    bool mouseOver(TextArea& textarea, vec2& mouse);
 
     int logic(float dt);
 

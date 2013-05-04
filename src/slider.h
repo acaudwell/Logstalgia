@@ -16,21 +16,21 @@ class PositionSlider {
     float fade_time;
     float alpha;
 
-    vec3f slidercol;
+    vec3 slidercol;
 
     float capwidth;
     std::string caption;
 public:
     PositionSlider(float percent = 0.0f);
 
-    void setColour(vec3f col);
+    void setColour(vec3 col);
 
     void setCaption(std::string cap);
 
     void setPercent(float percent);
 
-    bool mouseOver(vec2f pos, float* percent_ptr);
-    bool click(vec2f pos, float* percent_ptr);
+    bool mouseOver(vec2 pos, float* percent_ptr);
+    bool click(vec2 pos, float* percent_ptr);
     void logic(float dt);
     void draw(float dt);
 };

@@ -18,7 +18,7 @@
 #include "ball.h"
 
 //Line
-Line::Line(vec2f start, vec2f end) {
+Line::Line(vec2 start, vec2 end) {
 	this->start = start;
 	this->end   = end;
 }
@@ -28,16 +28,16 @@ Line::~Line() {
 
 // check if line intersects the plane of another line
 
-bool Line::intersects(Line& l, vec2f *p) {
-    vec2f a = end   - start;
-    vec2f b = l.end - l.start;
+bool Line::intersects(Line& l, vec2 *p) {
+    vec2 a = end   - start;
+    vec2 b = l.end - l.start;
 
     float d = a.x*b.y - a.y * b.x;
 
     //parallel test
     if (!d) return false;
 
-    vec2f w = start - l.start;
+    vec2 w = start - l.start;
 
     //check if outside either line segment
     float s = b.x * w.y - b.y * w.x;
@@ -60,11 +60,11 @@ bool Line::intersects(Line& l, vec2f *p) {
 ProjectedBall::ProjectedBall() {
 }
 
-ProjectedBall::ProjectedBall(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed) {
+ProjectedBall::ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed) {
     init(pos, vel, colour, dest_x, eta, size, speed);
 }
 
-void ProjectedBall::init(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed) {
+void ProjectedBall::init(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed) {
     this->pos = pos;
     this->vel = vel;
     this->colour = colour;
@@ -92,19 +92,19 @@ void ProjectedBall::project() {
     elapsed = 0.0f;
     progress = 0.0f;
     points.clear();
-    vec2f p = pos;
+    vec2 p = pos;
     points.push_back(p);
 
     //project current position and direction until it hits a wall or crosses dest_x
-    Line finish(vec2f(dest_x, 0), vec2f(dest_x, display.height));
-    Line top(vec2f(0,0), vec2f(display.width, 0));
-    Line bottom(vec2f(0,display.height), vec2f(display.width, display.height));
+    Line finish(vec2(dest_x, 0), vec2(dest_x, display.height));
+    Line top(vec2(0,0), vec2(display.width, 0));
+    Line bottom(vec2(0,display.height), vec2(display.width, display.height));
 
     //project far enough to cross a side of the screen
     float inc = display.width*2.0f;
 
     bool finished=false;
-    vec2f currvel = vel;
+    vec2 currvel = vel;
     total_length=0;
     line_lengths.clear();
 
@@ -118,7 +118,7 @@ void ProjectedBall::project() {
         debugLog("bottom = (%.2f, %.2f), (%.2f, %.2f)\n", bottom.start.x, bottom.start.y, bottom.end.x, bottom.end.y);
         */
 
-        vec2f intersect;
+        vec2 intersect;
 
         //find nearest intersected plane
 
@@ -221,15 +221,15 @@ void ProjectedBall::logic(float dt) {
         return;
     }
 
-    vec2f from = points[pointno];
-    vec2f to   = points[pointno+1];
+    vec2 from = points[pointno];
+    vec2 to   = points[pointno+1];
 
     float linepos = (currposf - len)/line_lengths[pointno];
 
     this->pos = from + ((to-from)*linepos);
 }
 
-vec2f ProjectedBall::finish() {
+vec2 ProjectedBall::finish() {
     return points[points.size()-1];
 }
 

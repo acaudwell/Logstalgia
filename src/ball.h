@@ -26,17 +26,17 @@
 class Line {
 
 public:
-    vec2f start;
-    vec2f end;
-    Line(vec2f start, vec2f end);
+    vec2 start;
+    vec2 end;
+    Line(vec2 start, vec2 end);
     ~Line();
-    bool intersects(Line& l, vec2f* p = 0);
+    bool intersects(Line& l, vec2* p = 0);
 };
 
 class ProjectedBall {
 
 protected:
-    std::vector<vec2f> points;
+    std::vector<vec2> points;
     std::vector<float> line_lengths;
     float total_length;
     int dest_x;
@@ -48,21 +48,21 @@ protected:
     bool no_bounce;
 
 public:
-    vec2f pos;
-    vec2f vel;
+    vec2 pos;
+    vec2 vel;
     float size;
-    vec3f colour;
+    vec3 colour;
     float speed;
 
     ProjectedBall();
-    ProjectedBall(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed = 10.0f);
+    ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed = 10.0f);
     ~ProjectedBall();
 
-    void init(const vec2f& pos, const vec2f& vel, const vec3f& colour, int dest_x, float eta, float size, float speed);
+    void init(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed);
 
     void setElapsed(float e);
     void project();
-    vec2f finish();
+    vec2 finish();
 
     void bounce();
     

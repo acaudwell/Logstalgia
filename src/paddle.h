@@ -34,18 +34,18 @@ extern int gPaddleMode;
 class Paddle {
 
 protected:
-    vec2f pos;
+    vec2 pos;
 
     RequestBall* target;
 
     std::string token;
-    vec3f token_colour;
+    vec3 token_colour;
 
-    vec4f default_colour;
-    vec4f proc_colour;
-    vec4f colour;
-    vec4f lastcol;
-    vec4f nextcol;
+    vec4 default_colour;
+    vec4 proc_colour;
+    vec4 colour;
+    vec4 lastcol;
+    vec4 nextcol;
 
     int width, height;
 
@@ -55,9 +55,9 @@ protected:
     float dest_elapsed;
 
 public:
-    Paddle(vec2f pos, vec4f colour, std::string token);
+    Paddle(vec2 pos, vec4 colour, std::string token);
     ~Paddle();
-    void moveTo(int y, float eta, vec4f nextcol);
+    void moveTo(int y, float eta, vec4 nextcol);
     bool moving();
     bool visible();
 
@@ -66,7 +66,7 @@ public:
 
     void logic(float dt);
 
-    bool mouseOver(TextArea& textarea, vec2f& mouse);
+    bool mouseOver(TextArea& textarea, vec2& mouse);
 
     void drawShadow();
     void draw();

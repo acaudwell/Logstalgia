@@ -26,8 +26,8 @@
 
 class TextArea {
 
-    vec3f colour;
-    vec2f corner;
+    vec3 colour;
+    vec2 corner;
     std::vector<std::string> content;
     FXFont font;
     int rectwidth;
@@ -36,12 +36,12 @@ class TextArea {
 public:
     TextArea();
     TextArea(FXFont font);
-    TextArea(std::vector<std::string>& content, FXFont font, vec3f colour);
+    TextArea(std::vector<std::string>& content, FXFont font, vec3 colour);
 
     void hide();
     void setText(std::vector<std::string>& content);
-    void setPos(vec2f pos);
-    void setColour(vec3f colour);
+    void setPos(vec2 pos);
+    void setColour(vec3 colour);
     void draw();
 
 };
