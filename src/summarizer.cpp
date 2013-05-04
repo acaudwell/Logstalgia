@@ -508,7 +508,7 @@ void Summarizer::recalc_display() {
             float destY = calcPosY(match);
             item->setDest(vec2f(pos_x, destY));
         } else {
-            float destX = right ? (display.width + 100) : -100;
+            float destX = right ? (display.width + 100) : -200;
             item->setDest(vec2f(destX, item->pos.y), true);
         }
     }
@@ -517,7 +517,7 @@ void Summarizer::recalc_display() {
     for(size_t i=0;i<nostrs;i++) {
         if(strfound[i]) continue;
 
-        float startX = right ? display.width + 100 : -100;
+        float startX = right ? display.width + 100 : -200;
         float destY  = getPosY(strings[i].str);
 
         items.push_back(SummItem(strings[i], vec2f(startX, destY), vec2f(pos_x, destY),pos_x, item_colour, font, showcount));
