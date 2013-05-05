@@ -18,8 +18,9 @@
 #include "paddle.h"
 
 int gPaddleMode = PADDLE_SINGLE;
+int gPaddleTokens = PADDLE_TOKENS_VISIBLE;
 
-Paddle::Paddle(vec2f pos, vec4f colour, std::string token) {
+Paddle::Paddle(vec2f pos, vec4f colour, std::string token, FXFont font) {
     this->token = token;
     this->token_colour = token.size() > 0 ? colourHash2(token) : vec3f(0.5,0.5,0.5);
 
@@ -30,6 +31,7 @@ Paddle::Paddle(vec2f pos, vec4f colour, std::string token) {
     this->width = 10;
     this->height = 50;
     this->target = 0;
+    this->font = font;
 
     dest_y = -1;
 }
@@ -133,6 +135,7 @@ void Paddle::drawShadow() {
         glVertex2f(spos.x+width,spos.y+(height/2));
         glVertex2f(spos.x+width,spos.y-(height/2));
     glEnd();
+    
 }
 
 void Paddle::draw() {
@@ -145,4 +148,12 @@ void Paddle::draw() {
         glVertex2f(pos.x+width,pos.y+(height/2));
         glVertex2f(pos.x+width,pos.y-(height/2));
     glEnd();
+    
+    if((gPaddleMode > PADDLE_SINGLE) && (gPaddleTokens)) {
+      font.alignTop(false);
+      font.alignRight(true);
+      font.dropShadow(true);
+      
+      font.draw(pos.x-width/2, pos.y, token);
+    }
 }

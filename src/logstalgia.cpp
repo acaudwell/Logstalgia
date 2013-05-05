@@ -78,11 +78,12 @@ void logstalgia_help() {
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --speed                 Simulation speed (default: 1)\n");
-    printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
+    printf("  -t --time-scale            Time scale (default: 1)\n\n");
+    printf("  -u --update-rate           Page summary update rate (default: 2)\n\n");
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
-    printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
+    printf("  --paddle-position POSITION Paddle position as a fraction of the view width (default: 0.67)\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n");
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
@@ -92,6 +93,7 @@ void logstalgia_help() {
 
     printf("  --hide-response-code       Hide response code\n");
     printf("  --hide-paddle              Hide paddle\n");
+    printf("  --hide-paddle-tokens       Hide paddle tokens in pid and vhost paddle modes\n");
     printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
     printf("  --disable-auto-skip        Disable skipping of empty time periods\n");
     printf("  --disable-progress         Disable the progress bar\n");
@@ -116,7 +118,7 @@ void logstalgia_help() {
     exit(0);
 }
 
-Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate) : SDLApp() {
+Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate, float time_scale) : SDLApp() {
     info       = false;
     paused     = false;
     recentre   = false;
@@ -124,6 +126,7 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
 
     this->simu_speed  = simu_speed;
     this->update_rate = update_rate;
+    this->time_scale = time_scale;
 
     this->logfile = logfile;
 
@@ -179,8 +182,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     infowindow = TextArea(fontSmall);
 
     mousehide_timeout = 0.0f;
-
-    time_scale = 1.0;
 
     runtime = 0.0;
     frameExporter = 0;
@@ -317,7 +318,7 @@ void Logstalgia::reset() {
 
     if(gPaddleMode <= PADDLE_SINGLE) {
         vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
-        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
+        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "", fontSmall);
         paddles[""] = paddle;
     }
 
@@ -479,8 +480,8 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
         entry_paddle = paddles[paddle_token];
 
         if(entry_paddle == 0) {
-            vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
-            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
+            vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
+            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token, fontSmall);
             entry_paddle = paddles[paddle_token] = paddle;
         }
 
@@ -502,7 +503,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     vec3f colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
 
-    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed);
+    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, simu_speed*time_scale);
 
     ball->setElapsed( start_offset );
 
@@ -647,7 +648,7 @@ void Logstalgia::readLog(int buffer_rows) {
 void Logstalgia::init() {
     debugLog("init called\n");
 
-    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f*time_scale);
 
     reset();
 
@@ -775,7 +776,7 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
 void Logstalgia::logic(float t, float dt) {
 
-    float sdt = dt*simu_speed;;
+    float sdt = dt * simu_speed / time_scale;
 
 
     if(mousehide_timeout>0.0f) {
@@ -1073,7 +1074,7 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
     //debugLog("group %s: regex = %s, remainpc = %d, space = %d, top_gap = %d, bottom_gap = %d\n",
     //    grouptitle.c_str(), groupregex.c_str(), remainpc, space, top_gap, bottom_gap);
 
-    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
+    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate*time_scale, groupregex, grouptitle);
 //    summ->showCount(true);
 
     if(colour.length2() > 0.01f) {
@@ -1205,6 +1206,7 @@ void Logstalgia::draw(float t, float dt) {
         uimessage_timer-=dt;
     }
 
+
     if(gSplash>0.0f) {
         int logowidth = fontLarge.getWidth("Logstalgia");
         int logoheight = 105;
@@ -1259,8 +1261,20 @@ void Logstalgia::draw(float t, float dt) {
     glColor4f(1,1,1,font_alpha);
 
     int counter_width = fontLarge.getWidth("00000000");
-
+    fontLarge.alignRight(false);
     fontLarge.alignTop(false);
+    fontSmall.alignRight(true);
+    fontSmall.alignTop(false);
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
+
+    // draw avg. requests per second
+    if (starttime && currtime) {
+        int diff = currtime - starttime;
+        if (diff > 0) {
+            int requests = ceil(highscore / (currtime - starttime));
+            fontSmall.print(display.width-10,display.height-45, "%d req/s", requests);
+        }
+    }
+
 }
