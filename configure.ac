@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(Logstalgia, 1.0.4, [acaudwell@gmail.com])
+AC_INIT(Logstalgia, 1.0.5, [acaudwell@gmail.com])
 AC_CONFIG_SRCDIR([src/main.h])
 
 AM_INIT_AUTOMAKE([dist-bzip2 foreign subdir-objects])
@@ -30,43 +30,23 @@ CXXFLAGS="$CXXFLAGS $GL_CFLAGS $GLU_CFLAGS"
 CPPFLAGS="$CPPFLAGS $GL_CFLAGS $GLU_CFLAGS"
 LIBS="$LIBS $GL_LIBS $GLU_LIBS"
 
-#SDL
-SDL_VERSION=1.2.10
-AM_PATH_SDL($SDL_VERSION,
-            :,
-            AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
-)
-CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-LIBS="$LIBS $SDL_LIBS"
+PKG_CHECK_MODULES([FT2], [freetype2 >= 9.0.3])
+PKG_CHECK_MODULES([PCRE], [libpcre])
+PKG_CHECK_MODULES([GLEW], [glew])
+PKG_CHECK_MODULES([SDL], [sdl >= 1.2.10 SDL_image])
 
-#Freetype2
-AC_CHECK_FT2([9.0.3],[],[AC_MSG_ERROR([FreeType2 is required by FTGL. Please see INSTALL])])
-CXXFLAGS="$CXXFLAGS $FT2_CFLAGS"
-CPPFLAGS="$CPPFLAGS $FT2_CFLAGS"
+CPPFLAGS="${CPPFLAGS} ${FT2_CFLAGS} ${PCRE_CFLAGS} ${GLEW_CFLAGS} ${SDL_CFLAGS}"
+LIBS="${LIBS} ${FT2_LIBS} ${PCRE_LIBS} ${GLEW_LIBS} ${SDL_LIBS}"
 
-#FTGL
-PKG_CHECK_MODULES(FTGL, ftgl >= 2.1.3, [], AC_MSG_ERROR(FTGL 2.1.3 or greater is required. Please see INSTALL))
-CXXFLAGS="$CXXFLAGS $FTGL_CFLAGS"
-CPPFLAGS="$CPPFLAGS $FTGL_CFLAGS"
-LIBS="$LIBS $FTGL_LIBS"
+AC_CHECK_FUNCS([IMG_LoadPNG_RW], , AC_MSG_ERROR([SDL_image with PNG support required. Please see INSTALL]))
+AC_CHECK_FUNCS([IMG_LoadJPG_RW], , AC_MSG_ERROR([SDL_image with JPEG support required. Please see INSTALL]))
 
-#SDL_image library with PNG support
-AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, LIBS="$LIBS", AC_MSG_ERROR([SDL_image with PNG support required. Please see INSTALL]))
+#BOOST
+AX_BOOST_BASE([1.46], , AC_MSG_ERROR(Boost Base >= 1.46 is required. Please see INSTALL))
 
-#SDL_image library with JPG support
-AC_CHECK_LIB(SDL_image, IMG_LoadJPG_RW, LIBS="$LIBS", AC_MSG_ERROR([SDL_image with JPG support required. Please see INSTALL]))
-
-LIBS="$LIBS -lSDL_image"
-
-#PCRE
-AC_CHECK_LIB([pcre], [pcre_compile],, AC_MSG_ERROR(PCRE is required. Please see INSTALL))
-
-#Check for required headers
-AC_CHECK_HEADER([SDL.h],, AC_MSG_ERROR(SDL.h is required. Please see INSTALL))
-AC_CHECK_HEADER([SDL_image.h],, AC_MSG_ERROR(SDL_image.h is required. Please see INSTALL))
-AC_CHECK_HEADER([ftgl.h],, AC_MSG_ERROR(ftgl.h is required. Please see INSTALL))
-AC_CHECK_HEADER([pcre.h],, AC_MSG_ERROR(pcre.h is required. Please see INSTALL))
+#GLM
+AC_CHECK_HEADER([glm/glm.hpp],, AC_MSG_ERROR(GLM headers are required. Please see INSTALL))
+CPPFLAGS="-DGLM_SWIZZLE $CPPFLAGS"
 
 #see if ttf-font-dir option is enabled
 AC_ARG_ENABLE(ttf-font-dir,[AS_HELP_STRING([--enable-ttf-font-dir=DIR],[directory containing GNU FreeFont TTF fonts])],[sdlappfontdir="$enableval"],[sdlappfontdir=""])

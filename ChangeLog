@@ -1,3 +1,7 @@
+1.0.5:
+ * New dependency on GLEW.
+ * Now requires GLM and Boost header-only libraries to build.
+
 1.0.4:
  * Changed type of log entry timestamp to time_t.
  * Stopped directly linking PNG/JPG libraries.
