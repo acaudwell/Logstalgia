@@ -10,7 +10,8 @@ if (autoreconf -f -i) ; then
 			echo "Error: could not update submodules!"
 		fi
 	else
-		echo "Error: could not initialize submodules!"
+		echo "Error: could not initialize submodules (hint: delete the src/core directory if it exists and try again)"
+
 	fi
 else
 	echo "Running autoreconf failed, please make sure you have autoconf installed."
