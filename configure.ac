@@ -43,6 +43,7 @@ AC_CHECK_FUNCS([IMG_LoadJPG_RW], , AC_MSG_ERROR([SDL_image with JPEG support req
 
 #BOOST
 AX_BOOST_BASE([1.46], , AC_MSG_ERROR(Boost Base >= 1.46 is required. Please see INSTALL))
+CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
 
 #GLM
 AC_CHECK_HEADER([glm/glm.hpp],, AC_MSG_ERROR(GLM headers are required. Please see INSTALL))
