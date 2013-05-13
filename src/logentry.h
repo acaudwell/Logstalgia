@@ -66,7 +66,7 @@ class AccessLog {
 public:
     AccessLog();
     virtual ~AccessLog() {};
-    virtual bool parseLine(std::string& line, LogEntry& entry) {};
+    virtual bool parseLine(std::string& line, LogEntry& entry) = 0;
 
 };
 

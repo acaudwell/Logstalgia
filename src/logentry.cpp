@@ -42,7 +42,7 @@ std::string LogEntry::maskHostname(std::string hostname) {
     logentry_hostname_parts.match(hostname, &parts);
 
     //if only 1-2 parts, or 3 parts and a 2 character suffix, pass through unchanged
-    if(parts.size()<=2 || parts.size()==3 && parts[parts.size()-1].size()==2)
+    if( parts.size()<=2 || (parts.size()==3 && parts[parts.size()-1].size()==2))
         return hostname;
 
     int num = atoi(parts[parts.size()-1].c_str());

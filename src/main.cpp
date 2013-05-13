@@ -393,7 +393,7 @@ int main(int argc, char *argv[]) {
         }
 
         //if given a non option arg treat it as a file, or if it is '-', pass that too (stdin)
-        if(args == "-" || args.size() >= 1 && args[0] != '-') {
+        if((args == "-") || (args.size() >= 1 && args[0] != '-')) {
             logfile = args;
             continue;
         }

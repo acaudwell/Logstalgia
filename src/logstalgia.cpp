@@ -795,9 +795,9 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
         }
 
         if(ball->le->successful && !ball->hasBounced()
-            && (gPaddleMode <= PADDLE_SINGLE
-                || gPaddleMode == PADDLE_VHOST && ball->le->vhost == paddle_token
-                || gPaddleMode == PADDLE_PID   && ball->le->pid   == paddle_token
+            && (   (gPaddleMode <= PADDLE_SINGLE)
+                || (gPaddleMode == PADDLE_VHOST && ball->le->vhost == paddle_token)
+                || (gPaddleMode == PADDLE_PID   && ball->le->pid   == paddle_token)
                )
             ) {
             float dist = (paddle->getX() - ball->getX())/ball->speed;
@@ -886,7 +886,7 @@ void Logstalgia::logic(float t, float dt) {
 
     //next will fast forward clock to the time of the next entry,
     //if the next entry is in the future
-    if(next || gAutoSkip && balls.empty()) {
+    if(next || (gAutoSkip && balls.empty())) {
         if(!queued_entries.empty()) {
             LogEntry* le = queued_entries.front();
 
@@ -911,8 +911,7 @@ void Logstalgia::logic(float t, float dt) {
 
         int items_to_spawn=0;
 
-        for(std::list<LogEntry*>::iterator it = queued_entries.begin(); it != queued_entries.end(); it++) {
-            LogEntry* le = *it;
+        for(LogEntry* le : queued_entries) {
 
             if(le->timestamp > currtime) break;
 
@@ -932,10 +931,8 @@ void Logstalgia::logic(float t, float dt) {
             //re-summarize
             ipSummarizer->summarize();
 
-            int nogrps = summGroups.size();
-
-            for(int i=0;i<nogrps;i++) {
-                summGroups[i]->summarize();
+            for(Summarizer* s : summGroups) {
+                s->summarize();
             }
 
             profile_stop();
@@ -1001,12 +998,10 @@ void Logstalgia::logic(float t, float dt) {
             bool token_match = false;
 
             //are there any requests that will match this paddle?
-            for(std::list<RequestBall*>::iterator bit = balls.begin(); bit != balls.end();bit++) {
+            for(RequestBall* ball : balls) {
 
-                RequestBall* ball = *bit;
-
-                if(   gPaddleMode == PADDLE_VHOST && ball->le->vhost == paddle_token
-                   || gPaddleMode == PADDLE_PID   && ball->le->pid   == paddle_token) {
+                if(   (gPaddleMode == PADDLE_VHOST && ball->le->vhost == paddle_token)
+                   || (gPaddleMode == PADDLE_PID   && ball->le->pid   == paddle_token)) {
                     token_match = true;
                     break;
                 }

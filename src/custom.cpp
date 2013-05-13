@@ -32,10 +32,10 @@ bool CustomAccessLog::parseLine(std::string& line, LogEntry& entry) {
     //optional fields
 
     //success 1 or 0
-    if(matches.size()>5) {
+    if(matches.size() > 5) {
         std::string success = matches[5];
 
-        if(success.size()==0 || success.size()==1 && success[0] == ' ') {
+        if(success.empty() || (success.size()==1 && success[0] == ' ')) {
             entry.setSuccess();
         } else {
             entry.successful = atoi(success.c_str())==1 ? true : false;
