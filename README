@@ -222,7 +222,11 @@ Interactive keyboard commands:
    (N)   Jump forward in time to next log entry
    (+-)  Adjust simulation speed
    (<>)  Adjust time scale
+
+   (Alt+Enter) Toggle Fullscreen
+   
    (ESC) Quit
+
 
 4. Copyright
 ============

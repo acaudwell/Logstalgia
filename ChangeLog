@@ -1,4 +1,6 @@
 1.0.5:
+ * Made default group matches case-insensitive (Sebastian Krzyszkowiak).
+ * Added window resizing and a full-screen toggle (alt-enter).
  * New dependency on GLEW.
  * Now requires GLM and Boost header-only libraries to build.
 
