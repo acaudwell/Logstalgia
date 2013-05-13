@@ -120,7 +120,7 @@ class Summarizer {
     bool right;
     bool mouseover;
     bool changed;
-    
+
     float incrementf;
 
     float top_gap, bottom_gap;
@@ -128,14 +128,18 @@ class Summarizer {
     float refresh_delay;
     float refresh_elapsed;
 
+    int screen_percent;
+
     std::string title;
     Regex matchre;
-
 public:
-    Summarizer(FXFont font, float x, float top_gap = 0.0f, float bottom_gap = 0.0f, float refresh_delay = 2.0f,
+    Summarizer(FXFont font, int percent, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
     ~Summarizer();
 
+    void setSize(int x, float top_gap, float bottom_gap);
+
+    int getScreenPercent();
 
     bool mouseOver(TextArea& textarea, vec2 mouse);
     void mouseOut();

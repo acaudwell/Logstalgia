@@ -175,6 +175,14 @@ class Logstalgia : public SDLApp {
 
     void reset();
 
+    void reinit();
+
+    void initPaddles();
+    void initRequestBalls();
+    void resizeGroups();
+
+    void toggleFullscreen();
+
     void logic(float t, float dt);
     void draw(float t, float dt);
 public:
@@ -186,6 +194,8 @@ public:
     void setFrameExporter(FrameExporter* exporter, int video_framerate);
 
     void setBackground(vec3 background);
+
+    void resize(int width, int height);
 
     //inherited methods
     void init();

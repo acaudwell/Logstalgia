@@ -199,10 +199,6 @@ Logstalgia::Logstalgia(std::string logfile, float simu_speed, float update_rate)
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
-    paddle_x = display.width * gPaddlePosition;
-    paddle_colour = (gPaddleMode > PADDLE_SINGLE) ?
-        vec4(0.0f, 0.0f, 0.0f, 0.0f) : vec4(0.5, 0.5, 0.5, 1.0);
-
     //check if TZ is set, store current value
     if(old_tz.empty()) {
         char* current_tz_env = getenv("TZ");
@@ -300,7 +296,40 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             }
         }
 
+        if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
+            toggleFullscreen();
+        }
     }
+}
+
+
+void Logstalgia::initPaddles() {
+
+    paddle_x = display.width * gPaddlePosition;
+    paddle_colour = (gPaddleMode > PADDLE_SINGLE) ?
+        vec4(0.0f, 0.0f, 0.0f, 0.0f) : vec4(0.5, 0.5, 0.5, 1.0);
+
+    if(!paddles.empty()) {
+        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+            delete it->second;
+        }
+        paddles.clear();
+    }
+
+    if(gPaddleMode <= PADDLE_SINGLE) {
+        vec2 paddle_pos = vec2(paddle_x - 20, rand() % display.height);
+        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
+        paddles[""] = paddle;
+    }
+}
+
+void Logstalgia::initRequestBalls() {
+
+    for(auto it = balls.begin(); it != balls.end(); it++) {
+        removeBall(*it);
+    }
+
+    balls.clear();
 }
 
 void Logstalgia::reset() {
@@ -309,22 +338,8 @@ void Logstalgia::reset() {
 
     highscore = 0;
 
-    for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
-        delete it->second;
-    }
-    paddles.clear();
-
-    if(gPaddleMode <= PADDLE_SINGLE) {
-        vec2 paddle_pos = vec2(paddle_x - 20, rand() % display.height);
-        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
-        paddles[""] = paddle;
-    }
-
-    for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
-        removeBall(*it);
-    }
-
-    balls.clear();
+    initPaddles();
+    initRequestBalls();
 
     ipSummarizer->recalc_display();
 
@@ -645,7 +660,8 @@ void Logstalgia::readLog(int buffer_rows) {
 
 void Logstalgia::init() {
 
-    ipSummarizer = new Summarizer(fontSmall, 2, 40, 0, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 100, 2.0f);
+    ipSummarizer->setSize(2, 40, 0);
 
     reset();
 
@@ -664,12 +680,57 @@ void Logstalgia::init() {
         addGroup(summGroups.size()>0 ? "Misc" : "", ".*");
     }
 
+    resizeGroups();
+
     SDL_ShowCursor(false);
 
     //set start position
     if(gStartPosition > 0.0 && gStartPosition < 1.0) {
         seekTo(gStartPosition);
     }
+
+    // show slider so user knows its there unless recording
+    if(frameExporter==0) slider.show();
+}
+
+void Logstalgia::toggleFullscreen() {
+
+    if(frameExporter != 0) return;
+
+    texturemanager.unload();
+    shadermanager.unload();
+    fontmanager.unload();
+
+    //recreate gl context
+    display.toggleFullscreen();
+
+    texturemanager.reload();
+    shadermanager.reload();
+    fontmanager.reload();
+
+    reinit();
+}
+
+void Logstalgia::resize(int width, int height) {
+
+    texturemanager.unload();
+    shadermanager.unload();
+    fontmanager.unload();
+
+    display.resize(width, height);
+
+    texturemanager.reload();
+    shadermanager.reload();
+    fontmanager.reload();
+
+    reinit();
+}
+
+void Logstalgia::reinit() {
+    initPaddles();
+    initRequestBalls();
+    resizeGroups();
+    slider.resize();
 }
 
 void Logstalgia::setBackground(vec3 background) {
@@ -1055,33 +1116,49 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
 
     if(percent<0) return;
 
-    int remainpc = (int) ( ((float) remaining_space/total_space) * 100);
+    int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
-    if(percent==0) {
-        percent=remainpc;
-    }
+    if(!percent) percent = remaining_percent;
 
-    if(remainpc<percent) return;
+    if(remaining_percent < percent) return;
 
-    int space = (int) ( ((float)percent/100) * total_space );
-
-    int top_gap    = total_space - remaining_space;
-    int bottom_gap = display.height - (total_space - remaining_space + space);
-
-    //debugLog("group %s: regex = %s, remainpc = %d, space = %d, top_gap = %d, bottom_gap = %d\n",
-    //    grouptitle.c_str(), groupregex.c_str(), remainpc, space, top_gap, bottom_gap);
-
-    Summarizer* summ = new Summarizer(fontSmall, paddle_x, top_gap, bottom_gap, update_rate, groupregex, grouptitle);
-//    summ->showCount(true);
+    Summarizer* summarizer = new Summarizer(fontSmall, percent, update_rate, groupregex, grouptitle);
 
     if(glm::dot(colour, colour) > 0.01f) {
-        summ->setColour(colour);
+        summarizer->setColour(colour);
     }
 
-    summGroups.push_back(summ);
+    summGroups.push_back(summarizer);
 
+    int space = (int) ( ((float)percent/100) * total_space );
     remaining_space -= space;
 }
+
+void Logstalgia::resizeGroups() {
+
+    total_space = display.height - 40;
+    remaining_space = total_space - 2;
+
+    for(auto group : summGroups) {
+
+        int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
+
+        int percent = group->getScreenPercent();
+
+        // TODO: do something here ? flag as hidden ?
+        //group->setVisible( remaining_percent >= percent );
+
+        int top_gap    = total_space - remaining_space;
+
+        int space = (int) ( ((float)percent/100) * total_space );
+        int bottom_gap = display.height - (total_space - remaining_space + space);
+
+        group->setSize(paddle_x, top_gap, bottom_gap);
+
+        remaining_space -= space;
+    }
+}
+
 
 void Logstalgia::updateGroups(float dt) {
 
@@ -1241,8 +1318,6 @@ void Logstalgia::draw(float t, float dt) {
         gSplash-=dt;
     }
 
-    if(!gDisableProgress) slider.draw(dt);
-
     fontMedium.setColour(vec4(1.0f,1.0f,1.0f,font_alpha));
 
     if(info) {
@@ -1262,4 +1337,6 @@ void Logstalgia::draw(float t, float dt) {
     fontLarge.alignTop(false);
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
+
+    if(!gDisableProgress) slider.draw(dt);
 }

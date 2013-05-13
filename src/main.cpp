@@ -448,6 +448,14 @@ int main(int argc, char *argv[]) {
     // this causes corruption on some video drivers
     if(multisample) display.multiSample(4);
 
+    // use desktop resolution for full screen mode by default
+    if(fullscreen) width = height = 0;
+
+    // TODO: check if resizable
+    if(/*resizable &&*/ ppm_file_name.empty()) {
+        display.enableResize(true);
+    }
+
     display.init("Logstalgia", width, height, fullscreen);
 
     //init frame exporter

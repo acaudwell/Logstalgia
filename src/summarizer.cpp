@@ -371,12 +371,11 @@ void SummItem::draw(float alpha) {
 
 // Summarizer
 
-Summarizer::Summarizer(FXFont font, float x, float top_gap, float bottom_gap, float refresh_delay, std::string matchstr, std::string title)
-    : matchre(matchstr)
- {
-    this->pos_x      = x;
-    this->top_gap    = top_gap;
-    this->bottom_gap = bottom_gap;
+Summarizer::Summarizer(FXFont font, int screen_percent, float refresh_delay, std::string matchstr, std::string title)
+    : matchre(matchstr) {
+    pos_x = top_gap = bottom_gap = 0.0f;
+
+    this->screen_percent = screen_percent;
     this->title      = title;
     this->font       = font;
 
@@ -388,18 +387,35 @@ Summarizer::Summarizer(FXFont font, float x, float top_gap, float bottom_gap, fl
 
     changed = false;
 
-    font_gap    = font.getMaxHeight() + 4;
-    max_strings = (int) ((display.height-top_gap-bottom_gap)/font_gap);
     incrementf   =0;
     root = SummNode();
 
     mouseover=false;
+}
 
+int Summarizer::getScreenPercent() {
+    return screen_percent;
+}
+
+void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
+    this->pos_x      = x;
+    this->top_gap    = top_gap;
+    this->bottom_gap = bottom_gap;
+
+    // TODO: set 'right' explicitly?
     right = (pos_x > (display.width/2)) ? true : false;
 
-    if(this->title.size()) {
+    font_gap = font.getMaxHeight() + 4;
+
+    max_strings = (int) ((display.height-top_gap-bottom_gap)/font_gap);
+
+    if(!title.empty()) {
         this->top_gap+= font_gap;
     }
+
+    changed = true;
+    refresh_elapsed = refresh_delay;
+    items.clear();
 }
 
 void Summarizer::mouseOut() {
