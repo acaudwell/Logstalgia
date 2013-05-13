@@ -47,8 +47,12 @@ int main(int argc, char *argv[]) {
     int log_level = LOG_LEVEL_OFF;
 
     //defaults
-    int   width       = 1024;
-    int   height      = 768;
+    int   width       = 0;
+    int   height      = 0;
+    
+    int default_width = 1024;
+    int default_height = 768;
+    
     bool  fullscreen  = false;
 
     float simu_speed  = 1.0f;
@@ -448,9 +452,12 @@ int main(int argc, char *argv[]) {
     // this causes corruption on some video drivers
     if(multisample) display.multiSample(4);
 
-    // use desktop resolution for full screen mode by default
-    if(fullscreen) width = height = 0;
-
+    // if windows mode default to 1024x768 other wise use desktop resolution for full screen mode by default
+    if(!fullscreen && (width==0 || height==0)) {
+        width  = default_width;
+        height = default_height;
+    }
+    
     // TODO: check if resizable
     if(/*resizable &&*/ ppm_file_name.empty()) {
         display.enableResize(true);
