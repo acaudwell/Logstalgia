@@ -35,6 +35,8 @@
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
 		<Unit filename="src\core\bounds.h" />
+		<Unit filename="src\core\conffile.cpp" />
+		<Unit filename="src\core\conffile.h" />
 		<Unit filename="src\core\display.cpp" />
 		<Unit filename="src\core\display.h" />
 		<Unit filename="src\core\frustum.cpp" />
@@ -58,6 +60,8 @@
 		<Unit filename="src\core\sdlapp.h" />
 		<Unit filename="src\core\seeklog.cpp" />
 		<Unit filename="src\core\seeklog.h" />
+		<Unit filename="src\core\settings.cpp" />
+		<Unit filename="src\core\settings.h" />
 		<Unit filename="src\core\shader.cpp" />
 		<Unit filename="src\core\shader.h" />
 		<Unit filename="src\core\shader_common.cpp" />
@@ -84,6 +88,8 @@
 		<Unit filename="src\paddle.h" />
 		<Unit filename="src\requestball.cpp" />
 		<Unit filename="src\requestball.h" />
+		<Unit filename="src\settings.cpp" />
+		<Unit filename="src\settings.h" />
 		<Unit filename="src\slider.cpp" />
 		<Unit filename="src\slider.h" />
 		<Unit filename="src\summarizer.cpp" />
