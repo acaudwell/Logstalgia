@@ -18,8 +18,6 @@
 #ifndef SUMMARIZER_H
 #define SUMMARIZER_H
 
-#include <list>
-
 #include "core/stringhash.h"
 #include "core/fxfont.h"
 #include "core/regex.h"
@@ -95,18 +93,21 @@ public:
     vec4 colour;
     vec2 pos;
 
-    void setDest(vec2 dest, bool depart = false);
+    void setDest(const vec2& dest);
+    void setPos(const vec2& pos);
+    void setDeparting(bool departing);
+    
     void logic(float dt);
     void draw(float alpha);
 
     void updateUnit(SummUnit& unit);
-    SummItem(SummUnit unit, vec2 pos, vec2 dest, float target_x, vec3* icol, FXFont font, bool showcount);
+    SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool showcount);
 };
 
 class Summarizer {
     std::vector<SummUnit> strings;
 
-    std::list<SummItem> items;
+    std::vector<SummItem> items;
     SummNode root;
 
     vec3* item_colour;

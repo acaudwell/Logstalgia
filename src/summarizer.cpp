@@ -17,6 +17,8 @@
 
 #include "summarizer.h"
 
+#include <algorithm>
+
 /*
 
 Method:
@@ -305,8 +307,9 @@ void SummItem::updateUnit(SummUnit& unit) {
 
 }
 
-SummItem::SummItem(SummUnit unit, vec2 pos, vec2 dest, float target_x, vec3* icol, FXFont font, bool showcount) {
-    this->pos  = pos;
+SummItem::SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool showcount) {
+    this->pos  = vec2(-1.0,-1.0);
+    this->dest = vec2(-1.0,-1.0);
     this->target_x = target_x;
     this->icol = icol;
     this->font = font;
@@ -316,11 +319,12 @@ SummItem::SummItem(SummUnit unit, vec2 pos, vec2 dest, float target_x, vec3* ico
 
     destroy=false;
     moving=false;
+    departing=false;
 
     setDest(dest);
 }
 
-void SummItem::setDest(vec2 dest, bool depart) {
+void SummItem::setDest(const vec2& dest) {
     vec2 dist = this->dest - dest;
 
     if(moving && glm::dot(dist, dist) < 1.0f) return;
@@ -332,7 +336,15 @@ void SummItem::setDest(vec2 dest, bool depart) {
 
     destroy   = false;
     moving    = true;
-    departing = depart;
+}
+
+void SummItem::setDeparting(bool departing) {
+    this->departing = departing;
+    if(!departing) destroy = false;
+}
+
+void SummItem::setPos(const vec2& pos) {
+    this->pos = pos;
 }
 
 void SummItem::logic(float dt) {
@@ -427,22 +439,20 @@ bool Summarizer::mouseOver(TextArea& textarea, vec2 mouse) {
 
     if(right && mouse.x < pos_x) return false;
     if(mouse.y < top_gap || mouse.y > (display.height-bottom_gap)) return false;
-    if(items.size()<1) return false;
+    if(items.empty()) return false;
 
     float y = mouse.y;
 
-    std::list<SummItem>::iterator it;
-    for(it=items.begin();it!=items.end();it++) {
-        SummItem* si = &(*it);
-        if(si->departing) continue;
+    for(SummItem& item : items) {
+        if(item.departing) continue;
 
-        if(si->pos.y<=y && (si->pos.y+font.getMaxHeight()+4) > y) {
-            if(mouse.x< si->pos.x || mouse.x > si->pos.x + si->width) continue;
+        if(item.pos.y<=y && (item.pos.y+font.getMaxHeight()+4) > y) {
+            if(mouse.x< item.pos.x || mouse.x > item.pos.x + item.width) continue;
 
             std::vector<std::string> content;
 
-            textarea.setText(si->unit.expanded);
-            textarea.setColour(si->colour.xyz());
+            textarea.setText(item.unit.expanded);
+            textarea.setColour(item.colour.xyz());
             textarea.setPos(mouse);
             mouseover=true;
             return true;
@@ -472,6 +482,24 @@ bool Summarizer::supportedString(std::string& str) {
     return matchre.match(str);
 }
 
+// string sort with numbers sorted last (reasoning: text is more likely to be interesting)
+bool _unit_sorter(const SummUnit& a, const SummUnit& b) {
+
+    int ai = atoi(a.str.c_str());
+    int bi = atoi(b.str.c_str());
+    
+    // if only one of a or b is numeric, non numeric value wins
+    if((ai==0) != (bi==0)) {
+        return ai==0;
+    }
+
+    return a.str.compare(b.str) < 0;
+}
+
+bool _item_sorter(const SummItem& a, const SummItem& b) {   
+    return _unit_sorter(a.unit,b.unit);
+}
+
 void Summarizer::summarize() {
     if(!changed) return;
 
@@ -486,6 +514,8 @@ void Summarizer::summarize() {
         strings[i].buildSummary();
     }
 
+    std::sort(strings.begin(), strings.end(), _unit_sorter);
+    
     if(nostrs>1) {
         incrementf  = (((float)display.height-font_gap-top_gap-bottom_gap)/(nostrs-1));
     } else {
@@ -500,45 +530,69 @@ void Summarizer::recalc_display() {
     std::vector<bool> strfound;
     strfound.resize(nostrs, false);
 
-    std::list<SummItem>::iterator it;
-
+    size_t found_count = 0;
+    
     //update summItems
-    for(it=items.begin();it!=items.end();it++) {
-        SummItem* item = &(*it);
+    for(SummItem& item : items) {
 
         int match = -1;
 
         for(size_t j=0;j<nostrs;j++) {
             SummUnit summstr = strings[j];
 
-            if(summstr.str.compare(item->unit.str) == 0) {
-                item->updateUnit(summstr);
+            if(summstr.str.compare(item.unit.str) == 0) {
+                item.updateUnit(summstr);
 
                 match = (int)j;
 
                 strfound[j]= true;
-
+                found_count++;
+                
                 break;
             }
         }
 
-        if(match!= -1) {
-            float destY = calcPosY(match);
-            item->setDest(vec2(pos_x, destY));
-        } else {
-            float destX = right ? (display.width + 100) : -100;
-            item->setDest(vec2(destX, item->pos.y), true);
-        }
+        item.setDeparting(match == -1 ? true : false);
     }
 
+    if(found_count == nostrs) return;
+    
     //add items for strings not found
     for(size_t i=0;i<nostrs;i++) {
         if(strfound[i]) continue;
 
-        float startX = right ? display.width + 100 : -100;
-        float destY  = getPosY(strings[i].str);
+        items.push_back(SummItem(strings[i], pos_x, item_colour, font, showcount));
+        
+        debugLog("added item for unit %s %d", strings[i].str.c_str(), items[items.size()-1].destroy);
+    }
+    
+    // sort items alphabetically
+    std::sort(items.begin(), items.end(), _item_sorter);
 
-        items.push_back(SummItem(strings[i], vec2(startX, destY), vec2(pos_x, destY),pos_x, item_colour, font, showcount));
+    // set y positions
+
+    int y_index = 0;
+        
+    for(SummItem& item : items) {
+        
+        float Y = calcPosY(y_index);
+
+        if(!item.departing) y_index++;
+
+        float startX = right ? display.width + 100 : -100;
+
+        // initialize new item position
+        if(item.pos.y<0.0) {
+            item.setPos(vec2(startX, Y));
+        }
+        
+        if(item.departing) {
+            // return to start
+            item.setDest(vec2(startX, Y));
+        } else {
+            item.setDest(vec2(pos_x, Y));
+        }
+        
     }
 }
 
@@ -551,6 +605,8 @@ float Summarizer::calcPosY(int i) const {
     return top_gap + (incrementf * i) ;
 }
 
+
+// TODO - this is currently wrong - check against set of sorted strings
 int Summarizer::getBestMatchIndex(const std::string& input) const {
 
     int best_diff = -1;
@@ -634,15 +690,13 @@ void Summarizer::logic(float dt) {
     }
 
     //move items
-    std::list<SummItem>::iterator it;
-    for(it = items.begin();it != items.end(); it++) {
+    for(auto it = items.begin();it != items.end();) {
         (*it).logic(dt);
 
         if((*it).destroy) {
             it = items.erase(it);
-            if(it==items.end()) {
-                break;
-            }
+        } else {
+            it++;
         }
     }
 }
@@ -657,9 +711,8 @@ void Summarizer::draw(float dt, float alpha) {
         font.draw((int)pos_x, (int)(top_gap - font_gap), title.c_str());
     }
 
-    std::list<SummItem>::iterator it;
-    for(it=items.begin();it!=items.end();it++) {
-        (*it).draw(alpha);
+    for(SummItem& item : items) {
+        item.draw(alpha);
     }
 
 }
