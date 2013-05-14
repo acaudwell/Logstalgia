@@ -579,7 +579,7 @@ void Summarizer::recalc_display() {
 
         if(!item.departing) y_index++;
 
-        float startX = right ? display.width + 100 : -100;
+        float startX = right ? display.width + 100 : -200;
 
         // initialize new item position
         if(item.pos.y<0.0) {
