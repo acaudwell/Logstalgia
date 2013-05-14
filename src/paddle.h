@@ -19,6 +19,7 @@
 #define PADDLE_H
 
 #include "textarea.h"
+#include "core/fxfont.h"
 #include "core/vectors.h"
 
 class RequestBall;
@@ -45,8 +46,9 @@ protected:
     float dest_eta;
     float dest_elapsed;
 
+    FXFont font;
 public:
-    Paddle(vec2 pos, vec4 colour, std::string token);
+    Paddle(vec2 pos, vec4 colour, std::string token, FXFont font);
     ~Paddle();
     void moveTo(int y, float eta, vec4 nextcol);
     bool moving();
@@ -59,6 +61,7 @@ public:
 
     bool mouseOver(TextArea& textarea, vec2& mouse);
 
+    void drawToken();
     void drawShadow();
     void draw();
 

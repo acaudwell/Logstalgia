@@ -100,6 +100,9 @@ options:
 
     --hide-paddle
             Hide paddle.
+    
+    --hide-paddle-tokens
+            Hide paddle tokens shown in multi-paddle modes.
 
     --hide-url-prefix
             Hide URL protocol and hostname prefix of requests.

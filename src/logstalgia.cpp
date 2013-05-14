@@ -248,7 +248,7 @@ void Logstalgia::initPaddles() {
 
     if(settings.paddle_mode <= PADDLE_SINGLE) {
         vec2 paddle_pos = vec2(paddle_x - 20, rand() % display.height);
-        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
+        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "", fontSmall);
         paddles[""] = paddle;
     }
 }
@@ -422,7 +422,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
         if(entry_paddle == 0) {
             vec2 paddle_pos = vec2(paddle_x - 20, rand() % display.height);
-            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
+            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token, fontSmall);
             entry_paddle = paddles[paddle_token] = paddle;
         }
 
@@ -1163,15 +1163,24 @@ void Logstalgia::draw(float t, float dt) {
     if(settings.paddle_mode != PADDLE_NONE) {
 
         //draw paddles shadows
-        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+        for(auto it = paddles.begin(); it!=paddles.end();it++) {
             it->second->drawShadow();
         }
 
         //draw paddles
-        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+        for(auto it = paddles.begin(); it!=paddles.end();it++) {
             it->second->draw();
         }
+    }
 
+    if(settings.paddle_mode > PADDLE_SINGLE && !settings.hide_paddle_tokens) {
+
+        glEnable(GL_TEXTURE_2D);
+
+        //draw paddle tokens
+        for(auto it = paddles.begin(); it!=paddles.end();it++) {
+            it->second->drawToken();
+        }
     }
 
     if(!settings.disable_glow) {

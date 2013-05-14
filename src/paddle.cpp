@@ -21,7 +21,7 @@
 
 #include "core/stringhash.h"
 
-Paddle::Paddle(vec2 pos, vec4 colour, std::string token) {
+Paddle::Paddle(vec2 pos, vec4 colour, std::string token, FXFont font) {
     this->token = token;
 
 // TODO: fix colouring
@@ -35,6 +35,12 @@ Paddle::Paddle(vec2 pos, vec4 colour, std::string token) {
     this->width = 10;
     this->height = 50;
     this->target = 0;
+
+    font.alignTop(true);
+    font.alignRight(true);
+    font.dropShadow(true);
+
+    this->font = font;
 
     dest_y = -1;
 }
@@ -126,8 +132,12 @@ void Paddle::logic(float dt) {
     }
 }
 
+void Paddle::drawToken() {
+    font.setColour(colour);
+    font.draw(pos.x-10, pos.y - (font.getMaxHeight()/2), token);
+}
+
 void Paddle::drawShadow() {
-    if(settings.paddle_mode == PADDLE_NONE) return;
 
     vec2 spos = vec2(pos.x + 1.0f, pos.y + 1.0f);
 
@@ -141,7 +151,6 @@ void Paddle::drawShadow() {
 }
 
 void Paddle::draw() {
-    if(settings.paddle_mode == PADDLE_NONE) return;
 
     glColor4fv(glm::value_ptr(colour));
     glBegin(GL_QUADS);

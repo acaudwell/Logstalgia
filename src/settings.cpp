@@ -57,7 +57,9 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("  --hide-response-code       Hide response code\n");
     printf("  --hide-paddle              Hide paddle\n");
+    printf("  --hide-paddle-tokens       Hide paddle tokens shown in multi-paddle modes\n");
     printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
+
     printf("  --disable-auto-skip        Disable skipping of empty time periods\n");
     printf("  --disable-progress         Disable the progress bar\n");
     printf("  --disable-glow             Disable the glow effect\n\n");
@@ -130,9 +132,9 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["no-bounce"]       = "bool";
     arg_types["ffp"]             = "bool";
 
-    arg_types["hide-response-code"]  = "bool";
-    arg_types["hide-paddle"]         = "bool";
-    arg_types["hide-paddle"]         = "bool";
+    arg_types["hide-paddle"]        = "bool";
+    arg_types["hide-paddle-tokens"] = "bool";
+    arg_types["hide-response-code"] = "bool";
 
     arg_types["disable-auto-skip"] = "bool";
     arg_types["disable-progress"]  = "bool";
@@ -183,6 +185,8 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     hide_response_code = false;
     hide_paddle        = false;
     hide_url_prefix    = false;
+    hide_paddle_tokens = false;
+
     no_bounce          = false;
 
     mask_hostnames = true;
@@ -402,6 +406,10 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
     if(settings->getBool("hide-paddle")) {
         paddle_mode = PADDLE_NONE;
+    }
+
+    if(settings->getBool("hide-paddle-tokens")) {
+        hide_paddle_tokens = true;
     }
 
     if(settings->getBool("hide-response-code")) {

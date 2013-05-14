@@ -33,29 +33,31 @@ protected:
 public:
     int log_level;
     bool ffp;
-       
+
     std::string path;
     std::vector<std::string> groups;
 
     std::string load_config;
     std::string save_config;
-    
+
     float splash;
-    
+
     float simulation_speed;
     float update_rate;
-    
+
     int   paddle_mode;
     float paddle_position;
-    
+
     float start_position;
     float stop_position;
 
     bool sync;
-    
+
     bool hide_response_code;
     bool hide_url_prefix;
     bool hide_paddle;
+    bool hide_paddle_tokens;
+
     bool no_bounce;
 
     bool disable_auto_skip;
@@ -63,15 +65,15 @@ public:
     bool disable_glow;
 
     bool mask_hostnames;
-    
+
     vec3 background_colour;
-    
+
     float glow_intensity;
     float glow_multiplier;
     float glow_duration;
 
     int font_size;
-    
+
     LogstalgiaSettings();
 
     void setLogstalgiaDefaults();
