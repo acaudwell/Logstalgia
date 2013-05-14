@@ -125,10 +125,10 @@ options:
     --glow-intensity
             Intensity of the glow.
 
-    --output-ppm-stream FILE
+    -o, --output-ppm-stream FILE
             Write frames as PPM to a file (?-? for STDOUT).
 
-    --output-framerate FPS
+    -r, --output-framerate FPS
             Framerate of output (used with --output-ppm-stream).
 
     logfile

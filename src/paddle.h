@@ -18,19 +18,10 @@
 #ifndef PADDLE_H
 #define PADDLE_H
 
+#include "textarea.h"
 #include "core/vectors.h"
-#include "core/sdlapp.h"
-#include "core/stringhash.h"
 
-#include "requestball.h"
-
-#define PADDLE_NONE   0
-#define PADDLE_SINGLE 1
-#define PADDLE_PID    2
-#define PADDLE_VHOST  3
-
-extern int gPaddleMode;
-
+class RequestBall;
 class Paddle {
 
 protected:

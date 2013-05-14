@@ -55,10 +55,4 @@ public:
     void drawResponseCode() const;
 };
 
-extern bool gDisableGlow;
-extern float gGlowIntensity;
-extern float gGlowMultiplier;
-extern float gGlowDuration;
-
-
 #endif

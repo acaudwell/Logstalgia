@@ -18,8 +18,6 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#define LOGSTALGIA_VERSION "1.0.5"
-
 #ifdef _WIN32
 #include "windows.h"
 #endif
@@ -49,24 +47,6 @@
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
-
-extern int   gHighscore;
-extern bool  gBounce;
-extern bool  gSyncLog;
-extern bool  gResponseCode;
-extern bool  gDisableProgress;
-extern bool  gHideURLPrefix;
-extern float gSplash;
-extern float gStartPosition;
-extern float gStopPosition;
-extern float gPaddlePosition;
-extern bool  gAutoSkip;
-extern int   gFontSize;
-
-void logstalgia_help();
-void logstalgia_info(std::string msg);
-void logstalgia_quit(std::string error);
-void logstalgia_help(std::string error);
 
 class Logstalgia : public SDLApp {
 
@@ -186,12 +166,12 @@ class Logstalgia : public SDLApp {
     void logic(float t, float dt);
     void draw(float t, float dt);
 public:
-	Logstalgia(std::string logfile, float simu_speed, float update_rate);
-	~Logstalgia();
+    Logstalgia(const std::string& logfile);
+    ~Logstalgia();
 
-    void addGroup(std::string groupstr);
+    void addGroup(const std::string& groupstr);
 
-    void setFrameExporter(FrameExporter* exporter, int video_framerate);
+    void setFrameExporter(FrameExporter* exporter);
 
     void setBackground(vec3 background);
 

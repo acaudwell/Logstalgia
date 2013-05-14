@@ -7,6 +7,7 @@ logstalgia_CXXFLAGS = -std=gnu++0x -Wall -Wno-sign-compare -Wno-reorder -Wno-unu
 logstalgia_SOURCES = \
 	src/ncsa.cpp \
 	src/ball.cpp \
+	src/core/conffile.cpp \
 	src/core/display.cpp \
 	src/core/frustum.cpp \
 	src/core/fxfont.cpp \
@@ -18,6 +19,7 @@ logstalgia_SOURCES = \
 	src/core/resource.cpp \
 	src/core/sdlapp.cpp \
 	src/core/seeklog.cpp \
+	src/core/settings.cpp \
 	src/core/shader.cpp \
 	src/core/shader_common.cpp \
 	src/core/stringhash.cpp \
@@ -30,6 +32,7 @@ logstalgia_SOURCES = \
 	src/main.cpp \
 	src/paddle.cpp \
 	src/requestball.cpp \
+	src/settings.cpp \
 	src/slider.cpp \
 	src/summarizer.cpp \
 	src/textarea.cpp

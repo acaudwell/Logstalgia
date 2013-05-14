@@ -16,8 +16,10 @@
 */
 
 #include "paddle.h"
+#include "requestball.h"
+#include "settings.h"
 
-int gPaddleMode = PADDLE_SINGLE;
+#include "core/stringhash.h"
 
 Paddle::Paddle(vec2 pos, vec4 colour, std::string token) {
     this->token = token;
@@ -79,7 +81,7 @@ void Paddle::setTarget(RequestBall* target) {
     }
 
     vec2 dest = target->finish();
-    vec4 col  = (gPaddleMode == PADDLE_VHOST || gPaddleMode == PADDLE_PID)  ?
+    vec4 col  = (settings.paddle_mode == PADDLE_VHOST || settings.paddle_mode == PADDLE_PID)  ?
         vec4(token_colour,1.0) : vec4(target->colour, 1.0f);
 
     moveTo((int)dest.y, target->arrivalTime(), col);
@@ -125,7 +127,7 @@ void Paddle::logic(float dt) {
 }
 
 void Paddle::drawShadow() {
-    if(!gPaddleMode) return;
+    if(settings.paddle_mode == PADDLE_NONE) return;
 
     vec2 spos = vec2(pos.x + 1.0f, pos.y + 1.0f);
 
@@ -139,7 +141,7 @@ void Paddle::drawShadow() {
 }
 
 void Paddle::draw() {
-    if(!gPaddleMode) return;
+    if(settings.paddle_mode == PADDLE_NONE) return;
 
     glColor4fv(glm::value_ptr(colour));
     glBegin(GL_QUADS);

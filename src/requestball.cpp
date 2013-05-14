@@ -16,15 +16,7 @@
 */
 
 #include "requestball.h"
-
-bool gBounce=true;
-bool gResponseCode=true;
-
-bool  gDisableGlow    = false;
-bool  gHideBalls      = false;
-float gGlowIntensity  = 0.5;
-float gGlowMultiplier = 1.25;
-float gGlowDuration   = 0.15;
+#include "settings.h"
 
 RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest, float speed) {
     this->le   = le;
@@ -108,11 +100,11 @@ void RequestBall::drawGlow() const {
 
     float prog = getProgress();
 
-    float glow_radius = size * size * gGlowMultiplier;
+    float glow_radius = size * size * settings.glow_multiplier;
 
-    float alpha = std::min(1.0f, 1.0f-(prog/gGlowDuration));
+    float alpha = std::min(1.0f, 1.0f-(prog/settings.glow_duration));
 
-    vec3 glow_col = colour * gGlowIntensity * alpha;
+    vec3 glow_col = colour * settings.glow_intensity * alpha;
 
     glColor4f(glow_col.x, glow_col.y, glow_col.z, 1.0f);
 
@@ -136,7 +128,7 @@ void RequestBall::draw(float dt) const {
 
     bool has_bounced = hasBounced();
 
-    if(gBounce || !has_bounced || no_bounce) {
+    if(!settings.no_bounce || !has_bounced || no_bounce) {
 
         vec2 offsetpos = pos - offset;
 
