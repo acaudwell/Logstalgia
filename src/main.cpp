@@ -20,6 +20,14 @@
 
 #ifdef _WIN32
 std::string win32LogSelector() {
+
+    //get original directory
+    char cwd_buff[1024];
+
+    if(getcwd(cwd_buff, 1024) != cwd_buff) {
+        SDLAppQuit("error getting current working directory");
+    }
+
     OPENFILENAME ofn;
 
     char filepath[_MAX_PATH];
@@ -39,12 +47,17 @@ std::string win32LogSelector() {
 
     GetOpenFileName(&ofn);
 
+    //change back to original directory
+    if(chdir(cwd_buff) != 0) {
+        SDLAppQuit("error changing directory");
+    }
+
     return std::string(filepath);
 }
 #endif
 
 int main(int argc, char *argv[]) {
-   
+
     ConfFile conf;
     std::vector<std::string> files;
 
@@ -104,10 +117,10 @@ int main(int argc, char *argv[]) {
 
         SDLAppQuit(exception.what());
     }
-        
+
 #ifdef _WIN32
     if(settings.path.empty()) {
-        
+
         //open file dialog
         settings.path = win32LogSelector();
 
@@ -124,7 +137,7 @@ int main(int argc, char *argv[]) {
 
     // this causes corruption on some video drivers
     if(settings.multisample) display.multiSample(4);
-   
+
     if(settings.resizable && settings.output_ppm_filename.empty()) {
         display.enableResize(true);
     }
