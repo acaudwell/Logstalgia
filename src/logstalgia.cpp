@@ -92,6 +92,7 @@ void logstalgia_help() {
 
     printf("  --hide-response-code       Hide response code\n");
     printf("  --hide-paddle              Hide paddle\n");
+    printf("  --hide-paddle-tokens       Hide paddle tokens in pid and vhost paddle modes\n");
     printf("  --hide-url-prefix          Hide URL protocol and hostname prefix\n\n");
     printf("  --disable-auto-skip        Disable skipping of empty time periods\n");
     printf("  --disable-progress         Disable the progress bar\n");
@@ -317,7 +318,7 @@ void Logstalgia::reset() {
 
     if(gPaddleMode <= PADDLE_SINGLE) {
         vec2f paddle_pos = vec2f(paddle_x - 20, rand() % display.height);
-        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "");
+        Paddle* paddle = new Paddle(paddle_pos, paddle_colour, "", fontSmall);
         paddles[""] = paddle;
     }
 
@@ -480,7 +481,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
         if(entry_paddle == 0) {
             vec2f paddle_pos = vec2f(display.width-(display.width/3), rand() % display.height);
-            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token);
+            Paddle* paddle = new Paddle(paddle_pos, paddle_colour, paddle_token, fontSmall);
             entry_paddle = paddles[paddle_token] = paddle;
         }
 

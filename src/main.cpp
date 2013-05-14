@@ -225,6 +225,12 @@ int main(int argc, char *argv[]) {
             gPaddleMode = PADDLE_NONE;
             continue;
         }
+        
+        //no paddle
+        if(args == "--hide-paddle-tokens") {
+          gPaddleTokens = PADDLE_TOKENS_HIDDEN;
+          continue;
+        }
 
         if(args == "--start-position") {
 
