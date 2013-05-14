@@ -78,7 +78,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     if(extended_help) {
     }
-    
+
 #ifdef _WIN32
     if(!SDLApp::existing_console) {
         printf("Press Enter\n");
@@ -98,8 +98,8 @@ LogstalgiaSettings::LogstalgiaSettings() {
     default_section_name = "logstalgia";
 
     //translate args
-    arg_aliases["g"] = "group";   
-    arg_aliases["p"] = "start-position";   
+    arg_aliases["g"] = "group";
+    arg_aliases["p"] = "start-position";
     arg_aliases["b"] = "background";
     arg_aliases["x"] = "full-hostnames";
     arg_aliases["u"] = "update-rate";
@@ -108,7 +108,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_aliases["H"] = "extended-help";
     arg_aliases["h"] = "help";
     arg_aliases["?"] = "help";
-    
+
     //command line only options
     conf_sections["help"]            = "command-line";
     conf_sections["extended-help"]   = "command-line";
@@ -118,13 +118,13 @@ LogstalgiaSettings::LogstalgiaSettings() {
     conf_sections["splash"]          = "command-line";
 
     // arg types
-    
+
     arg_types["font-size"] = "int";
 
     arg_types["help"]          = "bool";
     arg_types["extended-help"] = "bool";
     arg_types["splash"]        = "bool";
-    
+
     arg_types["sync"]            = "bool";
     arg_types["full-hostnames"]  = "bool";
     arg_types["no-bounce"]       = "bool";
@@ -137,7 +137,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["disable-auto-skip"] = "bool";
     arg_types["disable-progress"]  = "bool";
     arg_types["disable-glow"]      = "bool";
-   
+
     arg_types["glow-intensity"]   = "float";
     arg_types["glow-multiplier"]  = "float";
     arg_types["glow-duration"]    = "float";
@@ -145,7 +145,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
 
     arg_types["speed"]       = "float";
     arg_types["update-rate"] = "float";
-        
+
     arg_types["log-level"]          = "string";
     arg_types["group"]              = "string";
     arg_types["load-config"]        = "string";
@@ -184,13 +184,13 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     hide_paddle        = false;
     hide_url_prefix    = false;
     no_bounce          = false;
-    
+
     mask_hostnames = true;
 
     ffp = false;
 
     background_colour = vec3(0.0f, 0.0f, 0.0f);
-    
+
     font_size = 14;
 
     groups.clear();
@@ -318,15 +318,10 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify start-position (float,random)");
 
-        if(entry->getString() == "random") {
-            srand(time(0));
-            start_position = (rand() % 1000) / 1000.0f;
-        } else {
-            start_position = entry->getFloat();
+        start_position = entry->getFloat();
 
-            if(start_position<=0.0 || start_position>=1.0) {
-                conffile.entryException(entry, "start-position outside of range 0.0 - 1.0 (non-inclusive)");
-            }
+        if(start_position<=0.0 || start_position>=1.0) {
+            conffile.entryException(entry, "start-position outside of range 0.0 - 1.0 (non-inclusive)");
         }
     }
 
@@ -340,7 +335,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
             conffile.entryException(entry, "stop-position outside of range 0.0 - 1.0 (inclusive)");
         }
     }
-    
+
     if((entry = settings->getEntry("group")) != 0) {
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify group definition");
@@ -380,7 +375,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
     }
 
     if((entry = settings->getEntry("speed")) != 0) {
-       
+
         if(!entry->hasValue()) conffile.entryException(entry, "specify speed (1 to 30)");
 
         simulation_speed = entry->getFloat();
@@ -400,35 +395,35 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
             conffile.entryException(entry, "update rate should be between 1 and 60");
         }
     }
-    
+
     if(settings->getBool("sync")) {
         sync = true;
     }
-    
+
     if(settings->getBool("hide-paddle")) {
-        paddle_mode = PADDLE_NONE;        
+        paddle_mode = PADDLE_NONE;
     }
-    
+
     if(settings->getBool("hide-response-code")) {
         hide_response_code = true;
     }
 
     if(settings->getBool("no-bounce")) {
         no_bounce = true;
-    }   
+    }
 
     if(settings->getBool("disable-auto-skip")) {
-        disable_auto_skip = true;        
+        disable_auto_skip = true;
     }
-    
+
     if(settings->getBool("disable-progress")) {
-        disable_progress = true;        
+        disable_progress = true;
     }
-    
+
     if(settings->getBool("disable-glow")) {
         disable_glow = true;
     }
-    
+
     if(settings->getBool("full-hostnames")) {
         mask_hostnames = false;
     }
@@ -436,7 +431,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
     if(settings->getBool("hide-url-prefix")) {
         hide_url_prefix = true;
     }
-                
+
     if(settings->getBool("ffp")) {
         ffp = true;
     }
