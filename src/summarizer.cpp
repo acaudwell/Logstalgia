@@ -563,7 +563,7 @@ void Summarizer::recalc_display() {
 
         items.push_back(SummItem(strings[i], pos_x, item_colour, font, showcount));
         
-        debugLog("added item for unit %s %d", strings[i].str.c_str(), items[items.size()-1].destroy);
+        //debugLog("added item for unit %s %d", strings[i].str.c_str(), items[items.size()-1].destroy);
     }
     
     // sort items alphabetically
@@ -605,8 +605,6 @@ float Summarizer::calcPosY(int i) const {
     return top_gap + (incrementf * i) ;
 }
 
-
-// TODO - this is currently wrong - check against set of sorted strings
 int Summarizer::getBestMatchIndex(const std::string& input) const {
 
     int best_diff = -1;
