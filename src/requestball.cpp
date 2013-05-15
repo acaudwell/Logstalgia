@@ -96,15 +96,17 @@ int RequestBall::logic(float dt) {
 }
 
 void RequestBall::drawGlow() const {
-    if(!hasBounced()) return;
+    if(!has_bounced) return;
 
     float prog = getProgress();
 
     float glow_radius = size * size * settings.glow_multiplier;
 
-    float alpha = std::min(1.0f, 1.0f-(prog/settings.glow_duration));
+    float alpha = std::min(1.0f, 1.0f-(prog/settings.glow_duration)) * settings.glow_intensity;
 
-    vec3 glow_col = colour * settings.glow_intensity * alpha;
+    if(alpha <=0.001f) return;
+    
+    vec3 glow_col = colour * alpha;
 
     glColor4f(glow_col.x, glow_col.y, glow_col.z, 1.0f);
 
@@ -124,9 +126,7 @@ void RequestBall::drawGlow() const {
     glPopMatrix();
 }
 
-void RequestBall::draw(float dt) const {
-
-    bool has_bounced = hasBounced();
+void RequestBall::draw() const {
 
     if(!settings.no_bounce || !has_bounced || no_bounce) {
 
@@ -156,11 +156,17 @@ void RequestBall::draw(float dt) const {
 
 void RequestBall::drawResponseCode() const {
     float prog = getProgress();
+
+    float alpha = 1.0f - std::min(1.0f, prog * 2.0f);
+
+    if(alpha<=0.001f) return;
+    
     float drift = prog * 100.0f;
 
     if(!le->successful) drift *= -1.0f;
-    vec2 msgpos = (vel * drift) + vec2(dest.x-45.0f, dest.y);
 
-    font->setColour(vec4(response_colour.x, response_colour.y, response_colour.z, 1.0f - std::min(1.0f, prog * 2.0f)));
+    vec2 msgpos = (vel * drift) + vec2(dest.x-45.0f, dest.y);
+    
+    font->setColour(vec4(response_colour.x, response_colour.y, response_colour.z, alpha));
     font->draw(msgpos.x, msgpos.y, response_code.c_str());
 }

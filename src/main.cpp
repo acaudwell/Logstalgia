@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
     if(settings.path.empty()) SDLAppQuit("no file supplied");
 
     //enable vsync
-    display.enableVsync(true);
+    display.enableVsync(settings.vsync);
 
     // this causes corruption on some video drivers
     if(settings.multisample) display.multiSample(4);
@@ -144,6 +144,9 @@ int main(int argc, char *argv[]) {
 
     display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen);
 
+    //disable OpenGL 2.0 functions if not supported
+    if(!GLEW_VERSION_2_0) settings.ffp = true;
+    
     //init frame exporter
     FrameExporter* exporter = 0;
 

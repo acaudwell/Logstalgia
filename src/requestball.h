@@ -51,7 +51,7 @@ public:
     int logic(float dt);
 
     void drawGlow() const;
-    void draw(float dt) const;
+    void draw() const;
     void drawResponseCode() const;
 };
 

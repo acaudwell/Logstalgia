@@ -1,4 +1,5 @@
 1.0.5:
+ * Performance improvements.
  * Made default group matches case-insensitive (Sebastian Krzyszkowiak).
  * Display tokens in multi-paddle modes (Sebastian Krzyszkowiak).
  * Added window resizing and a full-screen toggle (alt-enter).

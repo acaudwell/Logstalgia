@@ -190,6 +190,12 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             next = true;
         }
 
+        if (e->keysym.sym == SDLK_p) {
+            if(GLEW_VERSION_2_0) {
+                settings.ffp = !settings.ffp;
+            }
+        }
+        
         if(e->keysym.sym == SDLK_SPACE) {
             togglePause();
         }
@@ -1136,12 +1142,13 @@ void Logstalgia::draw(float t, float dt) {
     glEnable(GL_TEXTURE_2D);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     glBindTexture(GL_TEXTURE_2D, balltex->textureid);
-
-    for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
-        (*it)->draw(dt);
+    
+    for(RequestBall* ball : balls) {
+        ball->draw();
     }
-
+    
     profile_stop();
 
     profile_start("draw response codes");
