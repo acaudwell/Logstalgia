@@ -21,7 +21,8 @@ const char* ls_ncsa_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
 Regex ls_ncsa_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
 Regex ls_ncsa_entry_date("(\\d+)/(\\d+|[A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
 Regex ls_ncsa_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
-Regex ls_ncsa_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?(?: +\([^ ]+))?");
+Regex ls_ncsa_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?( .+)?");
+Regex ls_ncsa_extra_field("^ +(\"[^\"]*\"|[^ ]+)");
 
 NCSALog::NCSALog() {
 }
@@ -123,7 +124,28 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
         if(matches.size()==3) {
             entry.referrer   = matches[0];
             entry.user_agent = matches[1];
-            entry.pid        = matches[2];
+
+            std::string extra = matches[2];
+            
+            // NOTE: could store extra fields and allow --paddle-mode to address then via their offset
+            if(!extra.empty()) {
+                                
+                std::vector<std::string> extra_fields;
+                if(ls_ncsa_extra_field.matchAll(extra, &extra_fields)) {
+                    
+//                     for(size_t i=0;i<extra_fields.size();i++) {
+//                         debugLog("extra fields %d: %s", i, extra_fields[i].c_str());
+//                     }
+                    
+                    if(!extra_fields.empty() && !extra_fields[0].empty()) {
+                        entry.pid = extra_fields[0];
+                        
+                        if(entry.pid.size()>=2 && entry.pid[0] == '"' && entry.pid[entry.pid.size()-1] == '"') {
+                            entry.pid = entry.pid.substr(1, entry.pid.size()-2);
+                        }
+                    }
+                }
+            }
         }
     }
 
