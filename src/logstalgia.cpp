@@ -17,6 +17,7 @@
 
 #include "logstalgia.h"
 #include "settings.h"
+#include "core/png_writer.h"
 
 //Logstalgia
 
@@ -123,6 +124,8 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     font_alpha = 1.0;
 
+    take_screenshot = false;
+    
     //every 60 minutes seconds blank text for 60 seconds
 
     screen_blank_interval = 3600.0;
@@ -198,6 +201,10 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
         
         if(e->keysym.sym == SDLK_SPACE) {
             togglePause();
+        }
+
+        if (e->keysym.sym == SDLK_F12) {
+            take_screenshot = true;
         }
 
         if(e->keysym.sym == SDLK_EQUALS || e->keysym.sym == SDLK_KP_PLUS) {
@@ -289,6 +296,28 @@ void Logstalgia::reset() {
     elapsed_time  = 0;
     starttime     = 0;
     lasttime      = 0;
+}
+
+void Logstalgia::takeScreenshot() {
+
+    //get next free recording name
+    char pngname[256];
+    struct stat finfo;
+    int png_no = 1;
+
+    while(png_no < 10000) {
+        snprintf(pngname, 256, "logstalgia-%04d.png", png_no);
+        if(stat(pngname, &finfo) != 0) break;
+        png_no++;
+    }
+
+    //write png
+    std::string filename(pngname);
+
+    PNGWriter png;
+    png.screenshot(filename);
+
+    //setMessage("Wrote screenshot " + std::string(pngname));
 }
 
 void Logstalgia::seekTo(float percent) {
@@ -1210,7 +1239,7 @@ void Logstalgia::draw(float t, float dt) {
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
 
-    if(uimessage_timer>0.1f) {
+    if(!take_screenshot && uimessage_timer>0.1f) {
         fontLarge.setColour(vec4(1.0f,1.0f,uimessage_timer/3.0f,uimessage_timer/3.0f));
 
         int mwidth = fontLarge.getWidth(uimessage.c_str());
@@ -1278,4 +1307,9 @@ void Logstalgia::draw(float t, float dt) {
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 
     if(!settings.disable_progress) slider.draw(dt);
+    
+    if(take_screenshot) {
+        takeScreenshot();
+        take_screenshot = false;
+    }
 }

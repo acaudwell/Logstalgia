@@ -3,8 +3,9 @@
  * Made default group matches case-insensitive (Sebastian Krzyszkowiak).
  * Display tokens in multi-paddle modes (Sebastian Krzyszkowiak).
  * Added window resizing and a full-screen toggle (alt-enter).
+ * Take screenshots (F12).
  * Summarizer component content is now sorted.
- * New dependency on GLEW.
+ * New dependencies on libpng, GLEW.
  * Now requires GLM and Boost header-only libraries to build.
 
 1.0.4:

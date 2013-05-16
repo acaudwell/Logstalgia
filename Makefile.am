@@ -13,6 +13,7 @@ logstalgia_SOURCES = \
 	src/core/fxfont.cpp \
 	src/core/logger.cpp \
 	src/core/ppm.cpp \
+	src/core/png_writer.cpp \
 	src/core/plane.cpp \
 	src/core/quadtree.cpp \
 	src/core/regex.cpp \

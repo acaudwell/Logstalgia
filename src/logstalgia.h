@@ -63,7 +63,8 @@ class Logstalgia : public SDLApp {
     bool next;
     bool sync;
     bool end_reached;
-
+    bool take_screenshot;
+    
     int highscore;
 
     time_t mintime;
@@ -161,6 +162,8 @@ class Logstalgia : public SDLApp {
     void initRequestBalls();
     void resizeGroups();
 
+    void takeScreenshot();
+    
     void toggleFullscreen();
 
     void logic(float t, float dt);

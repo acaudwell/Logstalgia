@@ -19,6 +19,7 @@ Logstalgia requires the following libraries to compile (package names may vary):
     GLEW (libglew-dev)
     GLM (libglm-dev) >= 0.9.3
     Boost >= 1.46 (libboost-dev)
+    PNG (libpng12-dev)
 
 2. Building
 ===========
