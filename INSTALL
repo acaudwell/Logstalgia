@@ -24,7 +24,9 @@ Logstalgia requires the following libraries to compile (package names may vary):
 2. Building
 ===========
 
-GCC 4.7 or greater is recommended.
+Logstalgia requires a GNU compatible C++ compiler that supports c++0x features such as 'auto' and the new 'for' loop syntax.
+
+GCC 4.6+ or Clang recommended.
 
 If you got the source directly from the Logstalgia.git repository, you will
 first need to run autogen.sh which will generate the configure script and
