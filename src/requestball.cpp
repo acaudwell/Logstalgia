@@ -18,7 +18,7 @@
 #include "requestball.h"
 #include "settings.h"
 
-RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest, float speed) {
+RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest) {
     this->le   = le;
     this->tex  = tex;
     this->font = font;
@@ -29,11 +29,7 @@ RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const
     float size = log((float)bytes) + 1.0f;
     if(size<5.0f) size = 5.0f;
 
-    float eta = 5;
-
-    ProjectedBall::init(pos, vel, colour, (int)dest.x, eta, size, speed);
-
-    this->speed = speed;
+    ProjectedBall::init(pos, vel, colour, (int)dest.x, size);
 
     start = pos;
     this->dest  = finish();

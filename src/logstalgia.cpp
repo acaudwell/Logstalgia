@@ -55,7 +55,7 @@ void logstalgia_quit(std::string error) {
 Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     info       = false;
     paused     = false;
-    recentre   = false;
+    retarget   = false;
     next       = false;
 
     this->logfile = logfile;
@@ -112,8 +112,6 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     mousehide_timeout = 0.0f;
 
-    time_scale = 1.0;
-
     runtime = 0.0;
     frameExporter = 0;
     framecount = 0;
@@ -165,6 +163,11 @@ void Logstalgia::togglePause() {
     paused = !paused;
 
     if(!paused) {
+        if(settings.sync) {
+            mintime = time(0);
+            elapsed_time = mintime - starttime;
+        }
+        
         ipSummarizer->mouseOut();
 
         int nogrps = summGroups.size();
@@ -207,38 +210,37 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             take_screenshot = true;
         }
 
-        if(e->keysym.sym == SDLK_EQUALS || e->keysym.sym == SDLK_KP_PLUS) {
-            if(settings.simulation_speed <= 29.0f) {
-                settings.simulation_speed += 1.0f;
-                recentre=true;
-            }
-        }
+        if(!settings.sync) {
 
-        if(e->keysym.sym == SDLK_MINUS || e->keysym.sym == SDLK_KP_MINUS) {
-            if(settings.simulation_speed>=2.0f) {
-                settings.simulation_speed -= 1.0f;
-                recentre=true;
+            if (e->keysym.sym == SDLK_EQUALS || e->keysym.sym == SDLK_KP_PLUS) {
+                if(settings.simulation_speed >= 1.0f) {
+                    settings.simulation_speed = std::min(30.0f, glm::floor(settings.simulation_speed) + 1.0f);
+                } else {
+                    settings.simulation_speed = std::min(1.0f, settings.simulation_speed * 2.0f);
+                }
+                retarget=true;
+            }
+
+            if (e->keysym.sym == SDLK_MINUS || e->keysym.sym == SDLK_KP_MINUS) {
+                if(settings.simulation_speed > 1.0f) {
+                    settings.simulation_speed = std::max(1.0f, glm::floor(settings.simulation_speed) - 1.0f);
+                } else {
+                    settings.simulation_speed = std::max(0.1f, settings.simulation_speed * 0.5f);
+                }
+                retarget=true;                
             }
         }
 
         if(e->keysym.sym == SDLK_PERIOD) {
-
-            if(time_scale>=1.0) {
-                time_scale = std::min(4.0f, floorf(time_scale) + 1.0f);
-            } else {
-                time_scale = std::min(1.0f, time_scale * 2.0f);
-            }
+            settings.pitch_speed = glm::clamp(settings.pitch_speed+0.1f, 0.0f, 10.0f);
+            retarget=true;                
         }
 
         if(e->keysym.sym == SDLK_COMMA) {
-
-            if(time_scale>1.0) {
-                time_scale = std::max(0.0f, floorf(time_scale) - 1.0f);
-            } else {
-                time_scale = std::max(0.25f, time_scale * 0.5f);
-            }
+            settings.pitch_speed = glm::clamp(settings.pitch_speed-0.1f, 0.1f, 10.0f);
+            retarget=true;                
         }
-
+            
         if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
             toggleFullscreen();
         }
@@ -470,8 +472,10 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     float dest_y = pageSummarizer->getMiddlePosY(pageurl);
     float pos_y  = ipSummarizer->getMiddlePosY(hostname);
 
-    float start_x = -(entry_paddle->getX()/ 5.0f);
+    float start_x = -(entry_paddle->getX() * settings.pitch_speed * start_offset);
 
+    //debugLog("start_offset %.2f : start_x = %.2f (paddle_x %.2f, pitch_speed %.2f)", start_offset, start_x, entry_paddle->getX(), settings.pitch_speed);
+    
     vec2 ball_start = vec2(start_x, pos_y);
     vec2 ball_dest  = vec2(entry_paddle->getX(), dest_y);
 
@@ -479,9 +483,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     vec3 colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
 
-    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest, settings.simulation_speed);
-
-    ball->setElapsed( start_offset );
+    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest);
 
     balls.push_back(ball);
 }
@@ -720,13 +722,11 @@ void Logstalgia::setFrameExporter(FrameExporter* exporter) {
 }
 
 void Logstalgia::update(float t, float dt) {
-
+    
     //if exporting a video use a fixed tick rate rather than time based
     if(frameExporter != 0) {
         dt = fixed_tick_rate;
     }
-
-    dt *= time_scale;
 
     //have to manage runtime internally as we're messing with dt
     runtime += dt;
@@ -747,7 +747,7 @@ void Logstalgia::update(float t, float dt) {
 
 RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_token) {
 
-    float min_dist = -1.0f;
+    float min_arrival = -1.0f;
     RequestBall* nearest = 0;
 
     for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
@@ -764,9 +764,11 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
                 || (settings.paddle_mode == PADDLE_PID   && ball->le->pid   == paddle_token)
                )
             ) {
-            float dist = (paddle->getX() - ball->getX())/ball->speed;
-            if(min_dist<0.0f || dist<min_dist) {
-                min_dist = dist;
+
+            float arrival = ball->arrivalTime();
+        
+            if(min_arrival<0.0f || arrival<min_arrival) {
+                min_arrival = arrival;
                 nearest = ball;
             }
         }
@@ -799,6 +801,10 @@ void Logstalgia::removeBall(RequestBall* ball) {
 void Logstalgia::logic(float t, float dt) {
 
     float sdt = dt * settings.simulation_speed;
+
+    //increment clock
+    elapsed_time += sdt;
+    currtime = starttime + (long)(elapsed_time);
 
     if(mousehide_timeout>0.0f) {
         mousehide_timeout -= dt;
@@ -842,10 +848,6 @@ void Logstalgia::logic(float t, float dt) {
 
         return;
     }
-
-    //increment clock
-    elapsed_time += sdt;
-    currtime = starttime + (long)(elapsed_time);
 
     //next will fast forward clock to the time of the next entry,
     //if the next entry is in the future
@@ -912,7 +914,7 @@ void Logstalgia::logic(float t, float dt) {
 
                 if(le->timestamp > currtime) break;
 
-                float pos_offset   = 1.0 - item_offset * (float) item_no++;
+                float pos_offset   = item_offset * (float) item_no++;
                 float start_offset = std::min(1.0f, pos_offset);
 
 		addBall(le, start_offset);
@@ -978,28 +980,17 @@ void Logstalgia::logic(float t, float dt) {
         }
 
         // find nearest ball to this paddle
-        if((recentre || !paddle->moving()) && balls.size()>0) {
-
-            recentre=false;
+        if( (retarget || !paddle->getTarget()) && !balls.empty() ) {
 
             RequestBall* ball = findNearest(paddle, paddle_token);
-
-            if(ball!=0 && !(paddle->moving() && paddle->getTarget() == ball)) {
-                paddle->setTarget(ball);
-            }
-
-        }
-
-        //if still not moving, recentre
-        if(!paddle->moving()) {
-            recentre=true;
-            paddle->setTarget(0);
+            
+            paddle->setTarget(ball);
         }
 
         it->second->logic(sdt);
     }
 
-    recentre = false;
+    retarget = false;
 
     profile_start("check ball status");
 
@@ -1007,7 +998,7 @@ void Logstalgia::logic(float t, float dt) {
 
         RequestBall* ball = *it;
 
-        highscore += ball->logic(dt);
+        highscore += ball->logic(sdt);
 
         if(ball->isFinished()) {
             it = balls.erase(it);
@@ -1290,9 +1281,11 @@ void Logstalgia::draw(float t, float dt) {
 
     if(info) {
         fontMedium.print(2,2, "FPS %d", (int) fps);
-        fontMedium.print(2,19,"Balls %03d", balls.size());
-        fontMedium.print(2,36,"Queue %03d", queued_entries.size());
-        fontMedium.print(2,53,"Paddles %03d", paddles.size());
+        fontMedium.print(2,19,"Balls: %d", balls.size());
+        fontMedium.print(2,36,"Queue: %d", queued_entries.size());
+        fontMedium.print(2,53,"Paddles: %d", paddles.size());
+        fontMedium.print(2,70,"Simulation Speed: %.2f", settings.simulation_speed);
+        fontMedium.print(2,87,"Pitch Speed: %.2f", settings.pitch_speed);
     } else {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());

@@ -120,6 +120,7 @@ void Paddle::logic(float dt) {
             //debugLog("paddle end point reached\n");
             pos.y = dest_y;
             dest_y = -1;
+            target = 0;
             colour = nextcol;
             lastcol = colour;
         } else {

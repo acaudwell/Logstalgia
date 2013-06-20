@@ -38,15 +38,15 @@ class ProjectedBall {
 protected:
     std::vector<vec2> points;
     std::vector<float> line_lengths;
-    float total_length;
-    int dest_x;
-    int start_x;
-    float eta;
-    float elapsed;
-    float progress;
+    
+    float distance_travelled;
+    float total_distance;
+
+    float dest_x;
+    float start_x;
+    
     bool has_bounced;
     bool no_bounce;
-
 public:
     vec2 pos;
     vec2 vel;
@@ -55,12 +55,13 @@ public:
     float speed;
 
     ProjectedBall();
-    ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed = 10.0f);
+    ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float size);
     ~ProjectedBall();
 
-    void init(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed);
+    void init(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float size);
 
-    void setElapsed(float e);
+    void setOffset(float offset);
+    
     void project();
     vec2 finish();
 
@@ -72,8 +73,6 @@ public:
 
     bool isFinished() const;
     bool hasBounced() const { return has_bounced; }
-
-    bool arrived() const;
 
     float arrivalTime();
     float getProgress() const;

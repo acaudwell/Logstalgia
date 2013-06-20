@@ -16,6 +16,7 @@
 */
 
 #include "ball.h"
+#include "settings.h"
 
 //Line
 Line::Line(vec2 start, vec2 end) {
@@ -60,21 +61,21 @@ bool Line::intersects(Line& l, vec2 *p) {
 ProjectedBall::ProjectedBall() {
 }
 
-ProjectedBall::ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed) {
-    init(pos, vel, colour, dest_x, eta, size, speed);
+ProjectedBall::ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float size) {
+    init(pos, vel, colour, dest_x, size);
 }
 
-void ProjectedBall::init(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float eta, float size, float speed) {
+void ProjectedBall::init(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float size) {
+
     this->pos = pos;
     this->vel = vel;
     this->colour = colour;
-    this->speed = speed;
     this->size  = size;
-
     this->dest_x = dest_x;
-    this->start_x = (int) pos.x;
-    this->eta    = eta;
-    this->has_bounced=0;
+    
+    start_x = (int) pos.x;
+    
+    has_bounced=0;
     no_bounce = 0;
 
     project();
@@ -89,8 +90,9 @@ ProjectedBall::~ProjectedBall() {
 */
 
 void ProjectedBall::project() {
-    elapsed = 0.0f;
-    progress = 0.0f;
+    distance_travelled = 0.0f;
+    total_distance     = 0.0f;
+
     points.clear();
     vec2 p = pos;
     points.push_back(p);
@@ -105,7 +107,7 @@ void ProjectedBall::project() {
 
     bool finished=false;
     vec2 currvel = vel;
-    total_length=0;
+
     line_lengths.clear();
 
     while(!finished) {
@@ -135,17 +137,17 @@ void ProjectedBall::project() {
             break;
         }
 
-        float length = (intersect-p).length();
+        float line_length = glm::length(intersect-p);
 
         p = intersect;
         points.push_back(intersect);
-        line_lengths.push_back(length);
-        total_length +=length;
+        line_lengths.push_back(line_length);
+        total_distance += line_length;
     }
 }
 
 bool ProjectedBall::isFinished() const {
-    return has_bounced && elapsed>=eta;
+    return has_bounced && distance_travelled >= total_distance;
 }
 
 void ProjectedBall::bounce() {
@@ -164,20 +166,12 @@ void ProjectedBall::bounce() {
     has_bounced=true;
 }
 
-bool ProjectedBall::arrived() const {
-    return elapsed>=eta;
-}
-
-void ProjectedBall::setElapsed(float e) {
-    elapsed =e;
-}
-
 float ProjectedBall::arrivalTime() {
-    return (eta-elapsed)/speed;
+    return (total_distance-distance_travelled) / (settings.pitch_speed * (float) display.width);
 }
 
 float ProjectedBall::getProgress() const {
-    return progress;
+    return (distance_travelled/total_distance);
 }
 
 void ProjectedBall::dontBounce() {
@@ -185,28 +179,23 @@ void ProjectedBall::dontBounce() {
 }
 
 void ProjectedBall::logic(float dt) {
-    elapsed += (dt * speed);
-    progress = elapsed / eta;
+    distance_travelled += dt * settings.pitch_speed * (float) display.width;
 
-    if(progress>1.0f) {
+    if(distance_travelled >= total_distance) {
+
         if(!has_bounced) {
             bounce();
-            return;
         }
-
         return;
     }
 
     //number of lines
     int nolines = points.size()-1;
 
-    //progress
-    float currposf = progress * total_length;
-
     int pointno = 0;
     float len=0;
 
-    while(pointno<nolines && len+line_lengths[pointno]<currposf) {
+    while(pointno<nolines && len+line_lengths[pointno] < distance_travelled) {
         len+=line_lengths[pointno];
         pointno++;
     }
@@ -224,7 +213,7 @@ void ProjectedBall::logic(float dt) {
     vec2 from = points[pointno];
     vec2 to   = points[pointno+1];
 
-    float linepos = (currposf - len)/line_lengths[pointno];
+    float linepos = (distance_travelled - len)/line_lengths[pointno];
 
     this->pos = from + ((to-from)*linepos);
 }

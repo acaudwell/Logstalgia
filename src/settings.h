@@ -43,6 +43,7 @@ public:
     float splash;
 
     float simulation_speed;
+    float pitch_speed;
     float update_rate;
 
     int   paddle_mode;

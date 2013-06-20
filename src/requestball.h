@@ -43,7 +43,7 @@ protected:
 public:
     LogEntry* le;
 
-    RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest, float speed = 10.0f);
+    RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest);
     ~RequestBall();
 
     bool mouseOver(TextArea& textarea, vec2& mouse);

@@ -59,7 +59,7 @@ class Logstalgia : public SDLApp {
 
     bool info;
     bool paused;
-    bool recentre;
+    bool retarget;
     bool next;
     bool sync;
     bool end_reached;
@@ -79,7 +79,7 @@ class Logstalgia : public SDLApp {
 
     float font_alpha;
 
-    float elapsed_time;
+    double elapsed_time;
 
     float simu_speed;
     float update_rate;

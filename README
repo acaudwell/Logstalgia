@@ -52,8 +52,11 @@ options:
     -x, --full-hostnames
             Show full request ip/hostname.
 
-    -s, --speed
+    -s, --simulation-speed
             Simulation speed. Defaults to 1 (1 second-per-second).
+
+    -p, --pitch-speed
+            Speed balls travel across the screen (defaults to 0.15).
 
     -u, --update-rate
             Page Summary update speed. Defaults to 5 (5 seconds).
@@ -224,7 +227,7 @@ Interactive keyboard commands:
    (C)   Displays Logstalgia logo
    (N)   Jump forward in time to next log entry
    (+-)  Adjust simulation speed
-   (<>)  Adjust time scale
+   (<>)  Adjust pitch speed
 
    (Alt+Enter) Toggle Fullscreen
    

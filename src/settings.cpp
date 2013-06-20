@@ -42,7 +42,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -b --background FFFFFF     Background colour in hex\n\n");
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
-    printf("  -s --speed                 Simulation speed (default: 1)\n");
+    printf("  -s --simulation-speed      Simulation speed (default: 1)\n");
+    printf("  -p --pitch-speed           Speed balls travel across the screen (default: 0.15)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
     printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
 
@@ -105,7 +106,9 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_aliases["b"] = "background";
     arg_aliases["x"] = "full-hostnames";
     arg_aliases["u"] = "update-rate";
-    arg_aliases["s"] = "speed";
+    arg_aliases["s"] = "simulation-speed";
+    arg_aliases["speed"] = "simulation-speed";
+    arg_aliases["p"] = "pitch-speed";
     arg_aliases["c"] = "splash";
     arg_aliases["H"] = "extended-help";
     arg_aliases["h"] = "help";
@@ -145,8 +148,9 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["glow-duration"]    = "float";
     arg_types["paddle-position"]  = "float";
 
-    arg_types["speed"]       = "float";
-    arg_types["update-rate"] = "float";
+    arg_types["pitch-speed"]      = "float";
+    arg_types["simulation-speed"] = "float";
+    arg_types["update-rate"]      = "float";
 
     arg_types["log-level"]          = "string";
     arg_types["group"]              = "string";
@@ -171,6 +175,7 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     paddle_mode     = PADDLE_SINGLE;
     paddle_position = 0.67f;
 
+    pitch_speed       = 0.15f;
     simulation_speed  = 1.0f;
     update_rate       = 5.0f;
 
@@ -378,14 +383,25 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         }
     }
 
-    if((entry = settings->getEntry("speed")) != 0) {
+    if((entry = settings->getEntry("pitch-speed")) != 0) {
 
-        if(!entry->hasValue()) conffile.entryException(entry, "specify speed (1 to 30)");
+        if(!entry->hasValue()) conffile.entryException(entry, "specify pitch speed (0.1 to 10.0)");
+
+        pitch_speed = entry->getFloat();
+
+        if(pitch_speed < 0.1f || pitch_speed > 10.0f) {
+            conffile.entryException(entry, "pitch speed should be between 0.1 and 10.0");
+        }
+    }
+    
+    if((entry = settings->getEntry("simulation-speed")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify simulation speed (0.1 to 30)");
 
         simulation_speed = entry->getFloat();
 
-        if(simulation_speed < 1.0f || simulation_speed > 30.0f) {
-            conffile.entryException(entry, "speed should be between 1 and 30");
+        if(simulation_speed < 0.1f || simulation_speed > 30.0f) {
+            conffile.entryException(entry, "simulation speed should be between 0.1 and 30");
         }
     }
 
