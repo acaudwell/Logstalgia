@@ -255,8 +255,8 @@ void Logstalgia::initPaddles() {
         vec4(0.0f, 0.0f, 0.0f, 0.0f) : vec4(0.5, 0.5, 0.5, 1.0);
 
     if(!paddles.empty()) {
-        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
-            delete it->second;
+        for(auto& it: paddles) {
+            delete it.second;
         }
         paddles.clear();
     }
@@ -408,26 +408,29 @@ std::string Logstalgia::filterURLHostname(const std::string& hostname) {
     return hostname;
 }
 
+Summarizer* Logstalgia::getGroupSummarizer(const std::string& path) {
+    
+    for(Summarizer* s: summGroups) {
+        if(s->supportedString(path)) {
+            return s;
+        }
+    }   
+
+    return 0;
+}
+
 void Logstalgia::addStrings(LogEntry* le) {
 
     std::string hostname = le->hostname;
     std::string pageurl  = le->path;
 
-    int nogroups = summGroups.size();
-    Summarizer* pageSummarizer= 0;
+    Summarizer* groupSummarizer = getGroupSummarizer(pageurl);
 
-    for(int i=0;i<nogroups;i++) {
-        if(summGroups[i]->supportedString(pageurl)) {
-            pageSummarizer = summGroups[i];
-            break;
-        }
-    }
-
-    if(pageSummarizer==0) return;
+    if(!groupSummarizer) return;
 
     if(settings.hide_url_prefix) pageurl = filterURLHostname(pageurl);
 
-    pageSummarizer->addString(pageurl);
+    groupSummarizer->addString(pageurl);
     ipSummarizer->addString(hostname);
 }
 
@@ -437,17 +440,9 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     std::string pageurl  = le->path;
 
     //find appropriate summarizer for url
-    int nogroups = summGroups.size();
-    Summarizer* pageSummarizer= 0;
+    Summarizer* groupSummarizer = getGroupSummarizer(pageurl);
 
-    for(int i=0;i<nogroups;i++) {
-        if(summGroups[i]->supportedString(pageurl)) {
-            pageSummarizer = summGroups[i];
-            break;
-        }
-    }
-
-    if(pageSummarizer==0) return;
+    if(!groupSummarizer) return;
 
     Paddle* entry_paddle = 0;
 
@@ -469,7 +464,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     if(settings.hide_url_prefix) pageurl = filterURLHostname(pageurl);
 
-    float dest_y = pageSummarizer->getMiddlePosY(pageurl);
+    float dest_y = groupSummarizer->getMiddlePosY(pageurl);
     float pos_y  = ipSummarizer->getMiddlePosY(hostname);
 
     float start_x = -(entry_paddle->getX() * settings.pitch_speed * start_offset);
@@ -481,7 +476,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     const std::string& match = ipSummarizer->getBestMatchStr(hostname);
 
-    vec3 colour = pageSummarizer->isColoured() ? pageSummarizer->getColour() : colourHash(match);
+    vec3 colour = groupSummarizer->isColoured() ? groupSummarizer->getColour() : colourHash(match);
 
     RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest);
 
@@ -750,8 +745,7 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
     float min_arrival = -1.0f;
     RequestBall* nearest = 0;
 
-    for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
-        RequestBall* ball = *it;
+    for(RequestBall* ball: balls) {
 
         //special case if failed response code
         if(!ball->le->successful) {
@@ -778,17 +772,15 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
 }
 
 void Logstalgia::removeBall(RequestBall* ball) {
+
     std::string url  = ball->le->path;
     std::string host = ball->le->hostname;
 
-    int nogroups = summGroups.size();
-
-    for(int i=0;i<nogroups;i++) {
-        if(summGroups[i]->supportedString(url)) {
+    for(Summarizer* s: summGroups) {
+        if(s->supportedString(url)) {
 
             if(settings.hide_url_prefix) url = filterURLHostname(url);
-
-            summGroups[i]->removeString(url);
+            s->removeString(url);
             break;
         }
     }
@@ -823,17 +815,15 @@ void Logstalgia::logic(float t, float dt) {
     //if paused, dont move anything, only check what is under mouse
     if(paused) {
 
-        for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
-            std::string paddle_token = it->first;
-            Paddle*           paddle = it->second;
+        for(auto& it: paddles) {
+            Paddle* paddle = it.second;
 
             if(paddle->mouseOver(infowindow, mousepos)) {
                 break;
             }
         }
 
-        for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end(); it++) {
-            RequestBall* ball = *it;
+        for(RequestBall* ball : balls) {
             if(ball->mouseOver(infowindow, mousepos)) {
                 break;
             }
@@ -953,10 +943,10 @@ void Logstalgia::logic(float t, float dt) {
     std::list<Paddle*> inactivePaddles;
 
     //update paddles
-    for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
+    for(auto& it: paddles) {
 
-        std::string paddle_token = it->first;
-        Paddle*           paddle = it->second;
+        std::string paddle_token = it.first;
+        Paddle*           paddle = it.second;
 
         if(settings.paddle_mode > PADDLE_SINGLE && !paddle->moving() && !paddle->visible()) {
 
@@ -987,7 +977,7 @@ void Logstalgia::logic(float t, float dt) {
             paddle->setTarget(ball);
         }
 
-        it->second->logic(sdt);
+        paddle->logic(sdt);
     }
 
     retarget = false;
@@ -1067,9 +1057,11 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
 
     int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
-    if(!percent) percent = remaining_percent;
-
-    if(remaining_percent < percent) return;
+    if(remaining_percent<=0) return;
+    
+    if(!percent || percent > remaining_percent) {
+        percent = remaining_percent;
+    }
 
     Summarizer* summarizer = new Summarizer(fontSmall, percent, settings.update_rate, groupregex, grouptitle);
 

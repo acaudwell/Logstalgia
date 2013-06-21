@@ -150,7 +150,7 @@ public:
     void setColour(vec3 col);
     vec3 getColour();
 
-    bool supportedString(std::string& str);
+    bool supportedString(const std::string& str);
 
     void removeString(const std::string& str);
     void addString(const std::string& str);

@@ -478,7 +478,7 @@ Summarizer::~Summarizer() {
     if(item_colour!=0) delete item_colour;
 }
 
-bool Summarizer::supportedString(std::string& str) {
+bool Summarizer::supportedString(const std::string& str) {
     return matchre.match(str);
 }
 

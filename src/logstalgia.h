@@ -145,6 +145,8 @@ class Logstalgia : public SDLApp {
     void updateGroups(float dt);
     void drawGroups(float dt, float alpha);
 
+    Summarizer* getGroupSummarizer(const std::string& path);
+    
     void addStrings(LogEntry* le);
 
     void addBall(LogEntry* le,  float start_offset);
