@@ -152,8 +152,9 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["simulation-speed"] = "float";
     arg_types["update-rate"]      = "float";
 
+    arg_types["group"]            = "multi-value";
+
     arg_types["log-level"]          = "string";
-    arg_types["group"]              = "string";
     arg_types["load-config"]        = "string";
     arg_types["save-config"]        = "string";
     arg_types["path"]               = "string";
@@ -347,9 +348,12 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
     if((entry = settings->getEntry("group")) != 0) {
 
-        if(!entry->hasValue()) conffile.entryException(entry, "specify group definition");
+        ConfEntryList* group_entries = settings->getEntries("group");
 
-        groups.push_back(entry->getString());
+        for(ConfEntry* entry : *group_entries) {
+            if(!entry->hasValue()) conffile.entryException(entry, "specify group definition");
+            groups.push_back(entry->getString());
+        }
     }
 
     if((entry = settings->getEntry("paddle-mode")) != 0) {
