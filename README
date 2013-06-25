@@ -61,18 +61,27 @@ options:
     -u, --update-rate
             Page Summary update speed. Defaults to 5 (5 seconds).
 
-    -g name,regex,percent[,colour]
+    -g name,(HOST|URI|CODE)=regex,percent[,colour]
 
-            Urls matching the given regex will appear under a new section
-            with the given name using the given percentage of the screen. 
+            Creates a new named summarizer group for requests for which a
+            specified attribute (HOST, URI or response CODE) matches a
+            regular expression. Percent specifies a vertical percentage of
+            screen to use.
 
-            Colour may optionally be supplied in the common hexadecimal 
-            format (eg FF0000 for red)
+            A colour may optionally be supplied in hexadecimal format
+            (eg FF0000 for red) which will be applied to all labels
+            and request balls matched to the group.
 
-            If no groups are supplied the default groups are Images
+            Examples:
+
+             -g "HTML,URI=html?$,30"
+             -g "Lan,HOST=^192,30"
+             -g "Success,CODE=^[23],30"
+
+            If no groups are specified, the default groups are Images
             (image files), CSS (.css files) and Scripts (.js files).
 
-            If there is enough space remaining a catch-all group of Misc
+            If there is enough space remaining a catch-all group 'Misc'
             will appear as the last group.
 
     --paddle-mode MODE

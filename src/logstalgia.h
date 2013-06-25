@@ -112,7 +112,8 @@ class Logstalgia : public SDLApp {
 
     Summarizer* ipSummarizer;
 
-    std::vector<Summarizer*> summGroups;
+    std::vector<Summarizer*> summarizers;
+    std::map<std::string, std::vector<Summarizer*>*> summarizer_types;
 
     PositionSlider slider;
 
@@ -145,13 +146,13 @@ class Logstalgia : public SDLApp {
     void updateGroups(float dt);
     void drawGroups(float dt, float alpha);
 
-    Summarizer* getGroupSummarizer(const std::string& path);
+    Summarizer* getGroupSummarizer(LogEntry* le);
     
     void addStrings(LogEntry* le);
 
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
-    void addGroup(std::string grouptitle, std::string groupregex, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
+    void addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
     void togglePause();
 
     BaseLog* getLog();

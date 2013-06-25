@@ -152,10 +152,16 @@ Logstalgia::~Logstalgia() {
     if(seeklog!=0) delete seeklog;
     if(streamlog!=0) delete streamlog;
 
-    for(size_t i=0;i<summGroups.size();i++) {
-        delete summGroups[i];
-        summGroups[i]=0;
+    for(auto it : summarizer_types) {
+        if(it.second != 0) delete it.second;
     }
+
+    for(Summarizer* s : summarizers) {
+        delete s;
+    }
+    
+    summarizers.clear();
+    summarizer_types.clear();
 
 }
 
@@ -170,9 +176,8 @@ void Logstalgia::togglePause() {
         
         ipSummarizer->mouseOut();
 
-        int nogrps = summGroups.size();
-        for(int i=0;i<nogrps;i++) {
-            summGroups[i]->mouseOut();
+        for(Summarizer* s : summarizers) {
+            s->mouseOut();
         }
     }
 }
@@ -288,8 +293,8 @@ void Logstalgia::reset() {
 
     ipSummarizer->recalc_display();
 
-    for(size_t i=0;i<summGroups.size();i++) {
-        summGroups[i]->recalc_display();
+    for(Summarizer* s : summarizers) {
+        s->recalc_display();
     }
 
     queued_entries.clear();
@@ -408,25 +413,47 @@ std::string Logstalgia::filterURLHostname(const std::string& hostname) {
     return hostname;
 }
 
-Summarizer* Logstalgia::getGroupSummarizer(const std::string& path) {
-    
-    for(Summarizer* s: summGroups) {
-        if(s->supportedString(path)) {
-            return s;
-        }
-    }   
+Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
 
+    auto host_match_summarizers = summarizer_types["HOST"];
+    auto code_match_summarizers = summarizer_types["CODE"];
+    auto uri_match_summarizers  = summarizer_types["URI"];
+    
+    if(host_match_summarizers != 0) {
+        for(Summarizer* s : *host_match_summarizers) {       
+            if(s->supportedString(le->hostname)) {
+                return s;
+            }
+        }
+    }
+    
+    if(code_match_summarizers != 0) {
+        for(Summarizer* s : *code_match_summarizers) {       
+            if(s->supportedString(le->response_code)) {
+                return s;
+            }
+        }
+    }
+
+    if(uri_match_summarizers != 0) {
+        for(Summarizer* s : *uri_match_summarizers) {      
+            if(s->supportedString(le->path)) {
+                return s;
+            }
+        }
+    }
+       
     return 0;
 }
 
 void Logstalgia::addStrings(LogEntry* le) {
 
-    std::string hostname = le->hostname;
-    std::string pageurl  = le->path;
-
-    Summarizer* groupSummarizer = getGroupSummarizer(pageurl);
+    Summarizer* groupSummarizer = getGroupSummarizer(le);
 
     if(!groupSummarizer) return;
+
+    std::string hostname = le->hostname;
+    std::string pageurl  = le->path;
 
     if(settings.hide_url_prefix) pageurl = filterURLHostname(pageurl);
 
@@ -436,11 +463,8 @@ void Logstalgia::addStrings(LogEntry* le) {
 
 void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
-    std::string hostname = le->hostname;
-    std::string pageurl  = le->path;
-
     //find appropriate summarizer for url
-    Summarizer* groupSummarizer = getGroupSummarizer(pageurl);
+    Summarizer* groupSummarizer = getGroupSummarizer(le);
 
     if(!groupSummarizer) return;
 
@@ -461,6 +485,9 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     } else {
         entry_paddle = paddles[""];
     }
+
+    std::string hostname = le->hostname;
+    std::string pageurl  = le->path;
 
     if(settings.hide_url_prefix) pageurl = filterURLHostname(pageurl);
 
@@ -628,16 +655,16 @@ void Logstalgia::init() {
     readLog();
 
     //add default groups
-    if(summGroups.size()==0) {
+    if(summarizers.empty()) {
         //images - file is under images or
-        addGroup("CSS", "(?i)\\.css\\b", 15);
-        addGroup("Script", "(?i)\\.js\\b", 15);
-        addGroup("Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
+        addGroup("URI", "CSS", "(?i)\\.css\\b", 15);
+        addGroup("URI", "Script", "(?i)\\.js\\b", 15);
+        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
     if(remaining_space>50) {
-        addGroup(summGroups.size()>0 ? "Misc" : "", ".*");
+        addGroup("URI", "Misc", ".*");
     }
 
     resizeGroups();
@@ -776,7 +803,7 @@ void Logstalgia::removeBall(RequestBall* ball) {
     std::string url  = ball->le->path;
     std::string host = ball->le->hostname;
 
-    for(Summarizer* s: summGroups) {
+    for(Summarizer* s: summarizers) {
         if(s->supportedString(url)) {
 
             if(settings.hide_url_prefix) url = filterURLHostname(url);
@@ -830,9 +857,8 @@ void Logstalgia::logic(float t, float dt) {
         }
 
         if(!ipSummarizer->mouseOver(infowindow,mousepos)) {
-            int nogrps = summGroups.size();
-            for(int i=0;i<nogrps;i++) {
-                if(summGroups[i]->mouseOver(infowindow, mousepos)) break;
+            for(Summarizer* s: summarizers) {
+                if(s->mouseOver(infowindow, mousepos)) break;
             }
         }
 
@@ -886,7 +912,7 @@ void Logstalgia::logic(float t, float dt) {
             //re-summarize
             ipSummarizer->summarize();
 
-            for(Summarizer* s : summGroups) {
+            for(Summarizer* s : summarizers) {
                 s->summarize();
             }
 
@@ -1025,33 +1051,41 @@ void Logstalgia::logic(float t, float dt) {
 
 void Logstalgia::addGroup(const std::string& groupstr) {
 
-    std::vector<std::string> groupdef;
-    Regex groupregex("^([^,]+),([^,]+),([^,]+)(?:,([^,]+))?$");
-    groupregex.match(groupstr, &groupdef);
+    std::vector<std::string> group_definition;
+    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+),([^,]+)(?:,([^,]+))?$");
+    groupregex.match(groupstr, &group_definition);
 
     vec3 colour(0.0f, 0.0f, 0.0f);
 
-    if(groupdef.size()>=3) {
-        std::string groupname = groupdef[0];
-        std::string groupregex = groupdef[1];
-        int percent = atoi(groupdef[2].c_str());
+    if(group_definition.size()>=4) {
+        std::string group_name  = group_definition[0];
+        std::string group_type  = group_definition[1];
+        std::string group_regex = group_definition[2];
 
+        if(group_type.empty()) group_type = "URI";
+        
+        debugLog("group_name %s group_type %s group_regex %s", group_name.c_str(), group_type.c_str(), group_regex.c_str());
+        
+        int percent = atoi(group_definition[3].c_str());
+
+        // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
+        
         //check for optional colour param
-        if(groupdef.size()>=4) {
+        if(group_definition.size()>=5) {
             int col;
             int r, g, b;
-            if(sscanf(groupdef[3].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
+            if(sscanf(group_definition[4].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
                 colour = vec3( r, g, b );
                 debugLog("r = %d, g = %d, b = %d\n", r, g, b);
                 colour /= 255.0f;
             }
         }
 
-        addGroup(groupname, groupregex, percent, colour);
+        addGroup(group_type, group_name, group_regex, percent, colour);
     }
 }
 
-void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int percent, vec3 colour) {
+void Logstalgia::addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, int percent, vec3 colour) {
 
     if(percent<0) return;
 
@@ -1068,8 +1102,13 @@ void Logstalgia::addGroup(std::string grouptitle, std::string groupregex, int pe
     if(glm::dot(colour, colour) > 0.01f) {
         summarizer->setColour(colour);
     }
-
-    summGroups.push_back(summarizer);
+    
+    if(!summarizer_types[group_by]) {
+        summarizer_types[group_by] = new std::vector<Summarizer*>();
+    }
+    
+    summarizers.push_back(summarizer);
+    summarizer_types[group_by]->push_back(summarizer);
 
     int space = (int) ( ((float)percent/100) * total_space );
     remaining_space -= space;
@@ -1080,11 +1119,11 @@ void Logstalgia::resizeGroups() {
     total_space = display.height - 40;
     remaining_space = total_space - 2;
 
-    for(auto group : summGroups) {
-
+    for(Summarizer* s : summarizers) {
+    
         int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
-        int percent = group->getScreenPercent();
+        int percent = s->getScreenPercent();
 
         // TODO: do something here ? flag as hidden ?
         //group->setVisible( remaining_percent >= percent );
@@ -1094,7 +1133,7 @@ void Logstalgia::resizeGroups() {
         int space = (int) ( ((float)percent/100) * total_space );
         int bottom_gap = display.height - (total_space - remaining_space + space);
 
-        group->setSize(paddle_x, top_gap, bottom_gap);
+        s->setSize(paddle_x, top_gap, bottom_gap);
 
         remaining_space -= space;
     }
@@ -1103,20 +1142,16 @@ void Logstalgia::resizeGroups() {
 
 void Logstalgia::updateGroups(float dt) {
 
-    int nogrps = summGroups.size();
-    for(int i=0;i<nogrps;i++) {
-        summGroups[i]->logic(dt);
+    for(Summarizer* s : summarizers) {
+        s->logic(dt);
     }
-
 }
 
 void Logstalgia::drawGroups(float dt, float alpha) {
 
-    int nogrps = summGroups.size();
-    for(int i=0;i<nogrps;i++) {
-        summGroups[i]->draw(dt, alpha);
+    for(Summarizer* s : summarizers) {
+        s->draw(dt, alpha);
     }
-
 }
 
 void Logstalgia::draw(float t, float dt) {

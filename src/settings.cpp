@@ -45,7 +45,10 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -s --simulation-speed      Simulation speed (default: 1)\n");
     printf("  -p --pitch-speed           Speed balls travel across the screen (default: 0.15)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
-    printf("  -g name,regex,percent[,colour]  Group urls that match a regular expression\n\n");
+
+    printf("  -g name,(HOST|URI|CODE)=regex,percent[,colour]\n");
+    printf("                             Group together requests where the HOST, URI or response\n");
+    printf("                             CODE matches a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
@@ -152,7 +155,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["simulation-speed"] = "float";
     arg_types["update-rate"]      = "float";
 
-    arg_types["group"]            = "multi-value";
+    arg_types["group"] = "multi-value";
 
     arg_types["log-level"]          = "string";
     arg_types["load-config"]        = "string";
