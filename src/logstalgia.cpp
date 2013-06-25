@@ -144,7 +144,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 Logstalgia::~Logstalgia() {
     if(accesslog!=0) delete accesslog;
 
-    for(auto it: paddles) {
+    for(auto& it: paddles) {
         delete it.second;
     }
     paddles.clear();
@@ -152,7 +152,7 @@ Logstalgia::~Logstalgia() {
     if(seeklog!=0) delete seeklog;
     if(streamlog!=0) delete streamlog;
 
-    for(auto it : summarizer_types) {
+    for(auto& it : summarizer_types) {
         if(it.second != 0) delete it.second;
     }
 
@@ -260,7 +260,7 @@ void Logstalgia::initPaddles() {
         vec4(0.0f, 0.0f, 0.0f, 0.0f) : vec4(0.5, 0.5, 0.5, 1.0);
 
     if(!paddles.empty()) {
-        for(auto it: paddles) {
+        for(auto& it: paddles) {
             delete it.second;
         }
         paddles.clear();
@@ -842,7 +842,7 @@ void Logstalgia::logic(float t, float dt) {
     //if paused, dont move anything, only check what is under mouse
     if(paused) {
 
-        for(auto it: paddles) {
+        for(auto& it: paddles) {
             Paddle* paddle = it.second;
 
             if(paddle->mouseOver(infowindow, mousepos)) {
@@ -969,7 +969,7 @@ void Logstalgia::logic(float t, float dt) {
     std::list<Paddle*> inactivePaddles;
 
     //update paddles
-    for(auto it: paddles) {
+    for(auto& it: paddles) {
 
         std::string paddle_token = it.first;
         Paddle*           paddle = it.second;
@@ -1218,12 +1218,12 @@ void Logstalgia::draw(float t, float dt) {
     if(settings.paddle_mode != PADDLE_NONE) {
 
         //draw paddles shadows
-        for(auto it: paddles) {
+        for(auto& it: paddles) {
             it.second->drawShadow();
         }
 
         //draw paddles
-        for(auto it: paddles) {
+        for(auto& it: paddles) {
             it.second->draw();
         }
     }
@@ -1233,7 +1233,7 @@ void Logstalgia::draw(float t, float dt) {
         glEnable(GL_TEXTURE_2D);
 
         //draw paddle tokens
-        for(auto it: paddles) {
+        for(auto& it: paddles) {
             it.second->drawToken();
         }
     }
