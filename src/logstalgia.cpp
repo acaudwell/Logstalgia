@@ -144,8 +144,8 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 Logstalgia::~Logstalgia() {
     if(accesslog!=0) delete accesslog;
 
-    for(std::map<std::string, Paddle*>::iterator it= paddles.begin(); it!=paddles.end();it++) {
-        delete it->second;
+    for(auto it: paddles) {
+        delete it.second;
     }
     paddles.clear();
 
@@ -260,7 +260,7 @@ void Logstalgia::initPaddles() {
         vec4(0.0f, 0.0f, 0.0f, 0.0f) : vec4(0.5, 0.5, 0.5, 1.0);
 
     if(!paddles.empty()) {
-        for(auto& it: paddles) {
+        for(auto it: paddles) {
             delete it.second;
         }
         paddles.clear();
@@ -275,8 +275,8 @@ void Logstalgia::initPaddles() {
 
 void Logstalgia::initRequestBalls() {
 
-    for(auto it = balls.begin(); it != balls.end(); it++) {
-        removeBall(*it);
+    for(RequestBall* r: balls) {
+        removeBall(r);
     }
 
     balls.clear();
@@ -842,7 +842,7 @@ void Logstalgia::logic(float t, float dt) {
     //if paused, dont move anything, only check what is under mouse
     if(paused) {
 
-        for(auto& it: paddles) {
+        for(auto it: paddles) {
             Paddle* paddle = it.second;
 
             if(paddle->mouseOver(infowindow, mousepos)) {
@@ -969,7 +969,7 @@ void Logstalgia::logic(float t, float dt) {
     std::list<Paddle*> inactivePaddles;
 
     //update paddles
-    for(auto& it: paddles) {
+    for(auto it: paddles) {
 
         std::string paddle_token = it.first;
         Paddle*           paddle = it.second;
@@ -1010,7 +1010,8 @@ void Logstalgia::logic(float t, float dt) {
 
     profile_start("check ball status");
 
-    for(std::list<RequestBall*>::iterator it = balls.begin(); it != balls.end();) {
+    // NOTE: special handling for this iterator as items are being removed
+    for(auto it = balls.begin(); it != balls.end();) {
 
         RequestBall* ball = *it;
 
@@ -1217,13 +1218,13 @@ void Logstalgia::draw(float t, float dt) {
     if(settings.paddle_mode != PADDLE_NONE) {
 
         //draw paddles shadows
-        for(auto it = paddles.begin(); it!=paddles.end();it++) {
-            it->second->drawShadow();
+        for(auto it: paddles) {
+            it.second->drawShadow();
         }
 
         //draw paddles
-        for(auto it = paddles.begin(); it!=paddles.end();it++) {
-            it->second->draw();
+        for(auto it: paddles) {
+            it.second->draw();
         }
     }
 
@@ -1232,8 +1233,8 @@ void Logstalgia::draw(float t, float dt) {
         glEnable(GL_TEXTURE_2D);
 
         //draw paddle tokens
-        for(auto it = paddles.begin(); it!=paddles.end();it++) {
-            it->second->drawToken();
+        for(auto it: paddles) {
+            it.second->drawToken();
         }
     }
 
