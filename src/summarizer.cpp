@@ -452,7 +452,7 @@ bool Summarizer::mouseOver(TextArea& textarea, vec2 mouse) {
             std::vector<std::string> content;
 
             textarea.setText(item.unit.expanded);
-            textarea.setColour(item.colour.xyz());
+            textarea.setColour(vec3(item.colour));
             textarea.setPos(mouse);
             mouseover=true;
             return true;

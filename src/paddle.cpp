@@ -103,7 +103,7 @@ bool Paddle::mouseOver(TextArea& textarea, vec2& mouse) {
 
         textarea.setText(content);
         textarea.setPos(mouse);
-        textarea.setColour(colour.xyz());
+        textarea.setColour(vec3(colour));
 
         return true;
     }

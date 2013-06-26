@@ -48,7 +48,6 @@ CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
 
 #GLM
 AC_CHECK_HEADER([glm/glm.hpp],, AC_MSG_ERROR(GLM headers are required. Please see INSTALL))
-CPPFLAGS="-DGLM_SWIZZLE $CPPFLAGS"
 
 #see if ttf-font-dir option is enabled
 AC_ARG_ENABLE(ttf-font-dir,[AS_HELP_STRING([--enable-ttf-font-dir=DIR],[directory containing GNU FreeFont TTF fonts])],[sdlappfontdir="$enableval"],[sdlappfontdir=""])
