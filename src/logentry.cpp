@@ -17,8 +17,9 @@
 
 #include "logentry.h"
 
-bool  gMask    = true;
+#include "core/regex.h"
 
+bool  gMask    = true;
 
 //AccessLog
 

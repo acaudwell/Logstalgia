@@ -1,7 +1,6 @@
 #ifndef POS_SLIDER_H
 #define POS_SLIDER_H
 
-#include "core/logger.h"
 #include "core/bounds.h"
 #include "core/fxfont.h"
 

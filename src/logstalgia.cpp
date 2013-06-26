@@ -17,6 +17,9 @@
 
 #include "logstalgia.h"
 #include "settings.h"
+#include "ncsa.h"
+#include "custom.h"
+
 #include "core/png_writer.h"
 
 //Logstalgia

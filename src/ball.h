@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "core/vectors.h"
-#include "core/sdlapp.h"
 
 class Line {
 

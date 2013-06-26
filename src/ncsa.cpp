@@ -17,6 +17,8 @@
 
 #include "ncsa.h"
 
+#include "core/regex.h"
+
 const char* ls_ncsa_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
 Regex ls_ncsa_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
 Regex ls_ncsa_entry_date("(\\d+)/(\\d+|[A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");

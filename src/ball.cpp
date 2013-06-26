@@ -18,6 +18,8 @@
 #include "ball.h"
 #include "settings.h"
 
+#include "core/display.h"
+
 //Line
 Line::Line(vec2 start, vec2 end) {
 	this->start = start;

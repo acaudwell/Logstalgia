@@ -22,14 +22,11 @@
 #include "windows.h"
 #endif
 
-#include "core/display.h"
+#include "core/sdlapp.h"
 #include "core/fxfont.h"
-#include "core/stringhash.h"
 #include "core/seeklog.h"
 #include "core/ppm.h"
 
-#include "ncsa.h"
-#include "custom.h"
 #include "logentry.h"
 #include "paddle.h"
 #include "requestball.h"
@@ -37,16 +34,11 @@
 #include "textarea.h"
 #include "slider.h"
 
-#include <unistd.h>
-
-#include <dirent.h>
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
 #include <time.h>
-#include <fcntl.h>
-#include <errno.h>
 
 class Logstalgia : public SDLApp {
 

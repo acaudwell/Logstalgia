@@ -18,15 +18,9 @@
 #ifndef LOGENTRY_H
 #define LOGENTRY_H
 
-#include <string>
-#include <string.h>
-
-#include <vector>
-#include <time.h>
-
-#include "core/sdlapp.h"
 #include "core/vectors.h"
-#include "core/regex.h"
+
+#include <string>
 
 extern bool  gMask;
 

@@ -1,5 +1,7 @@
 #include "custom.h"
 
+#include "core/regex.h"
+
 //timestamp
 //hostname
 //path
