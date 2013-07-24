@@ -22,12 +22,10 @@
 
 #include <string>
 
-extern bool  gMask;
-
 class LogEntry {
 
 private:
-    std::string maskHostname(std::string hostname);
+    std::string maskHostname(const std::string& hostname);
 public:
     LogEntry();
     bool validate();

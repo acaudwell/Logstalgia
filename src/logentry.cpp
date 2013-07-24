@@ -16,10 +16,9 @@
 */
 
 #include "logentry.h"
+#include "settings.h"
 
 #include "core/regex.h"
-
-bool  gMask    = true;
 
 //AccessLog
 
@@ -37,23 +36,26 @@ LogEntry::LogEntry() {
 
 Regex logentry_hostname_parts("([^.]+)(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?$");
 
-std::string LogEntry::maskHostname(std::string hostname) {
+std::string LogEntry::maskHostname(const std::string& hostname) {
 
     std::vector<std::string> parts;
+
     logentry_hostname_parts.match(hostname, &parts);
 
+    size_t part_count = parts.size();
+    
     //if only 1-2 parts, or 3 parts and a 2 character suffix, pass through unchanged
-    if( parts.size()<=2 || (parts.size()==3 && parts[parts.size()-1].size()==2))
+    if( part_count <= 2 || (part_count == 3 && parts[part_count-1].size()==2))
         return hostname;
 
-    int num = atoi(parts[parts.size()-1].c_str());
+    int num = atoi(parts[part_count-1].c_str());
 
     std::string output;
 
     //if last element is numeric, assume it is a numbered ip address
     //(ie 192.168.0.1 => 192.168.0-)
     if(num!=0) {
-        for(size_t i=0;i<parts.size()-1;i++) {
+        for(size_t i=0;i<part_count-1;i++) {
             if(i>0) output += '.';
             output += parts[i];
         }
@@ -64,7 +66,7 @@ std::string LogEntry::maskHostname(std::string hostname) {
 
     //hide the first element
     //(ie dhcp113.web.com -> web.com
-    for(size_t i=1;i<parts.size();i++) {
+    for(size_t i=1;i<part_count;i++) {
             if(i>1) output += '.';
             output += parts[i];
     }
@@ -104,7 +106,7 @@ bool LogEntry::validate() {
 
     if(hostname.size()==0) return false;
 
-    if(gMask) {
+    if(settings.mask_hostnames) {
         hostname = maskHostname(hostname);
     }
 
