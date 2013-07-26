@@ -58,10 +58,11 @@ dosify('THANKS',    "$WINBUILD/THANKS.txt");
 doit("cp dev/win32/SDL.dll $WINBUILD");
 doit("cp dev/win32/SDL_image.dll $WINBUILD");
 doit("cp dev/win32/pcre3.dll $WINBUILD");
-doit("cp dev/win32/ftgl.dll $WINBUILD");
-doit("cp dev/win32/jpeg.dll $WINBUILD");
-doit("cp dev/win32/libpng12-0.dll $WINBUILD");
+doit("cp dev/win32/libjpeg-9.dll $WINBUILD");
+doit("cp dev/win32/libpng15-15.dll $WINBUILD");
 doit("cp dev/win32/zlib1.dll $WINBUILD");
+doit("cp dev/win32/glew32.dll $WINBUILD");
+doit("cp dev/win32/freetype6.dll $WINBUILD");
 
 chdir($WINBUILD);
 doit("zip -r $APP_NAME-$VERSION.win32.zip *");
