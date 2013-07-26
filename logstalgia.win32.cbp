@@ -31,6 +31,8 @@
 			<Add library="pcre" />
 			<Add library="glew32" />
 			<Add library="freetype" />
+			<Add library="png" />
+			<Add library="libz" />
 		</Linker>
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
@@ -48,6 +50,8 @@
 		<Unit filename="src\core\pi.h" />
 		<Unit filename="src\core\plane.cpp" />
 		<Unit filename="src\core\plane.h" />
+		<Unit filename="src\core\png_writer.cpp" />
+		<Unit filename="src\core\png_writer.h" />
 		<Unit filename="src\core\ppm.cpp" />
 		<Unit filename="src\core\ppm.h" />
 		<Unit filename="src\core\quadtree.cpp" />
