@@ -16,8 +16,9 @@
 */
 
 #include "ncsa.h"
-
 #include "core/regex.h"
+
+#include <time.h>
 
 const char* ls_ncsa_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
 Regex ls_ncsa_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
@@ -80,7 +81,7 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
 
     //could not parse month (range 0-11 as used by mktime)
     if(month<0 || month>11) return 0;
-    
+
     //convert zone to utc offset
     int tz_hour = atoi(matches[7].substr(0,2).c_str());
     int tz_min  = atoi(matches[7].substr(2,2).c_str());
@@ -128,20 +129,20 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
             entry.user_agent = matches[1];
 
             std::string extra = matches[2];
-            
+
             // NOTE: could store extra fields and allow --paddle-mode to address then via their offset
             if(!extra.empty()) {
-                                
+
                 std::vector<std::string> extra_fields;
                 if(ls_ncsa_extra_field.matchAll(extra, &extra_fields)) {
-                    
+
 //                     for(size_t i=0;i<extra_fields.size();i++) {
 //                         debugLog("extra fields %d: %s", i, extra_fields[i].c_str());
 //                     }
-                    
+
                     if(!extra_fields.empty() && !extra_fields[0].empty()) {
                         entry.pid = extra_fields[0];
-                        
+
                         if(entry.pid.size()>=2 && entry.pid[0] == '"' && entry.pid[entry.pid.size()-1] == '"') {
                             entry.pid = entry.pid.substr(1, entry.pid.size()-2);
                         }
