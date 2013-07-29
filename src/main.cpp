@@ -144,6 +144,11 @@ int main(int argc, char *argv[]) {
 
     display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen);
 
+    // Don't minimize when alt-tabbing so you can fullscreen logstalgia on a second monitor
+#if SDL_VERSION_ATLEAST(2,0,0)
+     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+#endif
+     
     //disable OpenGL 2.0 functions if not supported
     if(!GLEW_VERSION_2_0) settings.ffp = true;
     
