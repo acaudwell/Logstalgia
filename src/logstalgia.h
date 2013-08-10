@@ -18,10 +18,6 @@
 #ifndef LOGSTALGIA_H
 #define LOGSTALGIA_H
 
-#ifdef _WIN32
-#include "windows.h"
-#endif
-
 #include "core/sdlapp.h"
 #include "core/fxfont.h"
 #include "core/seeklog.h"
