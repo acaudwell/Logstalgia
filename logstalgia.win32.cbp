@@ -31,8 +31,7 @@
 			<Add library="pcre" />
 			<Add library="glew32" />
 			<Add library="freetype" />
-			<Add library="png" />
-			<Add library="libz" />
+			<Add library="libpng16.dll.a" />
 		</Linker>
 		<Unit filename="src\ball.cpp" />
 		<Unit filename="src\ball.h" />
