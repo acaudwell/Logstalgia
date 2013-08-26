@@ -2,7 +2,7 @@ depcomp
 missing
 install-sh
 aclocal.m4
-logstalgia
+/logstalgia
 logstalgia.exe
 logstalgia.win32.depend
 logstalgia.win32.layout
