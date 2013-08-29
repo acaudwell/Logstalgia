@@ -146,6 +146,12 @@ options:
     -r, --output-framerate FPS
             Framerate of output (used with --output-ppm-stream).
 
+    --load-config CONFIG_FILE
+            Load a config file.
+
+    --save-config CONFIG_FILE
+            Save a config file with the current options.
+
     logfile
             The path to the access log file to read or '-' if you wish to
             supply log entries via STDIN.
