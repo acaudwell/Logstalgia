@@ -17,8 +17,9 @@
 
 #include "logentry.h"
 #include "settings.h"
-
 #include "core/regex.h"
+
+#include <algorithm>
 
 //AccessLog
 
@@ -34,12 +35,44 @@ LogEntry::LogEntry() {
     response_colour = vec3(1.0, 0.0, 0.0);
 }
 
+Regex logentry_ipv6("(?i)^[a-f0-9:]+$");
+
 Regex logentry_hostname_parts("([^.]+)(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?(?:\\.([^.]+))?$");
 
 std::string LogEntry::maskHostname(const std::string& hostname) {
 
     std::vector<std::string> parts;
 
+    // could be an ipv6 address
+    if(logentry_ipv6.match(hostname) && hostname.find(":") != std::string::npos) {
+
+        size_t c = 0;
+        size_t last     = hostname.size(); 
+
+        size_t colon_count = std::count(hostname.begin(), hostname.end(), ':');
+        size_t padding     = 7 - colon_count;
+
+        if(colon_count <= 7) {
+            
+            size_t previous = 0;
+
+            while( (last = hostname.rfind(":",last-1)) != std::string::npos) {
+
+                c++;
+
+                if(last == (previous-1)) c += padding;
+                
+                if(c >= 4) {
+                    std::string output = hostname.substr(0, last);
+                    output += '-';
+                    return output;
+                }
+
+                previous = last;
+            }
+        }
+    }
+    
     logentry_hostname_parts.match(hostname, &parts);
 
     size_t part_count = parts.size();
@@ -54,7 +87,8 @@ std::string LogEntry::maskHostname(const std::string& hostname) {
 
     //if last element is numeric, assume it is a numbered ip address
     //(ie 192.168.0.1 => 192.168.0-)
-    if(num!=0) {
+
+    if(num != 0) {
         for(size_t i=0;i<part_count-1;i++) {
             if(i>0) output += '.';
             output += parts[i];

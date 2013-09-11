@@ -9,6 +9,7 @@
  * Added window resizing and a full-screen toggle (alt-enter).
  * Take screenshots (F12).
  * Summarizer component content is now sorted.
+ * IPv6 addresses now anonymized by default as well (last 64 bits).
  * New dependencies on libpng, GLEW.
  * Now requires GLM and Boost header-only libraries to build.
 
