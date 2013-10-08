@@ -15,7 +15,7 @@ use Cwd;
 my $APP_NAME = 'logstalgia';
 
 sub app_version {
-    my $version = `cat $FindBin::Bin/../../src/logstalgia.h | grep LOGSTALGIA_VERSION`;
+    my $version = `cat $FindBin::Bin/../../src/settings.h | grep LOGSTALGIA_VERSION`;
     $version =~ /"([^"]+)"/ or die("could not determine version\n");
     $version = $1;
     return $version;
@@ -24,10 +24,10 @@ sub app_version {
 my $VERSION = app_version();
 
 my @exclusions = (
-    qr{^/contrib/},
+    qr{^/autogen\.sh$},
+    qr{^/cmd/},
     qr{^/config.status$},
     qr{^/config.log$},
-    qr{^/debian/},
     qr{^/logstalgia$},
     qr{^/dev/},
     qr{^/logs/},
@@ -38,6 +38,8 @@ my @exclusions = (
     qr{^/todo.txt$},
     qr{^/build-stamp$},
     qr{^/autom4te},
+    qr{^/src/core/README$},
+    qr{^/src/core/ui/},
 );
 
 my @inclusions = (
@@ -52,7 +54,7 @@ my @inclusions = (
     qr{^/aclocal\.m4$},
     qr{^/m4/.+\.m4$},
     qr{^/configure(?:\.ac)?$},
-    qr{^/src/.+\.(?:cpp|h)$},
+    qr{^/src/.+\.(?:cpp|h|cc|hh)$},
     qr{^/data/.+\.(?:png|tga|ttf|1)$},
     qr{^/data/fonts/README$},
     qr{^/data/example\.log$},
