@@ -71,7 +71,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     ipSummarizer  = 0;
 
-    mintime       = settings.sync ? time(0) : 0;
+    mintime       = settings.sync ? time(0) : settings.from;
     seeklog       = 0;
     streamlog     = 0;
 
@@ -621,7 +621,11 @@ void Logstalgia::readLog(int buffer_rows) {
     if(queued_entries.empty() && seeklog != 0) {
 
         if(total_entries==0) {
-            logstalgia_quit("could not parse first entry");
+            if(mintime != 0) {
+                logstalgia_quit("could not parse any entries in the specified time period");
+            } else {
+                logstalgia_quit("could not parse any entries");
+            }
         }
 
         //no more entries

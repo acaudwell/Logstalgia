@@ -53,7 +53,10 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
 
+    printf("  --from, --to DATETIME      Display a specific time period of a log file\n\n");
+
     printf("  --sync                     Read from STDIN, ignoring entries before now\n");
+    
     printf("  --start-position POSITION  Begin at some position in the log (0.0 - 1.0)\n");
     printf("  --stop-position  POSITION  Stop at some position\n\n");
 
@@ -157,6 +160,8 @@ LogstalgiaSettings::LogstalgiaSettings() {
 
     arg_types["group"] = "multi-value";
 
+    arg_types["to"]                 = "string";
+    arg_types["from"]               = "string";
     arg_types["log-level"]          = "string";
     arg_types["load-config"]        = "string";
     arg_types["save-config"]        = "string";
@@ -173,6 +178,8 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     sync = false;
 
+    from = to = 0;
+    
     start_position = 0.0f;
     stop_position  = 1.0f;
 
@@ -207,6 +214,33 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     font_size = 14;
 
     groups.clear();
+}
+
+bool LogstalgiaSettings::parseDateTime(const std::string& datetime, const char* format_str, time_t& timestamp) {
+
+    struct tm timeinfo;
+    memset (&timeinfo,0,sizeof(timeinfo));
+
+    if(strptime(datetime.c_str(), format_str, &timeinfo) != 0) {
+
+        timeinfo.tm_isdst = -1;
+        timestamp = mktime(&timeinfo);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool LogstalgiaSettings::parseDateTime(const std::string& datetime, time_t& timestamp) {
+
+    if(   parseDateTime(datetime, "%Y-%m-%d %T", timestamp)
+       || parseDateTime(datetime, "%Y-%m-%d %R", timestamp)
+       || parseDateTime(datetime, "%Y-%m-%d",    timestamp)) {
+        return true;
+    }
+
+    return false;
 }
 
 void LogstalgiaSettings::commandLineOption(const std::string& name, const std::string& value) {
@@ -323,6 +357,24 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
             background_colour = vec3(r,g,b);
             background_colour /= 255.0f;
         } else {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("from")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify from (YYYY-MM-DD HH:MM:SS)");
+
+        if(!parseDateTime(entry->getString(), from)) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("to")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify to (YYYY-MM-DD HH:MM:SS)");
+
+        if(!parseDateTime(entry->getString(), to)) {
             conffile.invalidValueException(entry);
         }
     }

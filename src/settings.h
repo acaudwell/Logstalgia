@@ -28,6 +28,9 @@
 #define PADDLE_VHOST  3
 
 class LogstalgiaSettings : public SDLAppSettings {
+private:
+    bool parseDateTime(const std::string& datetime, const char* format, time_t& timestamp);
+    bool parseDateTime(const std::string& datetime, time_t& timestamp);
 protected:
     void commandLineOption(const std::string& name, const std::string& value);
 public:
@@ -39,6 +42,9 @@ public:
 
     std::string load_config;
     std::string save_config;
+
+    time_t from;
+    time_t to;
 
     float splash;
 
