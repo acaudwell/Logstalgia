@@ -53,7 +53,7 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
 
-    printf("  --sync                     Read from STDIN, ignoring entries before now\n");
+    printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
 
     printf("  --from, --to 'YYYY-MM-DD hh:mm:ss'  Show entries from a specific time period\n\n");
 
