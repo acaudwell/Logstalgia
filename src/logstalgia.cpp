@@ -32,7 +32,37 @@ bool  gSyncLog  = false;
 std::string profile_name;
 Uint32 profile_start_msec;
 
-std::string old_tz;
+std::string old_env_tz;
+
+void get_env_tz() {
+    //check if TZ is set, store current value
+    if(old_env_tz.empty()) {
+        char* current_tz_env = getenv("TZ");
+        if(current_tz_env != 0) {
+            old_env_tz  = std::string("TZ=");
+            old_env_tz += std::string(current_tz_env);
+        }
+    }
+}
+
+void set_utc_tz() {
+   //change TZ to UTC
+   putenv((char*)"TZ=UTC");
+   tzset();
+}
+
+void unset_utc_tz() {
+    if(!old_env_tz.empty()) {
+        putenv((char*)old_env_tz.c_str());
+    } else {
+#ifdef HAVE_UNSETENV
+        unsetenv("TZ");
+#else
+        putenv("TZ=");
+#endif
+    }
+    tzset();
+}
 
 void profile_start(std::string profile) {
 #ifdef LS_PERFORMANCE_PROFILE
@@ -71,7 +101,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     ipSummarizer  = 0;
 
-    mintime       = settings.sync ? time(0) : settings.from;
+    mintime       = settings.sync ? time(0) : settings.start_time;
     seeklog       = 0;
     streamlog     = 0;
 
@@ -133,15 +163,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
-    //check if TZ is set, store current value
-    if(old_tz.empty()) {
-        char* current_tz_env = getenv("TZ");
-
-        if(current_tz_env != 0) {
-            old_tz  = std::string("TZ=");
-            old_tz += std::string(current_tz_env);
-        }
-    }
+    get_env_tz();
 }
 
 Logstalgia::~Logstalgia() {
@@ -374,8 +396,13 @@ std::string Logstalgia::dateAtPosition(float percent) {
 
         LogEntry le;
 
-        if(accesslog->parseLine(linestr, le)) {
+        set_utc_tz();
+        
+        bool parsed = accesslog->parseLine(linestr, le);
 
+        unset_utc_tz();
+
+        if(parsed) {
             //display date
             char datestr[256];
 
@@ -523,9 +550,7 @@ void Logstalgia::readLog(int buffer_rows) {
 
     profile_start("readLog");
 
-    //change TZ to UTC
-    putenv((char*)"TZ=UTC");
-    tzset();
+    set_utc_tz();
 
     int entries_read = 0;
 
@@ -604,20 +629,8 @@ void Logstalgia::readLog(int buffer_rows) {
 
     profile_stop();
 
-    //reset TZ to previous value
-
-    if(!old_tz.empty()) {
-        putenv((char*)old_tz.c_str());
-    } else {
-#ifdef HAVE_UNSETENV
-        unsetenv("TZ");
-#else
-        putenv("TZ=");
-#endif
-    }
-
-    tzset();
-
+    unset_utc_tz();
+    
     if(queued_entries.empty() && seeklog != 0) {
 
         if(total_entries==0) {
