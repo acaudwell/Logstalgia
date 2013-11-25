@@ -1016,11 +1016,15 @@ void Logstalgia::logic(float t, float dt) {
         }
 
         // find nearest ball to this paddle
-        if( (retarget || !paddle->getTarget()) && !balls.empty() ) {
+        if( (retarget || !paddle->getTarget())) {
 
             RequestBall* ball = findNearest(paddle, paddle_token);
-            
-            paddle->setTarget(ball);
+
+            if(ball != 0) {
+                paddle->setTarget(ball);
+            } else if(!paddle->moving()) {
+                paddle->setTarget(0);
+            }
         }
 
         paddle->logic(sdt);
