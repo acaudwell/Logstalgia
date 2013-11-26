@@ -114,9 +114,11 @@ bool SummNode::removeWord(const std::string& str, size_t offset) {
 }
 
 void SummNode::debug(int indent) {
-    for(int i=0;i<indent;i++)
-        debugLog(" ");
-    debugLog("node c=%c refs=%d words=%d\n", c, refs, words);
+
+    std::string indentation;
+    if(indent>0) indentation.append(indent, ' ');
+
+    debugLog("%snode c=%c refs=%d words=%d", indentation.c_str(), c, refs, words);
     indent++;
 
     for(size_t i=0;i<children.size();i++) {
@@ -555,8 +557,6 @@ void Summarizer::recalc_display() {
         item.setDeparting(match == -1 ? true : false);
     }
 
-    if(found_count == nostrs) return;
-    
     //add items for strings not found
     for(size_t i=0;i<nostrs;i++) {
         if(strfound[i]) continue;
@@ -648,6 +648,8 @@ int Summarizer::getBestMatchIndex(const std::string& input) const {
 
 const std::string& Summarizer::getBestMatchStr(const std::string& str) const {
     int pos = getBestMatchIndex(str);
+
+    assert(pos !=- 1);
 
     return strings[pos].str;
 }
