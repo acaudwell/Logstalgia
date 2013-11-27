@@ -21,6 +21,7 @@
 #include "custom.h"
 
 #include "core/png_writer.h"
+#include "core/timezone.h"
 
 //Logstalgia
 
@@ -31,38 +32,6 @@ bool  gSyncLog  = false;
 
 std::string profile_name;
 Uint32 profile_start_msec;
-
-std::string old_env_tz;
-
-void get_env_tz() {
-    //check if TZ is set, store current value
-    if(old_env_tz.empty()) {
-        char* current_tz_env = getenv("TZ");
-        if(current_tz_env != 0) {
-            old_env_tz  = std::string("TZ=");
-            old_env_tz += std::string(current_tz_env);
-        }
-    }
-}
-
-void set_utc_tz() {
-   //change TZ to UTC
-   putenv((char*)"TZ=UTC");
-   tzset();
-}
-
-void unset_utc_tz() {
-    if(!old_env_tz.empty()) {
-        putenv((char*)old_env_tz.c_str());
-    } else {
-#ifdef HAVE_UNSETENV
-        unsetenv("TZ");
-#else
-        putenv("TZ=");
-#endif
-    }
-    tzset();
-}
 
 void profile_start(std::string profile) {
 #ifdef LS_PERFORMANCE_PROFILE
@@ -163,7 +132,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
-    get_env_tz();
+    store_env_tz();
 }
 
 Logstalgia::~Logstalgia() {

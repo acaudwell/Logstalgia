@@ -25,6 +25,7 @@ logstalgia_SOURCES = \
 	src/core/shader_common.cpp \
 	src/core/stringhash.cpp \
 	src/core/texture.cpp \
+	src/core/timezone.cpp \
 	src/core/vbo.cpp \
 	src/core/vectors.cpp \
 	src/custom.cpp \
