@@ -132,7 +132,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
-    store_env_tz();
+    init_tz();
 }
 
 Logstalgia::~Logstalgia() {
