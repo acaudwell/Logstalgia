@@ -576,7 +576,7 @@ void Logstalgia::readLog(int buffer_rows) {
 
         if(parsed_entry) {
 
-            if(mintime == 0 || mintime <= le.timestamp) {
+            if((!mintime || mintime <= le.timestamp) && (!settings.stop_time || settings.stop_time > le.timestamp)) {
 
                 queued_entries.push_back(new LogEntry(le));
 
@@ -615,7 +615,7 @@ void Logstalgia::readLog(int buffer_rows) {
 
         return;
     }
-
+    
     if(seeklog != 0) {
         float percent = seeklog->getPercent();
 
@@ -813,7 +813,11 @@ void Logstalgia::logic(float t, float dt) {
     //increment clock
     elapsed_time += sdt;
     currtime = starttime + (long)(elapsed_time);
-
+   
+    if(settings.stop_time && currtime > settings.stop_time) {
+        currtime = settings.stop_time;
+    }
+    
     if(mousehide_timeout>0.0f) {
         mousehide_timeout -= dt;
         if(mousehide_timeout<0.0f) {
