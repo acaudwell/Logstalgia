@@ -66,6 +66,17 @@ Paddle position as a fraction of the view width (0.25 - 0.75).
 \fB\-\-sync\fR
 Read from STDIN, ignoring entries before the current time.
 .TP
+\fB\-\-from, \-\-to 'YYYY\-MM\-DD hh:mm:ss +tz'\fR
+Show entries from a specific time period.
+
+If a time zone offset isn't specified the local time zone is used.
+
+Example accepted formats:
+
+    "2012-06-30"
+    "2012-06-30 12:00"
+    "2012-06-30 12:00:00 +12"
+.TP
 \fB\-\-start\-position POSITION\fR
 Begin at some position in the log file (between 0.0 and 1.0).
 .TP
