@@ -497,6 +497,10 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         path = settings->getString("path");
     }
 
+    if (path.empty() && !isatty(fileno(stdin))) {
+        path = "-";
+    }
+    
     if(path == "-") {
         /*
         if(log_format.size() == 0) {
