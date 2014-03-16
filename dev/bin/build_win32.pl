@@ -154,7 +154,6 @@ my @logstalgia_txts = qw(
     README
     ChangeLog
     data/fonts/README
-    README-SDL
     COPYING
     THANKS
 );
@@ -162,12 +161,12 @@ my @logstalgia_txts = qw(
 my @logstalgia_dlls = qw(
     SDL2.dll
     SDL2_image.dll
-    pcre3.dll
+    libpcre-1.dll
     libjpeg-9.dll
     libpng16-16.dll
     zlib1.dll
     glew32.dll
-    freetype6.dll
+    libfreetype-6.dll
 );
 
 my @logstalgia_dirs = qw(
