@@ -66,7 +66,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     highscore = 0;
 
-    uimessage_timer=0.0f;
+    message_timer = 0.0f;
 
     ipSummarizer  = 0;
 
@@ -125,7 +125,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     font_alpha = 1.0;
 
     take_screenshot = false;
-    
+
     //every 60 minutes seconds blank text for 60 seconds
 
     screen_blank_interval = 3600.0;
@@ -153,7 +153,7 @@ Logstalgia::~Logstalgia() {
     for(Summarizer* s : summarizers) {
         delete s;
     }
-    
+
     summarizers.clear();
     summarizer_types.clear();
 
@@ -167,7 +167,7 @@ void Logstalgia::togglePause() {
             mintime = time(0);
             elapsed_time = mintime - starttime;
         }
-        
+
         ipSummarizer->mouseOut();
 
         for(Summarizer* s : summarizers) {
@@ -200,7 +200,7 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
                 settings.ffp = !settings.ffp;
             }
         }
-        
+
         if(e->keysym.sym == SDLK_SPACE) {
             togglePause();
         }
@@ -226,20 +226,20 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
                 } else {
                     settings.simulation_speed = std::max(0.1f, settings.simulation_speed * 0.5f);
                 }
-                retarget=true;                
+                retarget=true;
             }
         }
 
         if(e->keysym.sym == SDLK_PERIOD) {
             settings.pitch_speed = glm::clamp(settings.pitch_speed+0.1f, 0.0f, 10.0f);
-            retarget=true;                
+            retarget=true;
         }
 
         if(e->keysym.sym == SDLK_COMMA) {
             settings.pitch_speed = glm::clamp(settings.pitch_speed-0.1f, 0.1f, 10.0f);
-            retarget=true;                
+            retarget=true;
         }
-            
+
         if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
             toggleFullscreen();
         }
@@ -299,7 +299,7 @@ void Logstalgia::reset() {
     lasttime      = 0;
 }
 
-void Logstalgia::takeScreenshot() {
+void Logstalgia::screenshot() {
 
     //get next free recording name
     char pngname[256];
@@ -318,7 +318,21 @@ void Logstalgia::takeScreenshot() {
     PNGWriter png;
     png.screenshot(filename);
 
-    //setMessage("Wrote screenshot " + std::string(pngname));
+    setMessage("Wrote screenshot %s", pngname);
+}
+
+void Logstalgia::setMessage(const char* str, ...) {
+
+    char msgbuff[1024];
+
+    va_list vl;
+
+    va_start(vl, str);
+        vsnprintf(msgbuff, 1024, str, vl);
+    va_end(vl);
+
+    message = std::string(msgbuff);
+    message_timer = 5.0;
 }
 
 void Logstalgia::seekTo(float percent) {
@@ -366,7 +380,7 @@ std::string Logstalgia::dateAtPosition(float percent) {
         LogEntry le;
 
         set_utc_tz();
-        
+
         bool parsed = accesslog->parseLine(linestr, le);
 
         unset_utc_tz();
@@ -417,17 +431,17 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
     auto host_match_summarizers = summarizer_types["HOST"];
     auto code_match_summarizers = summarizer_types["CODE"];
     auto uri_match_summarizers  = summarizer_types["URI"];
-    
+
     if(host_match_summarizers != 0) {
-        for(Summarizer* s : *host_match_summarizers) {       
+        for(Summarizer* s : *host_match_summarizers) {
             if(s->supportedString(le->hostname)) {
                 return s;
             }
         }
     }
-    
+
     if(code_match_summarizers != 0) {
-        for(Summarizer* s : *code_match_summarizers) {       
+        for(Summarizer* s : *code_match_summarizers) {
             if(s->supportedString(le->response_code)) {
                 return s;
             }
@@ -435,13 +449,13 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
     }
 
     if(uri_match_summarizers != 0) {
-        for(Summarizer* s : *uri_match_summarizers) {      
+        for(Summarizer* s : *uri_match_summarizers) {
             if(s->supportedString(le->path)) {
                 return s;
             }
         }
     }
-       
+
     return 0;
 }
 
@@ -496,7 +510,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     float start_x = -(entry_paddle->getX() * settings.pitch_speed * start_offset);
 
     //debugLog("start_offset %.2f : start_x = %.2f (paddle_x %.2f, pitch_speed %.2f)", start_offset, start_x, entry_paddle->getX(), settings.pitch_speed);
-    
+
     vec2 ball_start = vec2(start_x, pos_y);
     vec2 ball_dest  = vec2(entry_paddle->getX(), dest_y);
 
@@ -599,7 +613,7 @@ void Logstalgia::readLog(int buffer_rows) {
     profile_stop();
 
     unset_utc_tz();
-    
+
     if(queued_entries.empty() && seeklog != 0) {
 
         if(total_entries==0) {
@@ -615,7 +629,7 @@ void Logstalgia::readLog(int buffer_rows) {
 
         return;
     }
-    
+
     if(seeklog != 0) {
         float percent = seeklog->getPercent();
 
@@ -733,7 +747,7 @@ void Logstalgia::setFrameExporter(FrameExporter* exporter) {
 }
 
 void Logstalgia::update(float t, float dt) {
-    
+
     //if exporting a video use a fixed tick rate rather than time based
     if(frameExporter != 0) {
         dt = fixed_tick_rate;
@@ -776,7 +790,7 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
             ) {
 
             float arrival = ball->arrivalTime();
-        
+
             if(min_arrival<0.0f || arrival<min_arrival) {
                 min_arrival = arrival;
                 nearest = ball;
@@ -813,11 +827,11 @@ void Logstalgia::logic(float t, float dt) {
     //increment clock
     elapsed_time += sdt;
     currtime = starttime + (long)(elapsed_time);
-   
+
     if(settings.stop_time && currtime > settings.stop_time) {
         currtime = settings.stop_time;
     }
-    
+
     if(mousehide_timeout>0.0f) {
         mousehide_timeout -= dt;
         if(mousehide_timeout<0.0f) {
@@ -1061,13 +1075,13 @@ void Logstalgia::addGroup(const std::string& groupstr) {
         std::string group_regex = group_definition[2];
 
         if(group_type.empty()) group_type = "URI";
-        
+
         debugLog("group_name %s group_type %s group_regex %s", group_name.c_str(), group_type.c_str(), group_regex.c_str());
-        
+
         int percent = atoi(group_definition[3].c_str());
 
         // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
-        
+
         //check for optional colour param
         if(group_definition.size()>=5) {
             int col;
@@ -1090,7 +1104,7 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
     int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
     if(remaining_percent<=0) return;
-    
+
     if(!percent || percent > remaining_percent) {
         percent = remaining_percent;
     }
@@ -1100,11 +1114,11 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
     if(glm::dot(colour, colour) > 0.01f) {
         summarizer->setColour(colour);
     }
-    
+
     if(!summarizer_types[group_by]) {
         summarizer_types[group_by] = new std::vector<Summarizer*>();
     }
-    
+
     summarizers.push_back(summarizer);
     summarizer_types[group_by]->push_back(summarizer);
 
@@ -1118,7 +1132,7 @@ void Logstalgia::resizeGroups() {
     remaining_space = total_space - 2;
 
     for(Summarizer* s : summarizers) {
-    
+
         int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
         int percent = s->getScreenPercent();
@@ -1187,13 +1201,13 @@ void Logstalgia::draw(float t, float dt) {
     glEnable(GL_TEXTURE_2D);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
     glBindTexture(GL_TEXTURE_2D, balltex->textureid);
-    
+
     for(RequestBall* ball : balls) {
         ball->draw();
     }
-    
+
     profile_stop();
 
     profile_start("draw response codes");
@@ -1255,13 +1269,13 @@ void Logstalgia::draw(float t, float dt) {
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
 
-    if(!take_screenshot && uimessage_timer>0.1f) {
-        fontLarge.setColour(vec4(1.0f,1.0f,uimessage_timer/3.0f,uimessage_timer/3.0f));
+    if(!take_screenshot && !message.empty() && message_timer>0.0f) {
 
-        int mwidth = fontLarge.getWidth(uimessage.c_str());
+        fontMedium.setColour(vec4(1.0));
+        int mwidth = fontMedium.getWidth(message);
 
-        fontLarge.draw(display.width/2 - mwidth/2, display.height/2 - 20, uimessage.c_str());
-        uimessage_timer-=dt;
+        fontMedium.draw(display.width/2 - mwidth/2, display.height - fontMedium.getMaxHeight() - 2, message);
+        message_timer -= dt;
     }
 
     if(settings.splash > 0.0f) {
@@ -1325,9 +1339,9 @@ void Logstalgia::draw(float t, float dt) {
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 
     if(!settings.disable_progress) slider.draw(dt);
-    
+
     if(take_screenshot) {
-        takeScreenshot();
+        screenshot();
         take_screenshot = false;
     }
 }

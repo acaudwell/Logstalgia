@@ -52,7 +52,7 @@ class Logstalgia : public SDLApp {
     bool sync;
     bool end_reached;
     bool take_screenshot;
-    
+
     int highscore;
 
     time_t mintime;
@@ -75,8 +75,8 @@ class Logstalgia : public SDLApp {
     float spawn_delay;
     float spawn_speed;
 
-    std::string uimessage;
-    float uimessage_timer;
+    std::string message;
+    float message_timer;
 
     int total_space;
     int remaining_space;
@@ -135,7 +135,7 @@ class Logstalgia : public SDLApp {
     void drawGroups(float dt, float alpha);
 
     Summarizer* getGroupSummarizer(LogEntry* le);
-    
+
     void addStrings(LogEntry* le);
 
     void addBall(LogEntry* le,  float start_offset);
@@ -153,8 +153,10 @@ class Logstalgia : public SDLApp {
     void initRequestBalls();
     void resizeGroups();
 
-    void takeScreenshot();
-    
+    void setMessage(const char* str, ...);
+
+    void screenshot();
+
     void toggleFullscreen();
 
     void logic(float t, float dt);

@@ -22,3 +22,4 @@ config.guess
 .objs
 .deps
 .dirstamp
+logstalgia-*.png
