@@ -1269,15 +1269,6 @@ void Logstalgia::draw(float t, float dt) {
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
 
-    if(!take_screenshot && !message.empty() && message_timer>0.0f) {
-
-        fontMedium.setColour(vec4(1.0));
-        int mwidth = fontMedium.getWidth(message);
-
-        fontMedium.draw(display.width/2 - mwidth/2, display.height - fontMedium.getMaxHeight() - 2, message);
-        message_timer -= dt;
-    }
-
     if(settings.splash > 0.0f) {
         int logowidth = fontLarge.getWidth("Logstalgia");
         int logoheight = 105;
@@ -1343,5 +1334,14 @@ void Logstalgia::draw(float t, float dt) {
     if(take_screenshot) {
         screenshot();
         take_screenshot = false;
+    }
+
+    if(!message.empty() && message_timer > 0.0f) {
+
+        fontMedium.setColour(vec4(1.0));
+        int mwidth = fontMedium.getWidth(message);
+
+        fontMedium.draw(display.width/2 - mwidth/2, display.height - fontMedium.getMaxHeight() - 2, message);
+        message_timer -= dt;
     }
 }
