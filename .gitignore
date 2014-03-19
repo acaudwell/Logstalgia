@@ -1,6 +1,3 @@
-depcomp
-missing
-install-sh
 aclocal.m4
 /logstalgia
 logstalgia.exe
@@ -15,8 +12,7 @@ logs
 configure
 config.log
 config.status
-config.sub
-config.guess
+/build-aux
 *.swp
 *.d
 .objs

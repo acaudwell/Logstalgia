@@ -57,11 +57,7 @@ my @inclusions = (
     qr{^/data/.+\.(?:png|tga|ttf|1)$},
     qr{^/data/fonts/README$},
     qr{^/data/example\.log$},
-    qr{^/config\.guess$},
-    qr{^/config\.sub$},
-    qr{^/install-sh$},
-    qr{^/depcomp$},
-    qr{^/missing$},
+    qr{^/build-aux/(?:compile|config.(?:guess|sub)|depcomp|install-sh|missing)$},
 );
 
 my $tmp_path = "/var/tmp/$APP_NAME-$VERSION";
