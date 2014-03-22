@@ -28,7 +28,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
 #ifdef _WIN32
     //resize window to fit help message
-    SDLApp::resizeConsole(700);
+    SDLApp::resizeConsole(710);
     SDLApp::showConsole(true);
 #endif
 
@@ -43,12 +43,12 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
     printf("  -s --simulation-speed      Simulation speed (default: 1)\n");
-    printf("  -p --pitch-speed           Speed balls travel across the screen (default: 0.15)\n");
+    printf("  -p --pitch-speed           Speed balls travel across screen (default: 0.15)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
 
     printf("  -g name,(HOST|URI|CODE)=regex,percent[,colour]\n");
-    printf("                             Group together requests where the HOST, URI or response\n");
-    printf("                             CODE matches a regular expression\n\n");
+    printf("                             Group together requests where the HOST, URI\n");
+    printf("                             or response CODE matches a regular expression\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
@@ -80,8 +80,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  --load-config CONF_FILE    Load a config file\n");
     printf("  --save-config CONF_FILE    Save a config file with the current options\n\n");
 
-    printf("  -o, --output-ppm-stream FILE    Write frames as PPM to a file ('-' for STDOUT)\n");
-    printf("  -r, --output-framerate  FPS     Framerate of output (25,30,60)\n\n");
+    printf("  -o, --output-ppm-stream FILE   Write frames as PPM to a file ('-' for STDOUT)\n");
+    printf("  -r, --output-framerate  FPS    Framerate of output (25,30,60)\n\n");
 
     printf("FILE should be a log file or '-' to read STDIN.\n\n");
 
@@ -179,7 +179,7 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     sync = false;
 
     start_time = stop_time = 0;
-    
+
     start_position = 0.0f;
     stop_position  = 1.0f;
 
@@ -425,7 +425,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
             conffile.entryException(entry, "pitch speed should be between 0.1 and 10.0");
         }
     }
-    
+
     if((entry = settings->getEntry("simulation-speed")) != 0) {
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify simulation speed (0.1 to 30)");
@@ -500,7 +500,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
     if (path.empty() && !isatty(fileno(stdin))) {
         path = "-";
     }
-    
+
     if(path == "-") {
         /*
         if(log_format.size() == 0) {
