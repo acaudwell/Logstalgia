@@ -138,13 +138,13 @@ bool LogEntry::validate() {
     if(pid == "-") pid = "";
     if(referrer == "-") referrer = "";
 
-    if(hostname.size()==0) return false;
+    if(hostname.empty()) return false;
 
     if(settings.mask_hostnames) {
         hostname = maskHostname(hostname);
     }
 
-    if(path.size()==0) return false;
+    if(path.empty()) return false;
     if(timestamp == 0) return false;
 
     return true;

@@ -23,7 +23,7 @@
 const char* ls_ncsa_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" , "Sep", "Oct", "Nov", "Dec" };
 Regex ls_ncsa_entry_start("^(?:([^ ]+) )?([^ ]+) +[^ ]+ +([^ ]+) +\\[(.*?)\\] +(.*)$");
 Regex ls_ncsa_entry_date("(\\d+)/(\\d+|[A-Za-z]+)/(\\d+):(\\d+):(\\d+):(\\d+) ([+-])(\\d+)");
-Regex ls_ncsa_entry_request("\"([^ ]+) +([^ ]+) +([^ ]+)\" +([^ ]+) +([^\\s+]+)(.*)");
+Regex ls_ncsa_entry_request("\"(?:([^ ]+) +([^ ]+) +([^ ]+)|(?:[^\"]*))\" +([^ ]+) +([^\\s+]+)(.*)");
 Regex ls_ncsa_entry_agent("(?: +\"([^\"]+)\" +\"([^\"]+)\")?( .+)?");
 Regex ls_ncsa_extra_field("^ +(\"[^\"]*\"|[^ ]+)");
 
@@ -113,10 +113,10 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
     }
 
 //    entry.method    = matches[0];
-    entry.path      = matches[1];
+    entry.path        = (!matches[1].empty()) ? matches[1] : "???";
 //    entry.protocol  = matches[2];
 
-    entry.response_code = matches[3].c_str();
+    entry.response_code = matches[3];
     entry.response_size = atol(matches[4].c_str());
 
     if(matches.size() > 5) {
