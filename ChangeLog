@@ -1,3 +1,6 @@
+1.0.6:
+ * Display invalid requests as having the path '???'.
+
 1.0.5:
  * Performance improvements.
  * Multi-monitor support using SDL 2.0.
