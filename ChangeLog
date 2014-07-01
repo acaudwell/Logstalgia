@@ -1,5 +1,6 @@
 1.0.6:
  * Display invalid requests as having the path '???'.
+ * Updated the boost autoconf macro.
 
 1.0.5:
  * Performance improvements.
