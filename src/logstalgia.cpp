@@ -1109,7 +1109,15 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
         percent = remaining_percent;
     }
 
-    Summarizer* summarizer = new Summarizer(fontSmall, percent, settings.update_rate, groupregex, grouptitle);
+
+    Summarizer* summarizer = 0;
+
+    try {
+        summarizer = new Summarizer(fontSmall, percent, settings.update_rate, groupregex, grouptitle);
+    } 
+    catch(RegexCompilationException& e) {
+        throw SDLAppException("invalid regular expression for group '%s'", grouptitle.c_str());
+    }
 
     if(glm::dot(colour, colour) > 0.01f) {
         summarizer->setColour(colour);
