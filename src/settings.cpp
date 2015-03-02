@@ -144,6 +144,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["hide-paddle"]        = "bool";
     arg_types["hide-paddle-tokens"] = "bool";
     arg_types["hide-response-code"] = "bool";
+    arg_types["hide-url-prefix"]    = "bool";
 
     arg_types["disable-auto-skip"] = "bool";
     arg_types["disable-progress"]  = "bool";

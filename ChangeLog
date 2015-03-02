@@ -1,5 +1,6 @@
 1.0.7:
  * Handle exception when user defined regular expression is invalid.
+ * Fixed --hide-url-prefix not working (jettero).
 
 1.0.6:
  * Display invalid requests as having the path '???'.
