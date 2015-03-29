@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="icon" href="favicon.ico">
+
+<title>Logstalgia - a website access log visualization tool</title>
+
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/site.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <nav class="navbar">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        <a class="navbar-brand" href="#">Logstalgia</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#news">News</a></li>
+            <li><a href="https://github.com/acaudwell/Logstalgia/wiki/Videos">Videos</a></li>
+            <li><a href="https://github.com/acaudwell/Logstalgia/wiki/Controls">Controls</a></li>
+            <li><a href="https://github.com/acaudwell/Logstalgia/wiki">Wiki</a></li>
+            <li><a href="https://github.com/acaudwell/Logstalgia">Source</a></li>
+            <li><a href="http://www.thealphablenders.com/">Blog</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container main">
+
+<p>
+<center>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5-setup.exe">logstalgia-1.0.5-setup.exe</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5.win32.zip">logstalgia-1.0.5.win32.zip</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.6/logstalgia-1.0.6.tar.gz">logstalgia-1.0.6.tar.gz</a>
+</center>
+</p>
+
+<h2><a id="introduction"></a>Introduction</h2>
+
+<iframe class="player" width="640" height="360" src="https://www.youtube.com/embed/HeWfkPeDQbY?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+
+<p>Logstalgia is a website traffic visualization that replays or streams web-server access logs as a pong-like battle between the web server and an never ending torrent of requests.</p>
+
+<p>Requests appear as colored balls (the same color as the host) which travel across the screen to arrive at the requested location. Successful requests are hit by the paddle while unsuccessful ones (eg 404 - File Not Found) are missed and pass through.</p>
+
+<p>The paths of requests are summarized within the available space by identifying common path prefixes. Related paths are grouped together under headings. For instance, by default paths ending in png, gif or jpg are grouped under the heading Images. Paths that don’t match any of the specified groups are lumped together under a Miscellaneous section.</p>
+
+<h2><a id="requirements"></a>Requirements</h2>
+
+<p>Logstalgia requires a video card supporting OpenGL. For this reason you should typically run Logstalgia on your workstation rather than on the web-server itself (unless your workstation is the web-server).</p>
+
+<p>As Logstalgia is designed to playback logs in real time you will need a log from a fairly busy web-server to achieve interesting results (eg 100s of requests each minute).</p>
+
+<p>An example access log is included.</p>
+
+<h2><a id="formats"></a>Log Formats</h2>
+
+<p>Logstalgia supports several standardized access.log formats used by web servers such as <b>Apache</b> and <b>Nginx</b>:</p>
+
+<pre>
+NCSA Common Log Format (CLF)
+    "%h %l %u %t \"%r\" %>s %b"
+
+NCSA Common Log Format with Virtual Host
+    "%v %h %l %u %t \"%r\" %>s %b"
+
+NCSA extended/combined log format
+    "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
+
+NCSA extended/combined log format with Virtual Host
+    "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
+</pre>
+
+<p>The process id (%P), or some other identifier, may be included as an additional field at the end of the entry. This can be used with '--paddle-mode pid' where a separate paddle will be created for each unique value in this field.</p>
+
+<p>Also supported a pipe delimited <a href="https://github.com/acaudwell/Logstalgia/wiki/Custom-Log-Format">Custom Log Format</a> (more details on the Wiki): </p>
+
+<pre>
+1371769989|127.0.0.1|/index.html|200|1024|1|00FF00
+</pre>
+
+<h2><a id="examples"></a>Examples</h2>
+
+<p>Watch an example access.log file using the default settings:</p>
+
+<pre>logstalgia data/example.log</pre>
+
+<p>Watch the live access.log, starting from the most recent batch of entries in the log (requires tail). Note than '-' at the end is required for logstalgia to know it needs to read from STDIN:</p>
+
+<pre>tail -f /var/log/apache2/access.log | logstalgia -</pre>
+
+<p>To follow the log in real time, use the --sync option. This will start reading from the next entry received on STDIN:</p>
+
+<pre>tail -f /var/log/apache2/access.log | logstalgia --sync</pre>
+
+<p>Watch a remote access.log via ssh. The '-g' option is used here to group together URLs requested containing the string '/adclick.php' under the heading 'Ad Clicks':</p>
+
+<pre>
+ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad Clicks,/adclick.php,30" -
+</pre>
+
+<p><b>NOTE</b>: tailing remote logs is not currently recommended on the Windows version due to buffering issues.</p>
+
+<h2><a id="related"></a>Related Software</h2>
+
+<p>You may also want to check out <a href="http://gource.io/">Gource</a>, a software version control visualization tool.</p>
+
+<h2><a id="news"></a>News</h2>
+
+<h3>21 March 2015</h3>
+
+<p>Due to Google Code shutting down I will soon be moving the Logstalgia homepage to Github. The source code is already hosted there.</p>
+
+<p>I've disabled Wiki comments in the mean time due to link spam.</p>
+
+<h3>16 October 2014</h3>
+
+<p>Logstalgia 1.0.6 has been released.</p>
+
+<p>Changes since 1.0.5:</p>
+
+<ul>
+    <li>Display invalid requests as having the path '???'.</li>
+    <li>Updated the boost autoconf macro.</li>
+</ul>
+
+<p>Downloads:</p>
+
+<ul>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.6/logstalgia-1.0.6.tar.gz">logstalgia-1.0.6.tar.gz</a></li>
+</ul>
+
+<h3>3 April 2014</h3>
+
+<p>Well this hasn't happened in a while: a new Logstalgia release!</p>
+
+<p>Logstalgia now uses SDL 2.0 when available, providing much better multi-monitor support.</p>
+
+<p>You can also now date ranges on the command line using the --from and --to ISO_DATETIME options.</p>
+
+<p>Various other improvements are listed below:</p>
+
+<ul>
+    <li>Performance improvements.</li>
+    <li>Multi-monitor support using SDL 2.0.</li>
+    <li>SDL 1.2 support is deprecated.</li>
+    <li>Can now specify the attribute to match the group regex (-g) against.</li>
+    <li>When using --sync, now catches back up after resuming from pause.</li>
+    <li>Added --pitch-speed option (control how fast balls travel).</li>
+    <li>Made default group matches case-insensitive (Sebastian Krzyszkowiak).</li>
+    <li>Display tokens in multi-paddle modes (Sebastian Krzyszkowiak).</li>
+    <li>Added window resizing and a full-screen toggle (alt-enter).</li>
+    <li>Take screenshots (F12).</li>
+    <li>Summarizer component content is now sorted.</li>
+    <li>IPv6 addresses now anonymized by default as well (last 64 bits).</li>
+    <li>New dependencies on libpng, GLEW.</li>
+    <li>Now requires GLM and Boost header-only libraries to build.</li>
+</ul>
+
+<p>Downloads are now hosted on Github as Google Code no longer accepts adding new downloads:</p>
+
+<ul>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5.tar.gz">logstalgia-1.0.5.tar.gz</a></li>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5-setup.exe">logstalgia-1.0.5-setup.exe</a></li>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5.win32.zip">logstalgia-1.0.5.win32.zip</a></li>
+</ul>
+
+<p>If you package Logstalgia for a distro, please update the dependencies to use SDL 2 instead of SDL 1.2.</p>
+
+<h2><a id="donations"></a>Donations</h2>
+
+<p>If you like Logstalgia and would like to show your appreciation and encourage future work on this and other open source projects by the author, please consider making a donation!</p>
+
+<p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=TZYLY4VTKC9TN&lc=NZ&item_name=Logstalgia&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"><img src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif"></a></p>
+
+</div><!-- /.container -->
+
+<script src="js/jquery-1.11.2.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+</body>
+
+</html>
