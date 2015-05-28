@@ -1,4 +1,5 @@
 1.0.7:
+ * Fixed crash loading large log files on Windows.
  * Fixed crash when taking a screenshot with an odd resolution.
  * Handle exception when user defined regular expression is invalid.
  * Fixed --hide-url-prefix not working (jettero).
