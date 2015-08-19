@@ -205,6 +205,10 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             togglePause();
         }
 
+        if (e->keysym.sym == SDLK_F11) {
+            display.toggleFrameless();
+        }
+
         if (e->keysym.sym == SDLK_F12) {
             take_screenshot = true;
         }
