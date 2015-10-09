@@ -172,6 +172,7 @@ public:
     void setBackground(vec3 background);
 
     void resize(int width, int height);
+    void toggleWindowFrame();
 
     //inherited methods
     void init();

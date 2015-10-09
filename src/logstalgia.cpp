@@ -206,7 +206,7 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
         }
 
         if (e->keysym.sym == SDLK_F11) {
-            display.toggleFrameless();
+            toggleWindowFrame();
         }
 
         if (e->keysym.sym == SDLK_F12) {
@@ -720,6 +720,25 @@ void Logstalgia::resize(int width, int height) {
     reinit();
 }
 
+void Logstalgia::toggleWindowFrame() {
+#if SDL_VERSION_ATLEAST(2,0,0)
+    if(display.fullscreen) return;
+    if(frameExporter != 0) return;
+
+    texturemanager.unload();
+    shadermanager.unload();
+    fontmanager.unload();
+
+    display.toggleFrameless();
+
+    texturemanager.reload();
+    shadermanager.reload();
+    fontmanager.reload();
+
+    reinit();
+#endif
+}
+
 void Logstalgia::reinit() {
     initPaddles();
     initRequestBalls();
@@ -1118,7 +1137,7 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
 
     try {
         summarizer = new Summarizer(fontSmall, percent, settings.update_rate, groupregex, grouptitle);
-    } 
+    }
     catch(RegexCompilationException& e) {
         throw SDLAppException("invalid regular expression for group '%s'", grouptitle.c_str());
     }
