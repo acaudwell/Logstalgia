@@ -41,17 +41,33 @@
 
     <div class="container main">
 
+<p>&nbsp;</p>
+
+<center>
+<iframe class="player" width="640" height="360" src="https://www.youtube.com/embed/HeWfkPeDQbY?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+</center>
+
+<p>&nbsp;</p>
+
 <p>
 <center>
-<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5-setup.exe">logstalgia-1.0.5-setup.exe</a>
-<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.5/logstalgia-1.0.5.win32.zip">logstalgia-1.0.5.win32.zip</a>
-<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.6/logstalgia-1.0.6.tar.gz">logstalgia-1.0.6.tar.gz</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7-setup.exe">logstalgia-1.0.7-setup.exe</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7.win32.zip">logstalgia-1.0.7.win32.zip</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7.tar.gz">logstalgia-1.0.7.tar.gz</a>
 </center>
 </p>
 
-<h2><a id="introduction"></a>Introduction</h2>
+<ul class="index">
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#formats">Log Formats</a></li>
+    <li><a href="#examples">Examples</a></li>
+    <li><a href="#related">Related Software</a></li>
+    <li><a href="#news">News</a></li>
+    <li><a href="#donations">Donations</a></li>
+</ul>
 
-<iframe class="player" width="640" height="360" src="https://www.youtube.com/embed/HeWfkPeDQbY?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+<h2><a id="introduction"></a>Introduction</h2>
 
 <p>Logstalgia is a website traffic visualization that replays or streams web-server access logs as a pong-like battle between the web server and an never ending torrent of requests.</p>
 
@@ -120,6 +136,28 @@ ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad 
 <p>You may also want to check out <a href="http://gource.io/">Gource</a>, a software version control visualization tool.</p>
 
 <h2><a id="news"></a>News</h2>
+
+<h3>21 October 2015</h3>
+
+<p>Logstalgia 1.0.7 has been released.</p>
+
+<p>Changes since 1.0.6:</p>
+
+<ul>
+    <li>Added window frame toggle (F11).</li>
+    <li>Fixed crash loading large log files on Windows.</li>
+    <li>Fixed crash when taking a screenshot with an odd resolution.</li>
+    <li>Handle exception when user defined regular expression is invalid.</li>
+    <li>Fixed --hide-url-prefix not working (jettero).</li>
+</ul>
+
+<p>Downloads:</p>
+
+<ul>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7.tar.gz">logstalgia-1.0.7.tar.gz</a></li>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7-setup.exe">logstalgia-1.0.7-setup.exe</a></li>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7.win32.zip">logstalgia-1.0.7.win32.zip</a></li>
+</ul>
 
 <h3>21 March 2015</h3>
 
