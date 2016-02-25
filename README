@@ -252,6 +252,7 @@ Interactive keyboard commands:
 
    (C)   Displays Logstalgia logo
    (N)   Jump forward in time to next log entry
+   (Q)   Displays Setting Infos
    (+-)  Adjust simulation speed
    (<>)  Adjust pitch speed
    (F11) Window frame toggle
