@@ -150,6 +150,8 @@ Logstalgia::~Logstalgia() {
         if(it.second != 0) delete it.second;
     }
 
+    if(ipSummarizer!=0) delete ipSummarizer;
+
     for(Summarizer* s : summarizers) {
         delete s;
     }
@@ -295,6 +297,9 @@ void Logstalgia::reset() {
         s->recalc_display();
     }
 
+    for(LogEntry* l : queued_entries) {
+        delete l;
+    }
     queued_entries.clear();
 
     // reset settings
@@ -963,7 +968,7 @@ void Logstalgia::logic(float t, float dt) {
                 float pos_offset   = item_offset * (float) item_no++;
                 float start_offset = std::min(1.0f, pos_offset);
 
-		addBall(le, start_offset);
+                addBall(le, start_offset);
 
                 queued_entries.pop_front();
             }

@@ -1,3 +1,6 @@
+1.0.8:
+ * Fixed queued log entries not being deleted when seeking using the timeline.
+
 1.0.7:
  * Added window frame toggle (F11).
  * Fixed crash loading large log files on Windows.
