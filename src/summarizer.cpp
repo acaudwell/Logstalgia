@@ -121,8 +121,7 @@ void SummNode::debug(int indent) {
     debugLog("%snode c=%c refs=%d words=%d", indentation.c_str(), c, refs, words);
     indent++;
 
-    for(size_t i=0;i<children.size();i++) {
-        SummNode* child = children[i];
+     for(SummNode* child : children) {
         child->debug(indent);
     }
 }
@@ -137,11 +136,9 @@ bool SummNode::addWord(const std::string& str, size_t offset) {
 
     words++;
 
-    size_t no_children = children.size();
-
-    for(size_t i=0;i<no_children;i++) {
-        if(children[i]->c == str[offset]) {
-            return children[i]->addWord(str, ++offset);
+    for(SummNode* child : children) {
+        if(child->c == str[offset]) {
+            return child->addWord(str, ++offset);
         }
     }
 
@@ -158,9 +155,8 @@ std::string format_node(std::string str, int refs) {
 }
 
 void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool exceptions) {
-    size_t no_child = children.size();
 
-    if(no_child==0) {
+    if(children.empty()) {
         vec.push_back(format_node(prefix, refs));
         return;
     }
@@ -168,14 +164,14 @@ void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool ex
     //find top-but-not-root node, expand root node
     std::vector<SummUnit>::iterator it;
 
-    for(size_t i=0;i<no_child;i++) {
-        if(exceptions && !exception[i]) continue;
+    for(SummNode* child : children) {
+        if(exceptions && !child->exception) continue;
 
         std::vector<SummUnit> strvec;
-        children[i]->summarize(strvec, 100);
+        child->summarize(strvec, 100);
 
         for(it=strvec.begin(); it!=strvec.end(); it++) {
-            vec.push_back(format_node(prefix+(*it).str, children[i]->refs));
+            vec.push_back(format_node(prefix+(*it).str, child->refs));
         }
     }
 }
@@ -183,7 +179,7 @@ void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool ex
 int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
 
     // if no children, just append this node
-    if(children.size()==0 && parent!=0) {
+    if(children.empty() && parent!=0) {
         strvec.push_back(SummUnit(this));
         return 1;
     }
@@ -195,16 +191,16 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
 
     //figure out the total number of words 'below' this node
     int total_child_words = 0;
-    for(size_t i=0;i<no_child;i++) {
-        total_child_words += children[i]->words;
+    for(SummNode* child : children) {
+        total_child_words += child->words;
     }
 
     //distribute slots to children
     int extra_slots  = no_words;
     int un_covered=0;
 
-    for(size_t i=0;i<no_child;i++) {
-        float percent   = (float) children[i]->words / total_child_words;
+    for(SummNode* child : children) {
+        float percent   = (float) child->words / total_child_words;
         int child_share = (int)(percent * no_words);
         extra_slots -= child_share;
 
@@ -216,13 +212,14 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
         extra_slots--;
     }
 
-    exception.clear();
     un_covered=0;
     int last_uncovered=-1;
 
     //summarize children,
     for(size_t i=0;i<no_child;i++) {
-        float percent   = (float) children[i]->words / total_child_words;
+        SummNode* child = children[i];
+
+        float percent   = (float) child->words / total_child_words;
         int child_share = (int)(percent * no_words);
 
         //give any left over slots to largest child
@@ -239,15 +236,15 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
 
         if(child_share<=0) {
             un_covered++;
-            exception.push_back(true);
+            child->exception = true;
             last_uncovered=i;
             continue;
         }
 
-        exception.push_back(false);
+        child->exception = false;
 
         int currsize = strvec.size();
-        int count = children[i]->summarize(strvec, child_share);
+        int count = child->summarize(strvec, child_share);
         total_count+=count;
         size_t newsize = (size_t) (count + currsize);
 

@@ -18,10 +18,8 @@
 #include "requestball.h"
 #include "settings.h"
 
-RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const vec3& colour, const vec2& pos, const vec2& dest) {
+RequestBall::RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, const vec2& dest) {
     this->le   = le;
-    this->tex  = tex;
-    this->font = font;
 
     vec2 vel = glm::normalize(dest - pos);
 
@@ -38,20 +36,10 @@ RequestBall::RequestBall(LogEntry* le, FXFont* font, TextureResource* tex, const
 
     float halfsize = size * 0.5f;
     offset = vec2(halfsize, halfsize);
-
-    char buff[16];
-    snprintf(buff, 16, "%s", le->response_code.c_str());
-    response_code = std::string(buff);
-
-    response_colour = responseColour();
 }
 
 RequestBall::~RequestBall() {
     delete le;
-}
-
-vec3 RequestBall::responseColour() {
-    return le->response_colour;
 }
 
 bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
@@ -150,7 +138,7 @@ void RequestBall::draw() const {
     }
 }
 
-void RequestBall::drawResponseCode() const {
+void RequestBall::drawResponseCode(FXFont* font) const {
     float prog = getProgress();
 
     float alpha = 1.0f - std::min(1.0f, prog * 2.0f);
@@ -163,6 +151,6 @@ void RequestBall::drawResponseCode() const {
 
     vec2 msgpos = (vel * drift) + vec2(dest.x-45.0f, dest.y);
     
-    font->setColour(vec4(response_colour.x, response_colour.y, response_colour.z, alpha));
-    font->draw(msgpos.x, msgpos.y, response_code.c_str());
+    font->setColour(vec4(le->response_colour.x, le->response_colour.y, le->response_colour.z, alpha));
+    font->draw(msgpos.x, msgpos.y, le->response_code);
 }

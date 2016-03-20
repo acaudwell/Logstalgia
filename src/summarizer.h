@@ -58,7 +58,7 @@ public:
     int refs;
 
     std::vector<SummNode*> children;
-    std::vector<bool> exception;
+    bool exception;
 
     void debug(int indent = 0);
     bool addWord(const std::string& str, size_t offset);

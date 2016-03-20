@@ -42,7 +42,6 @@ protected:
     float total_distance;
 
     float dest_x;
-    float start_x;
     
     bool has_bounced;
     bool no_bounce;
@@ -51,7 +50,6 @@ public:
     vec2 vel;
     float size;
     vec3 colour;
-    float speed;
 
     ProjectedBall();
     ProjectedBall(const vec2& pos, const vec2& vel, const vec3& colour, int dest_x, float size);

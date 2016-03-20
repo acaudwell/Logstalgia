@@ -527,7 +527,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     vec3 colour = groupSummarizer->isColoured() ? groupSummarizer->getColour() : colourHash(match);
 
-    RequestBall* ball = new RequestBall(le, &fontMedium, balltex, colour, ball_start, ball_dest);
+    RequestBall* ball = new RequestBall(le, colour, ball_start, ball_dest);
 
     balls.push_back(ball);
 }
@@ -1252,7 +1252,7 @@ void Logstalgia::draw(float t, float dt) {
         RequestBall* r = *it;
 
         if(!settings.hide_response_code && r->hasBounced()) {
-            r->drawResponseCode();
+            r->drawResponseCode(&fontMedium);
         }
     }
 

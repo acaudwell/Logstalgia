@@ -74,11 +74,9 @@ void ProjectedBall::init(const vec2& pos, const vec2& vel, const vec3& colour, i
     this->colour = colour;
     this->size  = size;
     this->dest_x = dest_x;
-    
-    start_x = (int) pos.x;
-    
-    has_bounced=0;
-    no_bounce = 0;
+
+    has_bounced = false;
+    no_bounce   = false;
 
     project();
 }
@@ -146,6 +144,7 @@ void ProjectedBall::project() {
         line_lengths.push_back(line_length);
         total_distance += line_length;
     }
+
 }
 
 bool ProjectedBall::isFinished() const {
@@ -177,7 +176,7 @@ float ProjectedBall::getProgress() const {
 }
 
 void ProjectedBall::dontBounce() {
-    no_bounce=1;
+    no_bounce=true;
 }
 
 void ProjectedBall::logic(float dt) {
