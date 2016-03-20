@@ -69,11 +69,7 @@ class Logstalgia : public SDLApp {
 
     double elapsed_time;
 
-    float simu_speed;
-    float update_rate;
-
     float spawn_delay;
-    float spawn_speed;
 
     std::string message;
     float message_timer;
@@ -114,8 +110,6 @@ class Logstalgia : public SDLApp {
     std::list<RequestBall*> balls;
 
     TextArea infowindow;
-
-    float time_scale;
 
     float runtime;
     float fixed_tick_rate;
