@@ -52,10 +52,11 @@ public:
 
     SummNode();
     SummNode(const std::string& str, size_t offset, SummNode* parent);
+
     char c;
     int words;
     int refs;
-    bool is_root;
+
     std::vector<SummNode*> children;
     std::vector<bool> exception;
 
@@ -100,7 +101,7 @@ public:
     void logic(float dt);
     void draw(float alpha);
 
-    void updateUnit(SummUnit& unit);
+    void updateUnit(const SummUnit& unit);
     SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool showcount);
 };
 

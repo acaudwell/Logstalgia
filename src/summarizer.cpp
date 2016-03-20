@@ -281,7 +281,7 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
 
 
 // SummItem
-void SummItem::updateUnit(SummUnit& unit) {
+void SummItem::updateUnit(const SummUnit& unit) {
 
     this->unit = unit;
 
@@ -540,7 +540,7 @@ void Summarizer::recalc_display() {
         int match = -1;
 
         for(size_t j=0;j<nostrs;j++) {
-            SummUnit summstr = strings[j];
+            const SummUnit& summstr = strings[j];
 
             if(summstr.str.compare(item.unit.str) == 0) {
                 item.updateUnit(summstr);
