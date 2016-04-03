@@ -6,7 +6,6 @@ logstalgia_CXXFLAGS = -std=gnu++0x -Wall -Wno-sign-compare -Wno-reorder -Wno-unu
 
 logstalgia_SOURCES = \
 	src/ncsa.cpp \
-	src/ball.cpp \
 	src/core/conffile.cpp \
 	src/core/display.cpp \
 	src/core/frustum.cpp \

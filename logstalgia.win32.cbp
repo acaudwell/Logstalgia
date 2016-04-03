@@ -33,8 +33,6 @@
 			<Add library="freetype" />
 			<Add library="libpng16.dll.a" />
 		</Linker>
-		<Unit filename="src/ball.cpp" />
-		<Unit filename="src/ball.h" />
 		<Unit filename="src/core/bounds.h" />
 		<Unit filename="src/core/conffile.cpp" />
 		<Unit filename="src/core/conffile.h" />
