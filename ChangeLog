@@ -1,4 +1,6 @@
 1.0.8:
+ * Performance improvements.
+ * Changed unsuccessful response code direction to match ball.
  * Fixed queued log entries not being deleted when seeking using the timeline.
 
 1.0.7:

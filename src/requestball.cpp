@@ -17,22 +17,25 @@
 
 #include "requestball.h"
 #include "settings.h"
+#include "textarea.h"
 
-RequestBall::RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, const vec2& dest) {
-    this->le   = le;
+RequestBall::RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, const vec2& dest)
+    : le(le), pos(pos), dest(dest), colour(colour) {
 
-    vec2 vel = glm::normalize(dest - pos);
+    dir = glm::normalize(dest - pos);
 
     int bytes = le->response_size;
-    float size = log((float)bytes) + 1.0f;
+    size = log((float)bytes) + 1.0f;
     if(size<5.0f) size = 5.0f;
 
-    ProjectedBall::init(pos, vel, colour, (int)dest.x, size);
+    has_bounced = false;
+    no_bounce   = !le->successful;
 
-    start = pos;
-    this->dest  = finish();
+    distance_travelled = 0.0f;
+    total_distance = 0.0;
 
-    if(!le->successful) dontBounce();
+    points.push_back(pos);
+    addPoint(dest);
 
     float halfsize = size * 0.5f;
     offset = vec2(halfsize, halfsize);
@@ -40,6 +43,109 @@ RequestBall::RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, cons
 
 RequestBall::~RequestBall() {
     delete le;
+}
+
+void RequestBall::addPoint(const vec2& p) {
+    float line_length = glm::length(points.back() - p);
+    total_distance += line_length;
+    points.push_back(p);
+    line_lengths.push_back(line_length);
+}
+
+void RequestBall::project() {
+    distance_travelled = 0.0f;
+    total_distance     = 0.0f;
+
+    vec2 target = dest;
+
+    if(!no_bounce) {
+        dir.x  = -dir.x;
+        target.x = 0;
+    } else {
+        target.x = display.width;
+    }
+
+    points.clear();
+    line_lengths.clear();
+
+    points.push_back(pos);
+
+    // tan = o / a
+    // o = tan * a
+    // a = o / tan
+
+    float t = (dir.y / dir.x);
+
+    float a = (target.x - pos.x);
+    float y = pos.y + t * a;
+
+    if(y <= offset.y || y >= display.height-offset.y) {
+
+        // bounced off the top/bottom of screen
+
+        float intersect_y = y <= offset.y ? offset.y : display.height-offset.y;
+
+        float o = (intersect_y - pos.y);
+        float x = pos.x + (o / t);
+
+        vec2 intersect = vec2(x, intersect_y);
+
+        addPoint(intersect);
+
+        // continue from bounce to destination
+
+        vec2 bounce_dir = dir;
+
+        bounce_dir.y = -bounce_dir.y;
+
+        t = (bounce_dir.y / bounce_dir.x);
+
+        a = t * (target.x - intersect.x);
+        y = intersect.y + a;
+
+        intersect = vec2(target.x, y);
+
+        addPoint(intersect);
+    } else {
+        vec2 intersect = vec2(target.x, y);
+        addPoint(intersect);
+    }
+}
+
+bool RequestBall::isFinished() const {
+    return has_bounced && distance_travelled >= total_distance;
+}
+
+void RequestBall::bounce() {
+    if(has_bounced) return;
+
+    project();
+
+    has_bounced=true;
+}
+
+float RequestBall::arrivalTime() {
+    return (total_distance-distance_travelled) / (settings.pitch_speed * (float) display.width);
+}
+
+float RequestBall::getProgress() const {
+    return (distance_travelled/total_distance);
+}
+
+const vec2& RequestBall::getFinishPos() const {
+    return points.back();
+}
+
+bool RequestBall::hasBounced() const {
+    return has_bounced;
+}
+
+const vec3& RequestBall::getColour() const {
+    return colour;
+}
+
+LogEntry* RequestBall::getLogEntry() const {
+    return le;
 }
 
 bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
@@ -70,10 +176,50 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
     return false;
 }
 
+void RequestBall::animate(float dt) {
+    distance_travelled += dt * settings.pitch_speed * (float) display.width;
+
+    if(distance_travelled >= total_distance) {
+
+        if(!has_bounced) {
+            bounce();
+        }
+        return;
+    }
+
+    //number of lines
+    int nolines = points.size()-1;
+
+    int pointno = 0;
+    float len=0;
+
+    while(pointno < nolines && len+line_lengths[pointno] < distance_travelled) {
+        len += line_lengths[pointno];
+        pointno++;
+    }
+
+    if(pointno>=nolines) {
+
+        if(!has_bounced) {
+            bounce();
+            return;
+        }
+
+        return;
+    }
+
+    vec2 from = points[pointno];
+    vec2 to   = points[pointno+1];
+
+    float linepos = (distance_travelled - len)/line_lengths[pointno];
+
+    this->pos = from + ((to-from)*linepos);
+}
+
 int RequestBall::logic(float dt) {
     float old_x = pos.x;
 
-    ProjectedBall::logic(dt);
+    animate(dt);
 
     //returns 1 if just became visible (for score incrementing)
     return (old_x<0.0f && pos.x>=0.0f);
@@ -147,9 +293,7 @@ void RequestBall::drawResponseCode(FXFont* font) const {
     
     float drift = prog * 100.0f;
 
-    if(!le->successful) drift *= -1.0f;
-
-    vec2 msgpos = (vel * drift) + vec2(dest.x-45.0f, dest.y);
+    vec2 msgpos = (dir * drift) + vec2(dest.x-45.0f, dest.y);
     
     font->setColour(vec4(le->response_colour.x, le->response_colour.y, le->response_colour.z, alpha));
     font->draw(msgpos.x, msgpos.y, le->response_code);

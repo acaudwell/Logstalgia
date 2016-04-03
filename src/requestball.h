@@ -18,25 +18,60 @@
 #ifndef REQUESTBALL_H
 #define REQUESTBALL_H
 
-#include "core/fxfont.h"
+#include <vector>
 
 #include "logentry.h"
-#include "ball.h"
-#include "textarea.h"
+#include "core/vectors.h"
 
-class RequestBall : public ProjectedBall {
+class FXFont;
+class TextArea;
+
+class RequestBall {
 protected:
-    vec2 start;
-    vec2 dest;
-    vec2 offset;
+    std::vector<vec2> points;
+    std::vector<float> line_lengths;
 
-public:
     LogEntry* le;
 
+    float size;
+
+    vec2 pos;
+    vec2 dest;
+    vec2 dir;
+
+    vec3 colour;
+
+    float distance_travelled;
+    float total_distance;
+
+    bool has_bounced;
+    bool no_bounce;
+
+    vec2 offset;
+
+    float getProgress() const;
+
+    void project();
+    void bounce();
+
+    void addPoint(const vec2& p);
+
+    void animate(float dt);
+public:
     RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, const vec2& dest);
     ~RequestBall();
 
     bool mouseOver(TextArea& textarea, vec2& mouse);
+
+    float arrivalTime();
+
+    bool isFinished() const;
+    bool hasBounced() const;
+
+    const vec2& getFinishPos() const;
+
+    const vec3& getColour() const;
+    LogEntry* getLogEntry() const;
 
     int logic(float dt);
 

@@ -805,15 +805,17 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
 
     for(RequestBall* ball: balls) {
 
+        LogEntry* le = ball->getLogEntry();
+
         //special case if failed response code
-        if(!ball->le->successful) {
+        if(!le->successful) {
             continue;
         }
 
-        if(ball->le->successful && !ball->hasBounced()
+        if(le->successful && !ball->hasBounced()
             && (   (settings.paddle_mode <= PADDLE_SINGLE)
-                || (settings.paddle_mode == PADDLE_VHOST && ball->le->vhost == paddle_token)
-                || (settings.paddle_mode == PADDLE_PID   && ball->le->pid   == paddle_token)
+                || (settings.paddle_mode == PADDLE_VHOST && le->vhost == paddle_token)
+                || (settings.paddle_mode == PADDLE_PID   && le->pid   == paddle_token)
                )
             ) {
 
@@ -831,8 +833,10 @@ RequestBall* Logstalgia::findNearest(Paddle* paddle, const std::string& paddle_t
 
 void Logstalgia::removeBall(RequestBall* ball) {
 
-    std::string url  = ball->le->path;
-    std::string host = ball->le->hostname;
+    LogEntry* le = ball->getLogEntry();
+
+    std::string url  = le->path;
+    std::string host = le->hostname;
 
     for(Summarizer* s: summarizers) {
         if(s->supportedString(url)) {
@@ -1016,8 +1020,10 @@ void Logstalgia::logic(float t, float dt) {
             //are there any requests that will match this paddle?
             for(RequestBall* ball : balls) {
 
-                if(   (settings.paddle_mode == PADDLE_VHOST && ball->le->vhost == paddle_token)
-                   || (settings.paddle_mode == PADDLE_PID   && ball->le->pid   == paddle_token)) {
+                LogEntry* le = ball->getLogEntry();
+
+                if(   (settings.paddle_mode == PADDLE_VHOST && le->vhost == paddle_token)
+                   || (settings.paddle_mode == PADDLE_PID   && le->pid   == paddle_token)) {
                     token_match = true;
                     break;
                 }

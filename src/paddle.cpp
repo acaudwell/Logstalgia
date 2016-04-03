@@ -86,9 +86,9 @@ void Paddle::setTarget(RequestBall* target) {
         return;
     }
 
-    vec2 dest = target->finish();
+    vec2 dest = target->getFinishPos();
     vec4 col  = (settings.paddle_mode == PADDLE_VHOST || settings.paddle_mode == PADDLE_PID)  ?
-        vec4(token_colour,1.0) : vec4(target->colour, 1.0f);
+        vec4(token_colour,1.0) : vec4(target->getColour(), 1.0f);
 
     moveTo((int)dest.y, target->arrivalTime(), col);
 }

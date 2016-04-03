@@ -28,8 +28,7 @@ mingw {
 
 VPATH += ./src
 
-SOURCES += ball.cpp \
-    custom.cpp \
+SOURCES += custom.cpp \
     logentry.cpp \
     logstalgia.cpp \
     main.cpp \
@@ -62,8 +61,7 @@ SOURCES += ball.cpp \
     core/vbo.cpp \
     core/vectors.cpp
 
-HEADERS += ball.h \
-    custom.h \
+HEADERS += custom.h \
     logentry.h \
     logstalgia.h \
     ncsa.h \
