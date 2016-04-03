@@ -79,7 +79,7 @@ void RequestBall::project() {
     float a = (target.x - pos.x);
     float y = pos.y + t * a;
 
-    if(y <= offset.y || y >= display.height-offset.y) {
+    if(y < offset.y || y > display.height-offset.y) {
 
         // bounced off the top/bottom of screen
 
