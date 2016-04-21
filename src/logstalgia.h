@@ -139,6 +139,10 @@ class Logstalgia : public SDLApp {
 
     BaseLog* getLog();
 
+    void changeSummarizerDepth(Summarizer *summarizer, int delta);
+    void changeIPSummarizerDepth(int delta);
+    void changeGroupSummarizerDepth(int delta);
+
     void reset();
 
     void reinit();
@@ -173,7 +177,7 @@ public:
     void update(float t, float dt);
 	void keyPress(SDL_KeyboardEvent *e);
 	void mouseMove(SDL_MouseMotionEvent *e);
-	void mouseClick(SDL_MouseButtonEvent *e);
+    void mouseClick(SDL_MouseButtonEvent *e);
 };
 
 #endif

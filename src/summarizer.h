@@ -27,6 +27,7 @@
 extern const char* summ_wildcard;
 
 class SummNode;
+class Summarizer;
 
 class SummUnit {
 public:
@@ -41,7 +42,7 @@ public:
     std::vector<std::string> expanded;
 
     void prependChar(char c);
-    void buildSummary();
+    void buildSummary(Summarizer* summarizer);
     SummUnit();
     SummUnit(SummNode* source, bool truncated = false, bool exceptions = false);
 };
@@ -64,12 +65,13 @@ public:
     bool addWord(const std::string& str, size_t offset);
     bool removeWord(const std::string& str, size_t offset);
 
-    void expand(std::string prefix, std::vector<std::string>& expansion, bool exceptions);
+    void expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& expansion, bool exceptions);
 
-    int summarize(std::vector<SummUnit>& strvec, int no_words);
+    int summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, int no_words, int depth);
 };
 
 class SummItem {
+    Summarizer* summarizer;
     vec2 dest;
     vec2 oldpos;
 
@@ -78,11 +80,9 @@ class SummItem {
     float elapsed;
     float eta;
     float target_x;
-
-    vec3* icol;
-    bool showcount;
-    FXFont font;
 public:
+    SummItem(Summarizer* summarizer, SummUnit unit, float target_x);
+
     bool departing;
     bool destroy;
 
@@ -102,7 +102,6 @@ public:
     void draw(float alpha);
 
     void updateUnit(const SummUnit& unit);
-    SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool showcount);
 };
 
 class Summarizer {
@@ -111,7 +110,8 @@ class Summarizer {
     std::vector<SummItem> items;
     SummNode root;
 
-    vec3* item_colour;
+    vec3 item_colour;
+    bool has_colour;
 
     float pos_x;
     int max_strings;
@@ -122,6 +122,9 @@ class Summarizer {
     bool right;
     bool mouseover;
     bool changed;
+
+    std::vector<char> delimiters;
+    int  abbreviation_depth;
 
     float incrementf;
 
@@ -135,9 +138,8 @@ class Summarizer {
     std::string title;
     Regex matchre;
 public:
-    Summarizer(FXFont font, int percent, float refresh_delay = 2.0f,
+    Summarizer(FXFont font, int percent, int abbreviation_depth = 0, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
-    ~Summarizer();
 
     void setSize(int x, float top_gap, float bottom_gap);
 
@@ -146,15 +148,25 @@ public:
     bool mouseOver(TextArea& textarea, vec2 mouse);
     void mouseOut();
 
-    bool isColoured();
-    void showCount(bool showcount);
-    void setColour(vec3 col);
-    vec3 getColour();
+    bool hasColour() const;
+    void setColour(const vec3& col);
+    const vec3& getColour() const;
+
+    void setShowCount(bool showcount);
+    bool showCount() const;
+
+    void setAbbreviationDepth(int abbreviation_depth);
+    int getAbbreviationDepth() const;
+
+    FXFont& getFont();
 
     bool supportedString(const std::string& str);
 
     void removeString(const std::string& str);
     void addString(const std::string& str);
+
+    void addDelimiter(char c);
+    bool isDelimiter(char c) const;
 
     const std::string& getBestMatchStr(const std::string& str) const;
     int         getBestMatchIndex(const std::string& str) const;
@@ -167,8 +179,7 @@ public:
 
     void recalc_display();
     void logic(float dt);
-    void draw(float dt, float alpha);
-
+    void draw(float dt, float alpha);   
 };
 
 #endif

@@ -76,6 +76,9 @@ public:
     float glow_multiplier;
     float glow_duration;
 
+    int ip_summarizer_depth;
+    int group_summarizer_depth;
+
     int font_size;
 
     LogstalgiaSettings();

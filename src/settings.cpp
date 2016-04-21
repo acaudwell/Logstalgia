@@ -184,6 +184,9 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     start_position = 0.0f;
     stop_position  = 1.0f;
 
+    ip_summarizer_depth    = 0;
+    group_summarizer_depth = 0;
+
     paddle_mode     = PADDLE_SINGLE;
     paddle_position = 0.67f;
 

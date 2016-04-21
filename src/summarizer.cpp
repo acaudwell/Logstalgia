@@ -37,8 +37,6 @@ if has children:
 SummUnit::SummUnit() {
     this->words=0;
     this->refs=0;
-    this->truncated=false;
-    this->exceptions=false;
 }
 
 SummUnit::SummUnit(SummNode* source, bool truncated, bool exceptions) {
@@ -51,9 +49,9 @@ SummUnit::SummUnit(SummNode* source, bool truncated, bool exceptions) {
     if(source->parent!=0) prependChar(source->c);
 }
 
-void SummUnit::buildSummary() {
+void SummUnit::buildSummary(Summarizer* summarizer) {
     expanded.clear();
-    source->expand(str, expanded, exceptions);
+    source->expand(summarizer, str, expanded, exceptions);
 }
 
 void SummUnit::prependChar(char c) {
@@ -154,7 +152,7 @@ std::string format_node(std::string str, int refs) {
     return std::string(buff);
 }
 
-void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool exceptions) {
+void SummNode::expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& vec, bool exceptions) {
 
     if(children.empty()) {
         vec.push_back(format_node(prefix, refs));
@@ -168,7 +166,7 @@ void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool ex
         if(exceptions && !child->exception) continue;
 
         std::vector<SummUnit> strvec;
-        child->summarize(strvec, 100);
+        child->summarize(summarizer, strvec, 100, 0);
 
         for(it=strvec.begin(); it!=strvec.end(); it++) {
             vec.push_back(format_node(prefix+(*it).str, child->refs));
@@ -176,7 +174,7 @@ void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool ex
     }
 }
 
-int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
+int SummNode::summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, int no_words, int depth) {
 
     // if no children, just append this node
     if(children.empty() && parent!=0) {
@@ -215,6 +213,12 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
     un_covered=0;
     int last_uncovered=-1;
 
+    // TODO: always summarize part of string past last delimiter
+    // TODO: need extra row for entries that would've matched but dont due to the abbreviation rule
+
+    //ignore delimiter if first character
+    int next_depth = (parent !=0 && parent->parent != 0 && summarizer->isDelimiter(c)) ? depth + 1 : depth;
+
     //summarize children,
     for(size_t i=0;i<no_child;i++) {
         SummNode* child = children[i];
@@ -234,7 +238,7 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
             }
         }
 
-        if(child_share<=0) {
+        if(child_share<=0 && (next_depth < 1 || next_depth > summarizer->getAbbreviationDepth())) {
             un_covered++;
             child->exception = true;
             last_uncovered=i;
@@ -244,7 +248,7 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
         child->exception = false;
 
         int currsize = strvec.size();
-        int count = child->summarize(strvec, child_share);
+        int count = child->summarize(summarizer, strvec, child_share, next_depth);
         total_count+=count;
         size_t newsize = (size_t) (count + currsize);
 
@@ -257,7 +261,7 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
 
         if(un_covered==1) {
             int currsize = strvec.size();
-            int count = children[last_uncovered]->summarize(strvec, 1);
+            int count = children[last_uncovered]->summarize(summarizer, strvec, 1, next_depth);
             size_t newsize = (size_t) (count + currsize);
 
             total_count += count;
@@ -278,41 +282,12 @@ int SummNode::summarize(std::vector<SummUnit>& strvec, int no_words) {
 
 
 // SummItem
-void SummItem::updateUnit(const SummUnit& unit) {
 
-    this->unit = unit;
+SummItem::SummItem(Summarizer* summarizer, SummUnit unit, float target_x)
+    : summarizer(summarizer), target_x(target_x) {
 
-    vec3 col = icol!=0 ? *icol : colourHash(unit.str);
-    this->colour = vec4(col, 1.0f);
-
-    char buff[1024];
-
-    if(unit.truncated) {
-        if(showcount) {
-            snprintf(buff, 1024, "%03d %s (%d)", unit.refs, unit.str.c_str(), (int) unit.expanded.size());
-        } else {
-            snprintf(buff, 1024, "%s (%d)", unit.str.c_str(), (int) unit.expanded.size());
-        }
-    } else {
-        if(showcount) {
-        snprintf(buff, 1024, "%03d %s", unit.refs, unit.str.c_str());
-        } else {
-        snprintf(buff, 1024, "%s", unit.str.c_str());
-        }
-    }
-
-    this->displaystr = std::string(buff);
-    this->width = font.getWidth(displaystr);
-
-}
-
-SummItem::SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool showcount) {
-    this->pos  = vec2(-1.0,-1.0);
-    this->dest = vec2(-1.0,-1.0);
-    this->target_x = target_x;
-    this->icol = icol;
-    this->font = font;
-    this->showcount=showcount;
+    pos  = vec2(-1.0f, -1.0f);
+    dest = vec2(-1.0f, -1.0f);
 
     updateUnit(unit);
 
@@ -323,15 +298,43 @@ SummItem::SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool 
     setDest(dest);
 }
 
+void SummItem::updateUnit(const SummUnit& unit) {
+
+    this->unit = unit;
+
+    vec3 col = summarizer->hasColour() ? summarizer->getColour() : colourHash(unit.str);
+    this->colour = vec4(col, 1.0f);
+
+    char buff[1024];
+
+    if(unit.truncated) {
+        if(summarizer->showCount()) {
+            snprintf(buff, 1024, "%03d %s* (%d)", unit.refs, unit.str.c_str(), (int) unit.expanded.size());
+        } else {
+            snprintf(buff, 1024, "%s* (%d)", unit.str.c_str(), (int) unit.expanded.size());
+        }
+    } else {
+        if(summarizer->showCount()) {
+            snprintf(buff, 1024, "%03d %s", unit.refs, unit.str.c_str());
+        } else {
+            snprintf(buff, 1024, "%s", unit.str.c_str());
+        }
+    }
+
+    this->displaystr = std::string(buff);
+    this->width = summarizer->getFont().getWidth(displaystr);
+
+}
+
 void SummItem::setDest(const vec2& dest) {
     vec2 dist = this->dest - dest;
 
     if(moving && glm::dot(dist, dist) < 1.0f) return;
 
-    this->oldpos = pos;
-    this->dest   = dest;
+    this->oldpos  = pos;
+    this->dest    = dest;
     this->elapsed = 0;
-    this->eta = 1.0f;
+    this->eta     = 1.0f;
 
     destroy   = false;
     moving    = true;
@@ -351,7 +354,7 @@ void SummItem::logic(float dt) {
 
     float remaining = eta - elapsed;
 
-    if(remaining>0.0f) {
+    if(remaining > 0.0f) {
         float dist_x = target_x - pos.x;
         if(dist_x<0.0f) dist_x = -dist_x;
 
@@ -376,26 +379,30 @@ void SummItem::logic(float dt) {
 }
 
 void SummItem::draw(float alpha) {
+    FXFont& font = summarizer->getFont();
     font.setColour(vec4(colour.x, colour.y, colour.z, colour.w * alpha));
     font.draw((int)pos.x, (int)pos.y, displaystr.c_str());
 }
 
 // Summarizer
 
-Summarizer::Summarizer(FXFont font, int screen_percent, float refresh_delay, std::string matchstr, std::string title)
+Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, float refresh_delay, std::string matchstr, std::string title)
     : matchre(matchstr) {
+
     pos_x = top_gap = bottom_gap = 0.0f;
 
     this->screen_percent = screen_percent;
-    this->title      = title;
-    this->font       = font;
+    this->abbreviation_depth = abbreviation_depth;
+    this->title = title;
+    this->font  = font;
 
     this->refresh_delay   = refresh_delay;
     this->refresh_elapsed = refresh_delay;
 
-    this->item_colour=0;
-    this->showcount=false;
+    has_colour = false;
+    item_colour= vec3(0.0f);
 
+    showcount=false;
     changed = false;
 
     incrementf   =0;
@@ -461,20 +468,17 @@ bool Summarizer::mouseOver(TextArea& textarea, vec2 mouse) {
     return false;
 }
 
-void Summarizer::setColour(vec3 col) {
-    this->item_colour = new vec3(col);
+void Summarizer::setColour(const vec3& col) {
+    item_colour = col;
+    has_colour = true;
 }
 
-bool Summarizer::isColoured() {
-    return (item_colour!=0);
+bool Summarizer::hasColour() const {
+    return has_colour;
 }
 
-vec3 Summarizer::getColour() {
-    return *item_colour;
-}
-
-Summarizer::~Summarizer() {
-    if(item_colour!=0) delete item_colour;
+const vec3& Summarizer::getColour() const {
+    return item_colour;
 }
 
 bool Summarizer::supportedString(const std::string& str) {
@@ -505,12 +509,12 @@ void Summarizer::summarize() {
     changed = false;
 
     strings.clear();
-    root.summarize(strings,max_strings);
+    root.summarize(this, strings, max_strings, 0);
 
     size_t nostrs = strings.size();
 
     for(size_t i=0;i<nostrs;i++) {
-        strings[i].buildSummary();
+        strings[i].buildSummary(this);
     }
 
     std::sort(strings.begin(), strings.end(), _unit_sorter);
@@ -558,7 +562,7 @@ void Summarizer::recalc_display() {
     for(size_t i=0;i<nostrs;i++) {
         if(strfound[i]) continue;
 
-        items.push_back(SummItem(strings[i], pos_x, item_colour, font, showcount));
+        items.push_back(SummItem(this, strings[i], pos_x));
         
         //debugLog("added item for unit %s %d", strings[i].str.c_str(), items[items.size()-1].destroy);
     }
@@ -667,13 +671,41 @@ float Summarizer::getPosY(const std::string& str) const {
     return calcPosY(0);
 }
 
-void Summarizer::showCount(bool showcount) {
+void Summarizer::setShowCount(bool showcount) {
     this->showcount = showcount;
+}
+
+bool Summarizer::showCount() const {
+    return showcount;
+}
+
+void Summarizer::setAbbreviationDepth(int abbreviation_depth) {
+    this->abbreviation_depth = abbreviation_depth;
+}
+
+int Summarizer::getAbbreviationDepth() const {
+    return abbreviation_depth;
+}
+
+bool Summarizer::isDelimiter(char c) const {
+    for(char delim : delimiters) {
+        return c == delim;
+    }
+
+    return false;
+}
+
+FXFont& Summarizer::getFont() {
+    return font;
 }
 
 void Summarizer::addString(const std::string& str) {
     root.addWord(str,0);
     changed = true;
+}
+
+void Summarizer::addDelimiter(char c) {
+    delimiters.push_back(c);
 }
 
 void Summarizer::logic(float dt) {

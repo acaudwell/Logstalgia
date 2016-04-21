@@ -246,6 +246,22 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             retarget=true;
         }
 
+        if(e->keysym.sym == SDLK_HOME) {
+            changeIPSummarizerDepth(-1);
+        }
+
+        if(e->keysym.sym == SDLK_END) {
+            changeIPSummarizerDepth(+1);
+        }
+
+        if(e->keysym.sym == SDLK_PAGEUP) {
+            changeGroupSummarizerDepth(-1);
+        }
+
+        if(e->keysym.sym == SDLK_PAGEDOWN) {
+            changeGroupSummarizerDepth(+1);
+        }
+
         if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
             toggleFullscreen();
         }
@@ -306,6 +322,26 @@ void Logstalgia::reset() {
     elapsed_time  = 0;
     starttime     = 0;
     lasttime      = 0;
+}
+
+void Logstalgia::changeSummarizerDepth(Summarizer* summarizer, int delta) {
+    int depth = summarizer->getAbbreviationDepth();
+    int new_depth = depth + delta;
+
+    if(new_depth >= 0) {
+        summarizer->setAbbreviationDepth(new_depth);
+        summarizer->recalc_display();
+    }
+}
+
+void Logstalgia::changeIPSummarizerDepth(int delta) {
+    changeSummarizerDepth(ipSummarizer, delta);
+}
+
+void Logstalgia::changeGroupSummarizerDepth(int delta) {
+    for(Summarizer* s : summarizers) {
+        changeSummarizerDepth(s, delta);
+    }
 }
 
 void Logstalgia::screenshot() {
@@ -525,7 +561,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     const std::string& match = ipSummarizer->getBestMatchStr(hostname);
 
-    vec3 colour = groupSummarizer->isColoured() ? groupSummarizer->getColour() : colourHash(match);
+    vec3 colour = groupSummarizer->hasColour() ? groupSummarizer->getColour() : colourHash(match);
 
     RequestBall* ball = new RequestBall(le, colour, ball_start, ball_dest);
 
@@ -659,7 +695,9 @@ void Logstalgia::readLog(int buffer_rows) {
 
 void Logstalgia::init() {
 
-    ipSummarizer = new Summarizer(fontSmall, 100, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 100, settings.ip_summarizer_depth, 2.0f);
+    ipSummarizer->addDelimiter(':');
+    ipSummarizer->addDelimiter('.');
     ipSummarizer->setSize(2, 40, 0);
 
     reset();
@@ -1147,7 +1185,8 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
     Summarizer* summarizer = 0;
 
     try {
-        summarizer = new Summarizer(fontSmall, percent, settings.update_rate, groupregex, grouptitle);
+        summarizer = new Summarizer(fontSmall, percent, settings.group_summarizer_depth, settings.update_rate, groupregex, grouptitle);
+        summarizer->addDelimiter('/');
     }
     catch(RegexCompilationException& e) {
         throw SDLAppException("invalid regular expression for group '%s'", grouptitle.c_str());
