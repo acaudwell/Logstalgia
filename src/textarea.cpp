@@ -94,7 +94,8 @@ void TextArea::draw() {
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    vec4 col(colour, 0.2f);
+    vec4 col(colour*0.2f, 0.6f);
+
     glColor4fv(glm::value_ptr(col));
     glBegin(GL_QUADS);
         glVertex2f(corner.x,           corner.y);
