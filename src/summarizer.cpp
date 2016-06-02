@@ -238,7 +238,9 @@ int SummNode::summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, i
             }
         }
 
-        if(child_share<=0 && (next_depth < 1 || next_depth > summarizer->getAbbreviationDepth())) {
+        // TODO: change approach to only summarize the string after the last separator?
+        // if(child_share<=0 && (next_depth < 1 || next_depth > summarizer->getAbbreviationDepth())) {
+        if(child_share<=0) {
             un_covered++;
             child->exception = true;
             last_uncovered=i;
@@ -283,8 +285,8 @@ int SummNode::summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, i
 
 // SummItem
 
-SummItem::SummItem(Summarizer* summarizer, SummUnit unit, float target_x)
-    : summarizer(summarizer), target_x(target_x) {
+SummItem::SummItem(Summarizer* summarizer, SummUnit unit)
+    : summarizer(summarizer) {
 
     pos  = vec2(-1.0f, -1.0f);
     dest = vec2(-1.0f, -1.0f);
@@ -355,7 +357,7 @@ void SummItem::logic(float dt) {
     float remaining = eta - elapsed;
 
     if(remaining > 0.0f) {
-        float dist_x = target_x - pos.x;
+        float dist_x = summarizer->getPosX() - pos.x;
         if(dist_x<0.0f) dist_x = -dist_x;
 
         float alpha = 0.0f;
@@ -405,14 +407,27 @@ Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, 
     showcount=false;
     changed = false;
 
-    incrementf   =0;
-    root = SummNode();
-
-    mouseover=false;
+    incrementf = 0;
+    root       = SummNode();
 }
 
 int Summarizer::getScreenPercent() {
     return screen_percent;
+}
+
+void Summarizer::setPosX(float x) {
+    if(pos_x == x) return;
+
+    pos_x = x;
+
+    for(SummItem& item : items) {
+        item.setPos(vec2(x, item.pos.y));
+    }
+    refresh_elapsed = 0.0f;
+}
+
+float Summarizer::getPosX() const {
+    return pos_x;
 }
 
 void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
@@ -436,36 +451,51 @@ void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
     items.clear();
 }
 
-void Summarizer::mouseOut() {
-    mouseover=false;
+bool Summarizer::mouseOver(const vec2& pos) const {
+    if(right && pos.x < pos_x) return false;
+    if(pos.y < top_gap || pos.y > (display.height - bottom_gap)) return false;
+
+    return true;
 }
 
-bool Summarizer::mouseOver(TextArea& textarea, vec2 mouse) {
-    mouseover=false;
+bool Summarizer::getInfoAtPos(TextArea& textarea, const vec2& pos) {
 
-    if(right && mouse.x < pos_x) return false;
-    if(mouse.y < top_gap || mouse.y > (display.height-bottom_gap)) return false;
-    if(items.empty()) return false;
+    if(!mouseOver(pos)) return false;
 
-    float y = mouse.y;
+    float y = pos.y;
 
     for(SummItem& item : items) {
         if(item.departing) continue;
 
         if(item.pos.y<=y && (item.pos.y+font.getMaxHeight()+4) > y) {
-            if(mouse.x< item.pos.x || mouse.x > item.pos.x + item.width) continue;
-
-            std::vector<std::string> content;
+            if(pos.x < item.pos.x || pos.x > item.pos.x + item.width) continue;
 
             textarea.setText(item.unit.expanded);
             textarea.setColour(vec3(item.colour));
-            textarea.setPos(mouse);
-            mouseover=true;
+            textarea.setPos(pos);
+
             return true;
         }
     }
 
     return false;
+}
+
+bool Summarizer::setPrefixFilterAtPos(const vec2& pos) {
+
+    return false;
+}
+
+void Summarizer::setPrefixFilter(const std::string& prefix_filter) {
+    // 1. user clicks on a strings in the summarizer (eg wants to see what images/* contains)
+    // 2. summary recalculated to only show strings with that prefix
+    // 2. new requests strings are ignored if they dont match filter, existing strings can still be removed
+
+    this->prefix_filter = prefix_filter;
+}
+
+const std::string& Summarizer::getPrefixFilter() const {
+    return prefix_filter;
 }
 
 void Summarizer::setColour(const vec3& col) {
@@ -562,7 +592,7 @@ void Summarizer::recalc_display() {
     for(size_t i=0;i<nostrs;i++) {
         if(strfound[i]) continue;
 
-        items.push_back(SummItem(this, strings[i], pos_x));
+        items.push_back(SummItem(this, strings[i]));
         
         //debugLog("added item for unit %s %d", strings[i].str.c_str(), items[items.size()-1].destroy);
     }

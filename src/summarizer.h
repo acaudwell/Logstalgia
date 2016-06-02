@@ -67,7 +67,7 @@ public:
 
     void expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& expansion, bool exceptions);
 
-    int summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, int no_words, int depth);
+    int summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, int no_words, int path_depth);
 };
 
 class SummItem {
@@ -79,9 +79,8 @@ class SummItem {
 
     float elapsed;
     float eta;
-    float target_x;
 public:
-    SummItem(Summarizer* summarizer, SummUnit unit, float target_x);
+    SummItem(Summarizer* summarizer, SummUnit unit);
 
     bool departing;
     bool destroy;
@@ -120,7 +119,6 @@ class Summarizer {
 
     bool showcount;
     bool right;
-    bool mouseover;
     bool changed;
 
     std::vector<char> delimiters;
@@ -136,17 +134,25 @@ class Summarizer {
     int screen_percent;
 
     std::string title;
+    std::string prefix_filter;
     Regex matchre;
 public:
     Summarizer(FXFont font, int percent, int abbreviation_depth = 0, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
 
+    void setPosX(float x);
+    float  getPosX() const;
+
     void setSize(int x, float top_gap, float bottom_gap);
 
     int getScreenPercent();
 
-    bool mouseOver(TextArea& textarea, vec2 mouse);
-    void mouseOut();
+    bool setPrefixFilterAtPos(const vec2& pos);
+    void setPrefixFilter(const std::string& prefix_filter);
+    const std::string& getPrefixFilter() const;
+
+    bool mouseOver(const vec2 &pos) const;
+    bool getInfoAtPos(TextArea& textarea, const vec2& pos);
 
     bool hasColour() const;
     void setColour(const vec3& col);
@@ -179,7 +185,7 @@ public:
 
     void recalc_display();
     void logic(float dt);
-    void draw(float dt, float alpha);   
+    void draw(float dt, float alpha);
 };
 
 #endif

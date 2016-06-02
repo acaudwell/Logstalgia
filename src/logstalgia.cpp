@@ -132,6 +132,10 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
+    adjusting_size = false;
+    default_cursor = SDL_GetDefaultCursor();
+    resize_cursor  = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+
     init_tz();
 }
 
@@ -158,7 +162,6 @@ Logstalgia::~Logstalgia() {
 
     summarizers.clear();
     summarizer_types.clear();
-
 }
 
 void Logstalgia::togglePause() {
@@ -168,12 +171,6 @@ void Logstalgia::togglePause() {
         if(settings.sync) {
             mintime = time(0);
             elapsed_time = mintime - starttime;
-        }
-
-        ipSummarizer->mouseOut();
-
-        for(Summarizer* s : summarizers) {
-            s->mouseOut();
         }
     }
 }
@@ -396,7 +393,10 @@ void Logstalgia::seekTo(float percent) {
 
 void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
 
-    if(e->type != SDL_MOUSEBUTTONDOWN) return;
+    if(e->type != SDL_MOUSEBUTTONDOWN) {
+        adjusting_size = false;
+        return;
+    }
 
     if(e->button == SDL_BUTTON_LEFT) {
 
@@ -404,6 +404,26 @@ void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
             float position;
             if(slider.click(mousepos, &position)) {
                 seekTo(position);
+            }
+        }
+
+//        if(!ipSummarizer->setPrefixFilterAtPos(mousepos)) {
+//        }
+
+        for(Summarizer* s : summarizers) {
+            if(s->setPrefixFilterAtPos(mousepos)) break;
+        }
+
+        if(mouseOverSummarizerWidthAdjuster(mousepos)) {
+            adjusting_size = true;
+        }
+    }
+
+    if(e->button == SDL_BUTTON_RIGHT) {
+        for(Summarizer* s: summarizers) {
+            if(s->mouseOver(mousepos) && !s->getPrefixFilter().empty()) {
+                s->setPrefixFilter("");
+                break;
             }
         }
     }
@@ -445,6 +465,10 @@ std::string Logstalgia::dateAtPosition(float percent) {
     return date;
 }
 
+bool Logstalgia::mouseOverSummarizerWidthAdjuster(const vec2& pos) {
+    return (paddle_x >= (pos.x - 3) && paddle_x <= (pos.x + 3));
+}
+
 void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     mousepos = vec2(e->x, e->y);
     SDL_ShowCursor(true);
@@ -455,6 +479,23 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     if(!settings.disable_progress && slider.mouseOver(mousepos, &pos)) {
         std::string date = dateAtPosition(pos);
         slider.setCaption(date);
+    }
+
+    if(adjusting_size) {
+        paddle_x = mousepos.x;
+        for(Summarizer* s : summarizers) {
+            s->setPosX(paddle_x);
+        }
+
+        for(auto it : paddles) {
+            it.second->setX(paddle_x - 20);
+        }
+    }
+
+    if(mouseOverSummarizerWidthAdjuster(mousepos)) {
+        SDL_SetCursor(resize_cursor);
+    } else {
+        SDL_SetCursor(default_cursor);
     }
 }
 
@@ -917,6 +958,7 @@ void Logstalgia::logic(float t, float dt) {
     }
 
     //if paused, dont move anything, only check what is under mouse
+
     if(paused) {
 
         for(auto& it: paddles) {
@@ -932,15 +974,17 @@ void Logstalgia::logic(float t, float dt) {
                 break;
             }
         }
-
-        if(!ipSummarizer->mouseOver(infowindow,mousepos)) {
-            for(Summarizer* s: summarizers) {
-                if(s->mouseOver(infowindow, mousepos)) break;
-            }
-        }
-
-        return;
     }
+
+    // inspect summarizer detail
+
+    if(!ipSummarizer->getInfoAtPos(infowindow,mousepos)) {
+        for(Summarizer* s: summarizers) {
+            if(s->getInfoAtPos(infowindow, mousepos)) break;
+        }
+    }
+
+    if(paused) return;
 
     //next will fast forward clock to the time of the next entry,
     //if the next entry is in the future

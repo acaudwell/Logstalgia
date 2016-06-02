@@ -94,6 +94,10 @@ class Logstalgia : public SDLApp {
     FXFont fontLarge;
     FXFont fontBall;
 
+    bool adjusting_size;
+    SDL_Cursor* default_cursor;
+    SDL_Cursor* resize_cursor;
+
     Summarizer* ipSummarizer;
 
     std::vector<Summarizer*> summarizers;
@@ -142,6 +146,8 @@ class Logstalgia : public SDLApp {
     void changeSummarizerDepth(Summarizer *summarizer, int delta);
     void changeIPSummarizerDepth(int delta);
     void changeGroupSummarizerDepth(int delta);
+
+    bool mouseOverSummarizerWidthAdjuster(const vec2& pos);
 
     void reset();
 

@@ -74,6 +74,10 @@ float Paddle::getX() {
     return pos.x;
 }
 
+void Paddle::setX(float x) {
+    pos.x = x;
+}
+
 RequestBall* Paddle::getTarget() {
     return target;
 }
