@@ -52,6 +52,31 @@ void RequestBall::addPoint(const vec2& p) {
     line_lengths.push_back(line_length);
 }
 
+void RequestBall::changeDestX(float dest_x) {
+    if(has_bounced) return;
+
+    if(dest_x <= pos.x) {
+        bounce();
+        return;
+    }
+
+    float t = (dir.y / dir.x);
+
+    vec2 start = points[0];
+
+    float a = t * (dest_x - start.x);
+    float y = start.y + a;
+
+    dest = vec2(dest_x, y);
+
+    total_distance = 0.0f;
+    line_lengths.clear();
+
+    points.clear();
+    points.push_back(start);
+    addPoint(dest);
+}
+
 void RequestBall::project() {
     distance_travelled = 0.0f;
     total_distance     = 0.0f;

@@ -68,6 +68,8 @@ public:
     bool isFinished() const;
     bool hasBounced() const;
 
+    void changeDestX(float dest_x);
+
     const vec2& getFinishPos() const;
 
     const vec3& getColour() const;

@@ -469,6 +469,25 @@ bool Logstalgia::mouseOverSummarizerWidthAdjuster(const vec2& pos) {
     return (paddle_x >= (pos.x - 3) && paddle_x <= (pos.x + 3));
 }
 
+void Logstalgia::changePaddleX(float x) {
+
+    paddle_x = x;
+
+    for(Summarizer* s : summarizers) {
+        s->setPosX(paddle_x);
+    }
+
+    float paddle_offset = paddle_x - 20;
+
+    for(auto it : paddles) {
+        it.second->setX(paddle_offset);
+    }
+
+    for(RequestBall* ball: balls) {
+        ball->changeDestX(paddle_offset);
+    }
+}
+
 void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     mousepos = vec2(e->x, e->y);
     SDL_ShowCursor(true);
@@ -482,14 +501,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     }
 
     if(adjusting_size) {
-        paddle_x = mousepos.x;
-        for(Summarizer* s : summarizers) {
-            s->setPosX(paddle_x);
-        }
-
-        for(auto it : paddles) {
-            it.second->setX(paddle_x - 20);
-        }
+        changePaddleX(mousepos.x);
     }
 
     if(mouseOverSummarizerWidthAdjuster(mousepos)) {

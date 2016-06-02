@@ -149,6 +149,8 @@ class Logstalgia : public SDLApp {
 
     bool mouseOverSummarizerWidthAdjuster(const vec2& pos);
 
+    void changePaddleX(float x);
+
     void reset();
 
     void reinit();
