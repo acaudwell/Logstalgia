@@ -501,7 +501,21 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     }
 
     if(adjusting_size) {
-        changePaddleX(mousepos.x);
+
+        // dont allow adjusting size while an animation is happening
+
+        bool can_adjust = true;
+
+        for(Summarizer* s : summarizers) {
+            if(s->isAnimating()) {
+                can_adjust = false;
+                break;
+            }
+        }
+
+        if(can_adjust) {
+            changePaddleX(mousepos.x);
+        }
     }
 
     if(mouseOverSummarizerWidthAdjuster(mousepos)) {
@@ -969,30 +983,33 @@ void Logstalgia::logic(float t, float dt) {
         return;
     }
 
-    //if paused, dont move anything, only check what is under mouse
+    if(!mouseOverSummarizerWidthAdjuster(mousepos)) {
 
-    if(paused) {
+        // update info window
 
-        for(auto& it: paddles) {
-            Paddle* paddle = it.second;
+        if(paused) {
 
-            if(paddle->mouseOver(infowindow, mousepos)) {
-                break;
+            for(auto& it: paddles) {
+                Paddle* paddle = it.second;
+
+                if(paddle->mouseOver(infowindow, mousepos)) {
+                    break;
+                }
+            }
+
+            for(RequestBall* ball : balls) {
+                if(ball->mouseOver(infowindow, mousepos)) {
+                    break;
+                }
             }
         }
 
-        for(RequestBall* ball : balls) {
-            if(ball->mouseOver(infowindow, mousepos)) {
-                break;
+        // inspect summarizer detail
+
+        if(!ipSummarizer->getInfoAtPos(infowindow,mousepos)) {
+            for(Summarizer* s: summarizers) {
+                if(s->getInfoAtPos(infowindow, mousepos)) break;
             }
-        }
-    }
-
-    // inspect summarizer detail
-
-    if(!ipSummarizer->getInfoAtPos(infowindow,mousepos)) {
-        for(Summarizer* s: summarizers) {
-            if(s->getInfoAtPos(infowindow, mousepos)) break;
         }
     }
 

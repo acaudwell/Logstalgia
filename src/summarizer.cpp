@@ -300,6 +300,10 @@ SummItem::SummItem(Summarizer* summarizer, SummUnit unit)
     setDest(dest);
 }
 
+bool SummItem::isMoving() const {
+    return moving;
+}
+
 void SummItem::updateUnit(const SummUnit& unit) {
 
     this->unit = unit;
@@ -425,6 +429,15 @@ void Summarizer::setPosX(float x) {
     }
     refresh_elapsed = 0.0f;
 }
+
+bool Summarizer::isAnimating() const {
+    for(const SummItem& item : items) {
+        if(item.isMoving()) return true;
+    }
+
+    return false;
+}
+
 
 float Summarizer::getPosX() const {
     return pos_x;

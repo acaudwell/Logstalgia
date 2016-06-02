@@ -93,6 +93,8 @@ public:
     vec4 colour;
     vec2 pos;
 
+    bool isMoving() const;
+
     void setDest(const vec2& dest);
     void setPos(const vec2& pos);
     void setDeparting(bool departing);
@@ -144,6 +146,7 @@ public:
     float  getPosX() const;
 
     void setSize(int x, float top_gap, float bottom_gap);
+    bool isAnimating() const;
 
     int getScreenPercent();
 
