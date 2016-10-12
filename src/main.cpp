@@ -135,6 +135,9 @@ int main(int argc, char *argv[]) {
     //enable vsync
     display.enableVsync(settings.vsync);
 
+    //enable frameless
+    display.enableFrameless(settings.frameless);
+
     // this causes corruption on some video drivers
     if(settings.multisample) display.multiSample(4);
 
@@ -143,6 +146,10 @@ int main(int argc, char *argv[]) {
     }
 
     display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen);
+
+    if(settings.window_x >= 0 && settings.window_y >= 0) {
+        SDL_SetWindowPosition(display.sdl_window, settings.window_x, settings.window_y);
+    }
 
     // Don't minimize when alt-tabbing so you can fullscreen logstalgia on a second monitor
 #if SDL_VERSION_ATLEAST(2,0,0)
