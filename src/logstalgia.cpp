@@ -28,8 +28,6 @@
 //turn performance profiling
 //#define LS_PERFORMANCE_PROFILE
 
-bool  gSyncLog  = false;
-
 std::string profile_name;
 Uint32 profile_start_msec;
 
