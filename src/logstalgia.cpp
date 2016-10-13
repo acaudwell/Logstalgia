@@ -200,6 +200,10 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             }
         }
 
+        if (e->keysym.sym == SDLK_s && e->keysym.mod & KMOD_CTRL) {
+            saveConfig();
+        }
+
         if(e->keysym.sym == SDLK_SPACE) {
             togglePause();
         }
@@ -319,6 +323,80 @@ void Logstalgia::reset() {
     elapsed_time  = 0;
     starttime     = 0;
     lasttime      = 0;
+}
+
+void Logstalgia::saveConfig() {
+
+    // update display settings
+
+    settings.display_width  = display.width;
+    settings.display_height = display.height;
+
+    settings.fullscreen = display.isFullscreen();
+    settings.frameless  = display.isFrameless();
+
+    if(!settings.fullscreen) {
+        SDL_GetWindowPosition(display.sdl_window, &settings.window_x, &settings.window_y);
+    } else {
+        settings.window_x = -1;
+        settings.window_y = -1;
+    }
+
+#ifdef _WIN32
+    if(settings.load_config.empty()) {
+        //get original directory
+        char cwd_buff[1024];
+
+        if(getcwd(cwd_buff, 1024) != cwd_buff) {
+            SDLAppQuit("error getting current working directory");
+        }
+
+        OPENFILENAME ofn;
+
+        char filepath[_MAX_PATH];
+        filepath[0] = '\0';
+
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = 0;
+        ofn.lpstrFile = filepath;
+        ofn.nMaxFile = sizeof(filepath);
+        ofn.lpstrFilter = "Config File (*.cfg)\0*.cfg\0*.*\0*.*\0";
+        ofn.nFilterIndex = 1;
+        ofn.lpstrFileTitle = 0;
+        ofn.nMaxFileTitle = 0;
+        ofn.lpstrInitialDir = 0;
+        ofn.Flags = OFN_PATHMUSTEXIST;
+
+        GetSaveFileName(&ofn);
+
+        //change back to original directory
+        if(chdir(cwd_buff) != 0) {
+            SDLAppQuit("error changing directory");
+        }
+
+        settings.load_config = std::string(filepath);
+    }
+#endif
+
+    if(settings.load_config.empty()) return;
+
+    ConfFile conf;
+    settings.exportDisplaySettings(conf);
+    settings.exportLogstalgiaSettings(conf);
+
+    std::string config_file = settings.load_config;
+
+    try {
+        conf.save(config_file);
+
+        // TODO: stop message disappearing too quickly due to large dt value
+        // while waiting for the user to choose the save location
+
+        setMessage("Wrote config %s", config_file.c_str());
+    } catch(ConfFileException&) {
+        setMessage("Failed to save config to %s", config_file.c_str());
+    }
 }
 
 void Logstalgia::changeSummarizerDepth(Summarizer* summarizer, int delta) {
@@ -832,7 +910,7 @@ void Logstalgia::resize(int width, int height) {
 
 void Logstalgia::toggleWindowFrame() {
 #if SDL_VERSION_ATLEAST(2,0,0)
-    if(display.fullscreen) return;
+    if(display.isFullscreen()) return;
     if(frameExporter != 0) return;
 
     texturemanager.unload();

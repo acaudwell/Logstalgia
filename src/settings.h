@@ -86,6 +86,7 @@ public:
     void setLogstalgiaDefaults();
 
     void importLogstalgiaSettings(ConfFile& conf, ConfSection* settings = 0);
+    void exportLogstalgiaSettings(ConfFile& conf);
 
     void help(bool extended_help=false);
 };

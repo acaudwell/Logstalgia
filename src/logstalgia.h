@@ -151,6 +151,8 @@ class Logstalgia : public SDLApp {
 
     void changePaddleX(float x);
 
+    void saveConfig();
+
     void reset();
 
     void reinit();

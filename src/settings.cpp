@@ -21,6 +21,8 @@
 #include "core/sdlapp.h"
 #include "core/seeklog.h"
 
+#include <time.h>
+
 LogstalgiaSettings settings;
 
 //display help message
@@ -525,4 +527,116 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         std::cin.clear();
     }
+}
+
+void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
+
+    ConfSection* settings = conf.addSection("logstalgia");
+
+    settings->addEntry(new ConfEntry("glow-intensity",  glow_intensity));
+    settings->addEntry(new ConfEntry("glow-multiplier", glow_multiplier));
+    settings->addEntry(new ConfEntry("glow-duration", glow_duration));
+    settings->addEntry(new ConfEntry("font-size", font_size));
+    settings->addEntry(new ConfEntry("background", background_colour));
+
+    if(start_time != 0) {
+        char timestr[256];
+        struct tm* timeinfo = localtime ( &start_time );
+        strftime(timestr, 256, "%s", timeinfo);
+        settings->addEntry(new ConfEntry("from", std::string(timestr)));
+    }
+
+    if(stop_time != 0) {
+        char timestr[256];
+        struct tm* timeinfo = localtime ( &stop_time );
+        strftime(timestr, 256, "%s", timeinfo);
+        settings->addEntry(new ConfEntry("to", std::string(timestr)));
+    }
+
+    if(start_position > 0.0f) {
+        settings->addEntry(new ConfEntry("start-position", start_position));
+    }
+
+    if(stop_position < 1.0f) {
+        settings->addEntry(new ConfEntry("start-position", stop_position));
+    }
+
+    for(const std::string& group : groups) {
+        settings->addEntry("group", group);
+    }
+
+    if(paddle_mode != PADDLE_NONE) {
+        std::string paddle_mode_string;
+
+        switch(paddle_mode) {
+            case PADDLE_PID:
+                paddle_mode_string = "pid";
+                break;
+            case PADDLE_VHOST:
+                paddle_mode_string = "vhost";
+                break;
+            case PADDLE_SINGLE:
+            default:
+                break;
+        }
+
+        if(!paddle_mode_string.empty()) {
+            settings->addEntry(new ConfEntry("paddle-mode", paddle_mode_string));
+        }
+    } else {
+        settings->addEntry(new ConfEntry("hide-paddle", true));
+    }
+
+    settings->addEntry(new ConfEntry("paddle-position", paddle_position));
+    settings->addEntry(new ConfEntry("pitch-speed", pitch_speed));
+
+    if(simulation_speed != 1.0f) {
+        settings->addEntry(new ConfEntry("simulation-speed", simulation_speed));
+    }
+
+    if(update_rate != 5.0f) {
+        settings->addEntry(new ConfEntry("update-rate", update_rate));
+    }
+
+    if(sync) {
+        settings->addEntry(new ConfEntry("sync", sync));
+    }
+
+    if(hide_paddle_tokens) {
+        settings->addEntry(new ConfEntry("hide-paddle-tokens", hide_paddle_tokens));
+    }
+
+    if(hide_response_code) {
+        settings->addEntry(new ConfEntry("hide-response-code", hide_response_code));
+    }
+
+    if(no_bounce) {
+        settings->addEntry(new ConfEntry("no-bounce", no_bounce));
+    }
+
+    if(disable_auto_skip) {
+        settings->addEntry(new ConfEntry("disable-auto-skip", disable_auto_skip));
+    }
+
+    if(disable_progress) {
+        settings->addEntry(new ConfEntry("disable-progress", disable_progress));
+    }
+
+    if(disable_glow) {
+        settings->addEntry(new ConfEntry("disable-glow", disable_glow));
+    }
+
+    if(mask_hostnames == false) {
+        settings->addEntry(new ConfEntry("full-hostnames", true));
+    }
+
+    if(hide_url_prefix) {
+        settings->addEntry(new ConfEntry("hide-url-prefix", hide_url_prefix));
+    }
+
+    if(ffp) {
+        settings->addEntry(new ConfEntry("ffp", ffp));
+    }
+
+    settings->addEntry("path", path);
 }

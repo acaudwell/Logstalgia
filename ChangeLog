@@ -3,6 +3,7 @@
  * Changed unsuccessful response code direction to match ball.
  * Added --window-position XxY option.
  * Added --frameless option.
+ * Save config at runtime (Ctrl+S) with updated display settings.
  * Fixed queued log entries not being deleted when seeking using the timeline.
 
 1.0.7:

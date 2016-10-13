@@ -263,6 +263,7 @@ Interactive keyboard commands:
    (F11) Window frame toggle
    (F12) Screenshot
    (Alt+Enter) Fullscreen toggle
+   (Ctrl+S) Save config
    (ESC) Quit
 
 
