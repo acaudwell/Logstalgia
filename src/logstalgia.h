@@ -78,7 +78,6 @@ class Logstalgia : public SDLApp {
     int remaining_space;
     int total_entries;
 
-    vec3 background;
     vec4 paddle_colour;
     float paddle_x;
 
@@ -152,6 +151,7 @@ class Logstalgia : public SDLApp {
     void changePaddleX(float x);
 
     void saveConfig();
+    void reloadConfig();
 
     void reset();
 
@@ -176,8 +176,6 @@ public:
     void addGroup(const std::string& groupstr);
 
     void setFrameExporter(FrameExporter* exporter);
-
-    void setBackground(vec3 background);
 
     void resize(int width, int height);
     void toggleWindowFrame();

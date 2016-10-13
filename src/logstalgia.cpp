@@ -96,8 +96,6 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     total_entries=0;
 
-    background = vec3(0.0, 0.0, 0.0);
-
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
     fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
     fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
@@ -202,6 +200,10 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
 
         if (e->keysym.sym == SDLK_s && e->keysym.mod & KMOD_CTRL) {
             saveConfig();
+        }
+
+        if (e->keysym.sym == SDLK_F5) {
+            reloadConfig();
         }
 
         if(e->keysym.sym == SDLK_SPACE) {
@@ -396,6 +398,27 @@ void Logstalgia::saveConfig() {
         setMessage("Wrote config %s", config_file.c_str());
     } catch(ConfFileException&) {
         setMessage("Failed to save config to %s", config_file.c_str());
+    }
+}
+
+void Logstalgia::reloadConfig() {
+    if(settings.load_config.empty()) return;
+
+    try {
+        ConfFile conf;
+        conf.load(settings.load_config);
+
+        // validate config
+        LogstalgiaSettings configSettings;
+        configSettings.importLogstalgiaSettings(conf);
+
+        // if no exceptions were thrown, import settings
+        // TODO: if the path changed open the different file?
+        // TODO: error if path changes to or from '-' ?
+        settings.importLogstalgiaSettings(conf);
+
+    } catch(ConfFileException& e) {
+       setMessage(e.what());
     }
 }
 
@@ -934,10 +957,6 @@ void Logstalgia::reinit() {
     slider.resize();
 }
 
-void Logstalgia::setBackground(vec3 background) {
-    this->background = background;
-}
-
 void Logstalgia::setFrameExporter(FrameExporter* exporter) {
 
     int fixed_framerate = settings.output_framerate;
@@ -1403,7 +1422,7 @@ void Logstalgia::draw(float t, float dt) {
 
     if(!settings.disable_progress) slider.logic(dt);
 
-    display.setClearColour(background);
+    display.setClearColour(settings.background_colour);
     display.clear();
 
     glDisable(GL_FOG);

@@ -260,6 +260,7 @@ Interactive keyboard commands:
    (N)   Jump forward in time to next log entry
    (+-)  Adjust simulation speed
    (<>)  Adjust pitch speed
+   (F5)  Reload config
    (F11) Window frame toggle
    (F12) Screenshot
    (Alt+Enter) Fullscreen toggle

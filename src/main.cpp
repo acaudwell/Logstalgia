@@ -192,8 +192,6 @@ int main(int argc, char *argv[]) {
             ls->addGroup(group);
         }
 
-        ls->setBackground(settings.background_colour);
-
         ls->run();
 
     } catch(ResourceException& exception) {
