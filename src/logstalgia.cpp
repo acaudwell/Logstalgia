@@ -19,6 +19,7 @@
 #include "settings.h"
 #include "ncsa.h"
 #include "custom.h"
+#include "configwatcher.h"
 
 #include "core/png_writer.h"
 #include "core/timezone.h"
@@ -132,6 +133,18 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     default_cursor = SDL_GetDefaultCursor();
     resize_cursor  = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
 
+    config_watcher = 0;
+
+    if(settings.detect_changes) {
+        config_watcher = new ConfigWatcher();
+        config_watcher->setConfig(settings.load_config);
+
+        if(!config_watcher->start()) {
+            delete config_watcher;
+            config_watcher = 0;
+        }
+    }
+
     init_tz();
 }
 
@@ -145,6 +158,7 @@ Logstalgia::~Logstalgia() {
 
     if(seeklog!=0) delete seeklog;
     if(streamlog!=0) delete streamlog;
+    if(config_watcher!=0) delete config_watcher;
 
     for(auto& it : summarizer_types) {
         if(it.second != 0) delete it.second;
@@ -158,6 +172,7 @@ Logstalgia::~Logstalgia() {
 
     summarizers.clear();
     summarizer_types.clear();
+
 }
 
 void Logstalgia::togglePause() {
@@ -1417,6 +1432,16 @@ void Logstalgia::drawGroups(float dt, float alpha) {
 
 void Logstalgia::draw(float t, float dt) {
     if(appFinished) return;
+
+    if(config_watcher != 0) {
+        if(config_watcher->changeDetected()) {
+            debugLog("config file modified");
+            reloadConfig();
+        }
+        // perform check after to add a delay between
+        // the file being modified and being reloaded
+        config_watcher->update();
+    }
 
     if(!settings.disable_progress) slider.logic(dt);
 

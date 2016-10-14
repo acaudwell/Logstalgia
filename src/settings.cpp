@@ -189,6 +189,8 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     ip_summarizer_depth    = 0;
     group_summarizer_depth = 0;
 
+    detect_changes = false;
+
     paddle_mode     = PADDLE_SINGLE;
     paddle_position = 0.67f;
 
@@ -498,6 +500,10 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         ffp = true;
     }
 
+    if(settings->getBool("detect-changes")) {
+        detect_changes = true;
+    }
+
     //validate path
     if(settings->hasValue("path")) {
         path = settings->getString("path");
@@ -636,6 +642,10 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
 
     if(ffp) {
         settings->addEntry(new ConfEntry("ffp", ffp));
+    }
+
+    if(detect_changes) {
+        settings->addEntry(new ConfEntry("detect-changes", true));
     }
 
     settings->addEntry("path", path);

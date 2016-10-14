@@ -169,6 +169,9 @@ options:
     --save-config CONFIG_FILE
             Save a config file with the current options.
 
+    --detect-changes
+            Automatically reload config file when it is modified.
+
     logfile
             The path to the access log file to read or '-' if you wish to
             supply log entries via STDIN.

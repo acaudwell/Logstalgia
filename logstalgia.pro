@@ -39,6 +39,7 @@ SOURCES += custom.cpp \
     slider.cpp \
     summarizer.cpp \
     textarea.cpp \
+    configwatcher.cpp \
     core/conffile.cpp \
     core/display.cpp \
     core/frustum.cpp \
@@ -59,7 +60,11 @@ SOURCES += custom.cpp \
     core/texture.cpp \
     core/timezone.cpp \
     core/vbo.cpp \
-    core/vectors.cpp
+    core/vectors.cpp \
+    FileWatcher/FileWatcher.cpp \
+    FileWatcher/FileWatcherLinux.cpp \
+    FileWatcher/FileWatcherOSX.cpp \
+    FileWatcher/FileWatcherWin32.cpp
 
 HEADERS += custom.h \
     logentry.h \
@@ -71,6 +76,7 @@ HEADERS += custom.h \
     slider.h \
     summarizer.h \
     textarea.h \
+    configwatcher.h \
     core/bounds.h \
     core/conffile.h \
     core/display.h \
@@ -95,4 +101,9 @@ HEADERS += custom.h \
     core/timezone.h \
     core/vbo.h \
     core/vectors.h \
-    core/settings.h
+    core/settings.h \
+    FileWatcher/FileWatcher.h \
+    FileWatcher/FileWatcherImpl.h \
+    FileWatcher/FileWatcherLinux.h \
+    FileWatcher/FileWatcherOSX.h \
+    FileWatcher/FileWatcherWin32.h

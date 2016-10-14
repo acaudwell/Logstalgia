@@ -36,6 +36,8 @@
 #include <map>
 #include <time.h>
 
+class ConfigWatcher;
+
 class Logstalgia : public SDLApp {
 
     std::map<std::string,Paddle*> paddles;
@@ -119,6 +121,7 @@ class Logstalgia : public SDLApp {
     int framecount;
     int frameskip;
     FrameExporter* frameExporter;
+    ConfigWatcher* config_watcher;
 
     std::string filterURLHostname(const std::string& hostname);
 
