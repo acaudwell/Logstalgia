@@ -54,6 +54,7 @@ class Logstalgia : public SDLApp {
     bool sync;
     bool end_reached;
     bool take_screenshot;
+    bool initialized;
 
     int highscore;
 
@@ -123,6 +124,8 @@ class Logstalgia : public SDLApp {
     FrameExporter* frameExporter;
     ConfigWatcher* config_watcher;
 
+    bool hasProgressBar();
+
     std::string filterURLHostname(const std::string& hostname);
 
     std::string dateAtPosition(float percent);
@@ -140,6 +143,7 @@ class Logstalgia : public SDLApp {
 
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
+    void addGroup(const std::string& groupstr);
     void addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
     void togglePause();
 
@@ -158,7 +162,7 @@ class Logstalgia : public SDLApp {
 
     void reset();
 
-    void reinit();
+    void reposition();
 
     void initPaddles();
     void initRequestBalls();
@@ -175,8 +179,6 @@ class Logstalgia : public SDLApp {
 public:
     Logstalgia(const std::string& logfile);
     ~Logstalgia();
-
-    void addGroup(const std::string& groupstr);
 
     void setFrameExporter(FrameExporter* exporter);
 

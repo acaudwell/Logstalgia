@@ -188,10 +188,6 @@ int main(int argc, char *argv[]) {
             ls->setFrameExporter(exporter);
         }
 
-        for(const std::string& group : settings.groups) {
-            ls->addGroup(group);
-        }
-
         ls->run();
 
     } catch(ResourceException& exception) {

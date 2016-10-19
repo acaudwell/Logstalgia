@@ -59,6 +59,8 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     retarget   = false;
     next       = false;
 
+    initialized = false;
+
     this->logfile = logfile;
 
     spawn_delay=0;
@@ -79,7 +81,6 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     if(logfile == "-") {
         streamlog = new StreamLog();
-        settings.disable_progress = true;
 
     } else {
         try {
@@ -90,24 +91,13 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
         }
     }
 
-    total_space = display.height - 40;
-    remaining_space = total_space - 2;
+    total_space = 0;
+    remaining_space = 0;
 
     total_entries=0;
 
-    fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
-    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
-    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
-    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", settings.font_size);
-
-    fontLarge.dropShadow(true);
-    fontMedium.dropShadow(true);
-    fontSmall.dropShadow(true);
-
-    balltex  = texturemanager.grab("ball.tga");
-    glowtex = texturemanager.grab("glow.tga");
-
-    infowindow = TextArea(fontSmall);
+    balltex = 0;
+    glowtex = 0;
 
     mousehide_timeout = 0.0f;
 
@@ -425,10 +415,32 @@ void Logstalgia::reloadConfig() {
         LogstalgiaSettings configSettings;
         configSettings.importLogstalgiaSettings(conf);
 
+        // figure out if we should call init()
+
+        bool reinitialize = false;
+
+        if(settings.font_size != configSettings.font_size) {
+            reinitialize = true;
+        }
+        else if(settings.groups.size() != configSettings.groups.size()) {
+            reinitialize = true;
+        } else {
+            for(int i = 0; i < settings.groups.size();i++) {
+                if(settings.groups[i] != configSettings.groups[i]) {
+                    reinitialize = true;
+                    break;
+                }
+            }
+        }
+
         // if no exceptions were thrown, import settings
         // TODO: if the path changed open the different file?
         // TODO: error if path changes to or from '-' ?
         settings.importLogstalgiaSettings(conf);
+
+        if(reinitialize) {
+            init();
+        }
 
     } catch(ConfFileException& e) {
        setMessage(e.what());
@@ -491,9 +503,13 @@ void Logstalgia::setMessage(const char* str, ...) {
     message_timer = 5.0;
 }
 
+bool Logstalgia::hasProgressBar() {
+    return seeklog != 0 && !settings.disable_progress;
+}
+
 void Logstalgia::seekTo(float percent) {
 
-    if(settings.disable_progress) return;
+    if(!seeklog) return;
 
     //disable pause if enabled before seeking
     if(paused) paused = false;
@@ -514,7 +530,7 @@ void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
 
     if(e->button == SDL_BUTTON_LEFT) {
 
-        if(!settings.disable_progress) {
+        if(hasProgressBar()) {
             float position;
             if(slider.click(mousepos, &position)) {
                 seekTo(position);
@@ -609,7 +625,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
 
     float pos;
 
-    if(!settings.disable_progress && slider.mouseOver(mousepos, &pos)) {
+    if(hasProgressBar() && slider.mouseOver(mousepos, &pos)) {
         std::string date = dateAtPosition(pos);
         slider.setCaption(date);
     }
@@ -864,7 +880,7 @@ void Logstalgia::readLog(int buffer_rows) {
             return;
         }
 
-        if(!settings.disable_progress) slider.setPercent(percent);
+        if(hasProgressBar()) slider.setPercent(percent);
     }
 
     //set start time if currently 0
@@ -876,14 +892,39 @@ void Logstalgia::readLog(int buffer_rows) {
 
 void Logstalgia::init() {
 
+    fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
+    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
+    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
+    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", settings.font_size);
+
+    fontLarge.dropShadow(true);
+    fontMedium.dropShadow(true);
+    fontSmall.dropShadow(true);
+
+    if(!balltex) balltex = texturemanager.grab("ball.tga");
+    if(!glowtex) glowtex = texturemanager.grab("glow.tga");
+
+    infowindow = TextArea(fontSmall);
+
+    if(ipSummarizer != 0) delete ipSummarizer;
+
+    total_space     = display.height - 40;
+    remaining_space = total_space - 2;
+
     ipSummarizer = new Summarizer(fontSmall, 100, settings.ip_summarizer_depth, 2.0f);
     ipSummarizer->addDelimiter(':');
     ipSummarizer->addDelimiter('.');
     ipSummarizer->setSize(2, 40, 0);
 
-    reset();
+    for(Summarizer* s : summarizers) {
+        delete s;
+    }
+    summarizers.clear();
+    summarizer_types.clear();
 
-    readLog();
+    for(const std::string& group : settings.groups) {
+        addGroup(group);
+    }
 
     //add default groups
     if(summarizers.empty()) {
@@ -894,21 +935,34 @@ void Logstalgia::init() {
     }
 
     //always fill remaining space with Misc, (if there is some)
-    if(remaining_space>50) {
+    if(remaining_space > 50) {
         addGroup("URI", "Misc", ".*");
     }
 
+    reset();
+
+    readLog();
+
     resizeGroups();
 
-    SDL_ShowCursor(false);
+    if(!initialized) {
 
-    //set start position
-    if(settings.start_position > 0.0 && settings.start_position < 1.0) {
-        seekTo(settings.start_position);
+        SDL_ShowCursor(false);
+
+        // only do these things on the first time
+
+        //set start position
+        if(settings.start_position > 0.0 && settings.start_position < 1.0) {
+            seekTo(settings.start_position);
+        }
+
+        // show slider so user knows its there unless recording
+        if(hasProgressBar() && !frameExporter) {
+            slider.show();
+        }
     }
 
-    // show slider so user knows its there unless recording
-    if(frameExporter==0) slider.show();
+    initialized = true;
 }
 
 void Logstalgia::toggleFullscreen() {
@@ -926,7 +980,7 @@ void Logstalgia::toggleFullscreen() {
     shadermanager.reload();
     fontmanager.reload();
 
-    reinit();
+    reposition();
 }
 
 void Logstalgia::resize(int width, int height) {
@@ -941,7 +995,7 @@ void Logstalgia::resize(int width, int height) {
     shadermanager.reload();
     fontmanager.reload();
 
-    reinit();
+    reposition();
 }
 
 void Logstalgia::toggleWindowFrame() {
@@ -959,11 +1013,11 @@ void Logstalgia::toggleWindowFrame() {
     shadermanager.reload();
     fontmanager.reload();
 
-    reinit();
+    reposition();
 #endif
 }
 
-void Logstalgia::reinit() {
+void Logstalgia::reposition() {
     initPaddles();
     initRequestBalls();
     resizeGroups();
@@ -1443,7 +1497,7 @@ void Logstalgia::draw(float t, float dt) {
         config_watcher->update();
     }
 
-    if(!settings.disable_progress) slider.logic(dt);
+    if(hasProgressBar()) slider.logic(dt);
 
     display.setClearColour(settings.background_colour);
     display.clear();
@@ -1603,7 +1657,7 @@ void Logstalgia::draw(float t, float dt) {
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 
-    if(!settings.disable_progress) slider.draw(dt);
+    if(hasProgressBar()) slider.draw(dt);
 
     if(take_screenshot) {
         screenshot();
