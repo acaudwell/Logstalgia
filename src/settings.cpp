@@ -543,7 +543,13 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
     settings->addEntry(new ConfEntry("glow-multiplier", glow_multiplier));
     settings->addEntry(new ConfEntry("glow-duration", glow_duration));
     settings->addEntry(new ConfEntry("font-size", font_size));
-    settings->addEntry(new ConfEntry("background", background_colour));
+
+    if(background_colour != vec3(0.0f)) {
+        char background_hex[256];
+        vec3 bg = background_colour * 255.0f;
+        snprintf(background_hex, 256, "%02X%02X%02X", (int)bg.x,(int)bg.y,(int)bg.z);
+        settings->addEntry(new ConfEntry("background", std::string(background_hex)));
+    }
 
     if(start_time != 0) {
         char timestr[256];
