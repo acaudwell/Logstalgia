@@ -122,7 +122,9 @@ class Logstalgia : public SDLApp {
     int framecount;
     int frameskip;
     FrameExporter* frameExporter;
+
     ConfigWatcher* config_watcher;
+    bool detect_changes;
 
     bool hasProgressBar();
 
@@ -158,6 +160,10 @@ class Logstalgia : public SDLApp {
     void changePaddleX(float x);
 
     void saveConfig();
+
+    void loadConfig();
+    void loadConfig(const std::string& config_file);
+
     void reloadConfig();
 
     void reset();

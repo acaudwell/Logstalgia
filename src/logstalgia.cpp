@@ -123,17 +123,8 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     default_cursor = SDL_GetDefaultCursor();
     resize_cursor  = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
 
+    detect_changes = settings.detect_changes;
     config_watcher = 0;
-
-    if(settings.detect_changes) {
-        config_watcher = new ConfigWatcher();
-        config_watcher->setConfig(settings.load_config);
-
-        if(!config_watcher->start()) {
-            delete config_watcher;
-            config_watcher = 0;
-        }
-    }
 
     init_tz();
 }
@@ -207,6 +198,10 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
 
         if (e->keysym.sym == SDLK_F5) {
             reloadConfig();
+        }
+
+        if (e->keysym.sym == SDLK_F6) {
+            loadConfig();
         }
 
         if(e->keysym.sym == SDLK_SPACE) {
@@ -404,29 +399,87 @@ void Logstalgia::saveConfig() {
     }
 }
 
-void Logstalgia::reloadConfig() {
-    if(settings.load_config.empty()) return;
+void Logstalgia::loadConfig() {
+#ifdef _WIN32
+    //get original directory
+    char cwd_buff[1024];
+
+    if(getcwd(cwd_buff, 1024) != cwd_buff) {
+        SDLAppQuit("error getting current working directory");
+    }
+
+    OPENFILENAME ofn;
+
+    char filepath[_MAX_PATH];
+    filepath[0] = '\0';
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = 0;
+    ofn.lpstrFile = filepath;
+    ofn.nMaxFile = sizeof(filepath);
+    ofn.lpstrFilter = "Config File (*.cfg)\0*.cfg\0*.*\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = 0;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = 0;
+    ofn.Flags = OFN_PATHMUSTEXIST;
+
+    GetOpenFileName(&ofn);
+
+    //change back to original directory
+    if(chdir(cwd_buff) != 0) {
+        SDLAppQuit("error changing directory");
+    }
+
+    loadConfig(std::string(filepath));
+#endif
+}
+
+void Logstalgia::loadConfig(const std::string& config_file) {
 
     try {
         ConfFile conf;
-        conf.load(settings.load_config);
+        conf.load(config_file);
 
         // validate config
-        LogstalgiaSettings configSettings;
-        configSettings.importLogstalgiaSettings(conf);
+        LogstalgiaSettings new_settings;
+        new_settings.importLogstalgiaSettings(conf);
+
+        if(settings.path != new_settings.path) {
+
+            if(settings.path == "-" || new_settings.path == "-") {
+                throw ConfFileException("cannot change streaming mode at run time", config_file, 0);
+            }
+
+            SeekLog* new_seeklog = 0;
+
+            try {
+                new_seeklog = new SeekLog(new_settings.path);
+            }
+            catch(SeekLogException& e) {
+                throw ConfFileException("unable to read log file", config_file, 0);
+            }
+
+            if(seeklog != 0) delete seeklog;
+            seeklog = new_seeklog;
+
+            debugLog("path changed from %s to %s", settings.path.c_str(), new_settings.path.c_str());
+        }
 
         // figure out if we should call init()
 
         bool reinitialize = false;
 
-        if(settings.font_size != configSettings.font_size) {
+        if(   settings.path != new_settings.path
+           || settings.font_size != new_settings.font_size
+           || settings.groups.size() != new_settings.groups.size()) {
+
             reinitialize = true;
-        }
-        else if(settings.groups.size() != configSettings.groups.size()) {
-            reinitialize = true;
+
         } else {
             for(int i = 0; i < settings.groups.size();i++) {
-                if(settings.groups[i] != configSettings.groups[i]) {
+                if(settings.groups[i] != new_settings.groups[i]) {
                     reinitialize = true;
                     break;
                 }
@@ -434,9 +487,11 @@ void Logstalgia::reloadConfig() {
         }
 
         // if no exceptions were thrown, import settings
-        // TODO: if the path changed open the different file?
-        // TODO: error if path changes to or from '-' ?
         settings.importLogstalgiaSettings(conf);
+
+        settings.load_config = config_file;
+
+        paused = false;
 
         if(reinitialize) {
             init();
@@ -445,6 +500,11 @@ void Logstalgia::reloadConfig() {
     } catch(ConfFileException& e) {
        setMessage(e.what());
     }
+}
+
+void Logstalgia::reloadConfig() {
+    if(settings.load_config.empty()) return;
+    loadConfig(settings.load_config);
 }
 
 void Logstalgia::changeSummarizerDepth(Summarizer* summarizer, int delta) {
@@ -911,6 +971,11 @@ void Logstalgia::init() {
     total_space     = display.height - 40;
     remaining_space = total_space - 2;
 
+    if(accesslog != 0) {
+        delete accesslog;
+        accesslog = 0;
+    }
+
     ipSummarizer = new Summarizer(fontSmall, 100, settings.ip_summarizer_depth, 2.0f);
     ipSummarizer->addDelimiter(':');
     ipSummarizer->addDelimiter('.');
@@ -945,16 +1010,26 @@ void Logstalgia::init() {
 
     resizeGroups();
 
+    //set start position
+    if(settings.start_position > 0.0 && settings.start_position < 1.0) {
+        seekTo(settings.start_position);
+    }
+
+    if(detect_changes) {
+        if(config_watcher != 0) delete config_watcher;
+
+        config_watcher = new ConfigWatcher();
+        config_watcher->setConfig(settings.load_config);
+
+        if(!config_watcher->start()) {
+            delete config_watcher;
+            config_watcher = 0;
+        }
+    }
+
     if(!initialized) {
 
         SDL_ShowCursor(false);
-
-        // only do these things on the first time
-
-        //set start position
-        if(settings.start_position > 0.0 && settings.start_position < 1.0) {
-            seekTo(settings.start_position);
-        }
 
         // show slider so user knows its there unless recording
         if(hasProgressBar() && !frameExporter) {
