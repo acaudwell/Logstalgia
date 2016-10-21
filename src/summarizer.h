@@ -29,7 +29,7 @@ extern const char* summ_wildcard;
 class SummNode;
 class Summarizer;
 
-class SummUnit {
+class SummRow {
 public:
     SummNode* source;
 
@@ -37,14 +37,13 @@ public:
     int refs;
     std::string str;
     bool truncated;
-    bool exceptions;
 
     std::vector<std::string> expanded;
 
     void prependChar(char c);
     void buildSummary(Summarizer* summarizer);
-    SummUnit();
-    SummUnit(SummNode* source, bool truncated = false, bool exceptions = false);
+    SummRow();
+    SummRow(SummNode* source, bool truncated = false);
 };
 
 class SummNode {
@@ -59,15 +58,15 @@ public:
     int refs;
 
     std::vector<SummNode*> children;
-    bool exception;
+    bool unsummarized;
 
     void debug(int indent = 0);
     bool addWord(const std::string& str, size_t offset);
     bool removeWord(const std::string& str, size_t offset);
 
-    void expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& expansion, bool exceptions);
+    void expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
 
-    int summarize(Summarizer* summarizer, std::vector<SummUnit>& strvec, int no_words, int path_depth);
+    void summarize(Summarizer* summarizer, std::vector<SummRow>& output, int no_words);
 };
 
 class SummItem {
@@ -80,7 +79,7 @@ class SummItem {
     float elapsed;
     float eta;
 public:
-    SummItem(Summarizer* summarizer, SummUnit unit);
+    SummItem(Summarizer* summarizer, SummRow row);
 
     bool departing;
     bool destroy;
@@ -88,7 +87,7 @@ public:
     std::string displaystr;
     int width;
 
-    SummUnit unit;
+    SummRow row;
 
     vec4 colour;
     vec2 pos;
@@ -102,11 +101,11 @@ public:
     void logic(float dt);
     void draw(float alpha);
 
-    void updateUnit(const SummUnit& unit);
+    void updateRow(const SummRow& row);
 };
 
 class Summarizer {
-    std::vector<SummUnit> strings;
+    std::vector<SummRow> strings;
 
     std::vector<SummItem> items;
     SummNode root;
@@ -138,12 +137,16 @@ class Summarizer {
     std::string title;
     std::string prefix_filter;
     Regex matchre;
+protected:
+    static bool row_sorter(const SummRow &a, const SummRow &b);
+    static bool item_sorter(const SummItem &a, const SummItem &b);
+
 public:
     Summarizer(FXFont font, int percent, int abbreviation_depth = 0, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
 
-    void setPosX(float x);
-    float  getPosX() const;
+    void  setPosX(float x);
+    float getPosX() const;
 
     void setSize(int x, float top_gap, float bottom_gap);
     bool isAnimating() const;
