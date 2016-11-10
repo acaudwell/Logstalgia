@@ -44,7 +44,7 @@ void TextArea::setColour(vec3 colour) {
     this->colour = colour;
 }
 
-void TextArea::setText(std::vector<std::string>& content_) {
+void TextArea::setText(const std::vector<std::string>& content_) {
     this->content.clear();
 
     //calculate area
@@ -52,8 +52,7 @@ void TextArea::setText(std::vector<std::string>& content_) {
     rectheight = content_.size() * (font.getMaxHeight()+4) + 2;
 
     std::vector<std::string>::iterator it;
-    for(it = content_.begin(); it != content_.end(); it++) {
-        std::string s = *it;
+    for(std::string s : content_) {
 
         if(s.size() > 100) {
             s = s.substr(0,100);
