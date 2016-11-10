@@ -17,6 +17,7 @@
 
 #include "logstalgia.h"
 #include "settings.h"
+#include "tests.h"
 
 #ifdef _WIN32
 std::string win32LogSelector() {
@@ -155,6 +156,18 @@ int main(int argc, char *argv[]) {
 #if SDL_VERSION_ATLEAST(2,0,0)
      SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 #endif
+
+    // run unit tests
+     if(settings.run_tests) {
+         LogstalgiaTester tester;
+         try {
+             tester.runTests();
+         } catch(std::exception& e) {
+            SDLAppQuit(e.what());
+         }
+         display.quit();
+         exit(0);
+     }
      
     //disable OpenGL 2.0 functions if not supported
     if(!GLEW_VERSION_2_0) settings.ffp = true;

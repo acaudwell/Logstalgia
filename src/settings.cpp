@@ -103,6 +103,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 LogstalgiaSettings::LogstalgiaSettings() {
     log_level = LOG_LEVEL_OFF;
     splash    = -1.0f;
+    run_tests = false;
 
     setLogstalgiaDefaults();
 
@@ -124,6 +125,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
 
     //command line only options
     conf_sections["help"]            = "command-line";
+    conf_sections["test"]            = "command-line";
     conf_sections["extended-help"]   = "command-line";
     conf_sections["load-config"]     = "command-line";
     conf_sections["save-config"]     = "command-line";
@@ -135,6 +137,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["font-size"] = "int";
 
     arg_types["help"]          = "bool";
+    arg_types["test"]          = "bool";
     arg_types["extended-help"] = "bool";
     arg_types["splash"]        = "bool";
 
@@ -228,6 +231,11 @@ void LogstalgiaSettings::commandLineOption(const std::string& name, const std::s
 
     if(name == "help") {
         help();
+    }
+
+    if(name == "test") {
+        run_tests = true;
+        return;
     }
 
     if(name == "extended-help") {

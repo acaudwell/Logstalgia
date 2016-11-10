@@ -39,6 +39,7 @@ SOURCES += custom.cpp \
     slider.cpp \
     summarizer.cpp \
     textarea.cpp \
+    src/tests.cpp \
     configwatcher.cpp \
     core/conffile.cpp \
     core/display.cpp \
@@ -77,6 +78,7 @@ HEADERS += custom.h \
     summarizer.h \
     textarea.h \
     configwatcher.h \
+    src/tests.h \
     core/bounds.h \
     core/conffile.h \
     core/display.h \

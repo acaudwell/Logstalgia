@@ -41,6 +41,7 @@ public:
     std::string save_config;
 
     bool detect_changes;
+    bool run_tests;
 
     time_t start_time;
     time_t stop_time;
