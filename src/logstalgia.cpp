@@ -255,6 +255,10 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             changeIPSummarizerDepth(+1);
         }
 
+        if(e->keysym.sym == SDLK_INSERT) {
+            changeGroupSummarizerMode();
+        }
+
         if(e->keysym.sym == SDLK_PAGEUP) {
             changeGroupSummarizerDepth(-1);
         }
@@ -507,12 +511,30 @@ void Logstalgia::reloadConfig() {
     loadConfig(settings.load_config);
 }
 
+void Logstalgia::changeGroupSummarizerMode() {
+    for(Summarizer* s : summarizers) {
+        Summarizer::SortMode sort_mode = s->getSortMode();
+        if(sort_mode == Summarizer::DELIMITER_COUNT) {
+            sort_mode = Summarizer::WORD_COUNT;
+        } else {
+            sort_mode = Summarizer::DELIMITER_COUNT;
+        }
+        debugLog("%s sort mode changed to %s mode", s->getTitle().c_str(),
+                 (sort_mode == Summarizer::DELIMITER_COUNT) ? "delimiter" : "word");
+        s->setSortMode(sort_mode);
+        s->summarize();
+        s->recalc_display();
+    }
+}
+
 void Logstalgia::changeSummarizerDepth(Summarizer* summarizer, int delta) {
     int depth = summarizer->getAbbreviationDepth();
     int new_depth = depth + delta;
 
-    if(new_depth >= 0) {
+    if(new_depth >= -1) {
+        debugLog("%s depth changed to %d", summarizer->getTitle().c_str(), new_depth);
         summarizer->setAbbreviationDepth(new_depth);
+        summarizer->summarize();
         summarizer->recalc_display();
     }
 }
@@ -1008,7 +1030,7 @@ void Logstalgia::init() {
 
     readLog();
 
-    resizeGroups();
+    resizeSummarizers();
 
     //set start position
     if(settings.start_position > 0.0 && settings.start_position < 1.0) {
@@ -1095,7 +1117,7 @@ void Logstalgia::toggleWindowFrame() {
 void Logstalgia::reposition() {
     initPaddles();
     initRequestBalls();
-    resizeGroups();
+    resizeSummarizers();
     slider.resize();
 }
 
@@ -1519,14 +1541,14 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
     remaining_space -= space;
 }
 
-void Logstalgia::resizeGroups() {
+void Logstalgia::resizeSummarizers() {
+
+    ipSummarizer->setSize(2, 40, 0);
 
     total_space = display.height - 40;
     remaining_space = total_space - 2;
 
     for(Summarizer* s : summarizers) {
-
-        int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
         int percent = s->getScreenPercent();
 
@@ -1666,8 +1688,6 @@ void Logstalgia::draw(float t, float dt) {
         }
     }
 
-    infowindow.draw();
-
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
@@ -1731,6 +1751,8 @@ void Logstalgia::draw(float t, float dt) {
     fontLarge.alignTop(false);
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
+
+    infowindow.draw();
 
     if(hasProgressBar()) slider.draw(dt);
 
