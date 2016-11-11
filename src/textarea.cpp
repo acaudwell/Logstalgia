@@ -82,7 +82,9 @@ void TextArea::setPos(vec2 pos) {
     }
 
     if(corner.y < 0) corner.y += rectheight + fontheight;
-    if(corner.y +rectheight > display.height) corner.y -= rectheight;
+    if(corner.y +rectheight > display.height) {
+        corner.y = std::max(0.0f, corner.y-rectheight);
+    }
 
 }
 
