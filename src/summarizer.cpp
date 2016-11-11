@@ -46,18 +46,19 @@ SummRow::SummRow() {
     this->refs=0;
 }
 
-SummRow::SummRow(SummNode* source, bool truncated) {
+SummRow::SummRow(SummNode* source, bool abbreviated) {
     this->source    = source;
-    this->words     = source->words;
+    this->words     = source->words; // TODO: just reference source ??
     this->refs      = source->refs;
-    this->truncated = truncated;
+    this->abbreviated = abbreviated;
 
+    // should this happen here?
     if(source->parent!=0) prependChar(source->c);
 }
 
-void SummRow::buildSummary(Summarizer* summarizer) {
+void SummRow::buildSummary() {
     expanded.clear();
-    source->expand(summarizer, str, expanded, truncated);
+    source->expand(str, expanded, abbreviated);
 }
 
 void SummRow::prependChar(char c) {
@@ -66,23 +67,21 @@ void SummRow::prependChar(char c) {
 
 //SummNode
 
-const char* summ_wildcard = "*";
-
-SummNode::SummNode() {
-    c = '*';
-    words=0;
-    parent=0;
+SummNode::SummNode(Summarizer* summarizer)
+    : summarizer(summarizer), parent(0), c('*'), words(0), refs(0), delimiter(false), delimiters(0) {
 }
 
-SummNode::SummNode(const std::string& str, size_t offset, SummNode* parent) {
-    c = str[offset];
-    words=0;
-    refs=0;
-    this->parent=parent;
+SummNode::SummNode(Summarizer* summarizer, SummNode* parent, const std::string& str, size_t offset)
+    : summarizer(summarizer), parent(parent), c(str[offset]), words(0), refs(0), delimiter(false), delimiters(0) {
+
+    if(summarizer->isDelimiter(c)) {
+        delimiter = true;
+        delimiters++;
+    }
 
     //if leaf
     if(!addWord(str, ++offset)) {
-         words=1;
+        words=1;
     }
 }
 
@@ -96,18 +95,22 @@ bool SummNode::removeWord(const std::string& str, size_t offset) {
 
     words--;
 
-    size_t no_children = children.size();
-
     bool removed = false;
 
-    for(size_t i=0;i<no_children;i++) {
-        if(children[i]->c == str[offset]) {
-            removed = children[i]->removeWord(str,++offset);
+    for(auto it = children.begin(); it != children.end(); it++) {
 
-            if(children[i]->refs == 0) {
-                std::vector<SummNode*>::iterator it = children.begin()+i;
-                delete *it;
+        SummNode* child = *it;
+
+        if(child->c == str[offset]) {
+            delimiters -= child->delimiters;
+
+            removed = child->removeWord(str,++offset);
+
+            if(child->refs == 0) {
                 children.erase(it);
+                delete child;
+            } else {
+                delimiters += child->delimiters;
             }
 
             break;
@@ -115,19 +118,6 @@ bool SummNode::removeWord(const std::string& str, size_t offset) {
     }
 
     return removed;
-}
-
-void SummNode::debug(int indent) {
-
-    std::string indentation;
-    if(indent>0) indentation.append(indent, ' ');
-
-    debugLog("%snode c=%c refs=%d words=%d", indentation.c_str(), c, refs, words);
-    indent++;
-
-     for(SummNode* child : children) {
-        child->debug(indent);
-    }
 }
 
 bool SummNode::addWord(const std::string& str, size_t offset) {
@@ -141,27 +131,62 @@ bool SummNode::addWord(const std::string& str, size_t offset) {
     words++;
 
     for(SummNode* child : children) {
-        if(child->c == str[offset]) {
-            return child->addWord(str, ++offset);
+        char c = str[offset];
+
+        if(child->c == c) {
+
+            int old_child_delimeters = child->delimiters;
+
+            if(child->addWord(str, ++offset)) {
+                // update delimiter count
+
+                delimiters -= old_child_delimeters;
+                delimiters += child->delimiters;
+
+//                if(delimiters > 0) {
+//                    debugLog("%d delimiters", delimiters);
+//                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 
-    children.push_back(new SummNode(str, offset, this));
+    SummNode* child = new SummNode(summarizer, this, str, offset);
+    children.push_back(child);
+
+    delimiters += child->delimiters;
 
     return true;
 }
 
-std::string format_node(std::string str, int refs) {
+void SummNode::debug(int indent) const {
+
+    std::string indentation;
+    if(indent>0) indentation.append(indent, ' ');
+
+    debugLog("%snode c=%c refs=%d words=%d delims=%d", indentation.c_str(), c, refs, words, delimiters);
+
+    indent++;
+
+     for(SummNode* child : children) {
+        child->debug(indent);
+    }
+}
+
+std::string SummNode::formatNode(std::string str, int refs) {
     char buff[256];
     snprintf(buff, 256, "%03d %s", refs, str.c_str());
 
     return std::string(buff);
 }
 
-void SummNode::expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& vec, bool unsummarized_only) {
+void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool unsummarized_only) {
 
     if(children.empty()) {
-        vec.push_back(format_node(prefix, refs));
+        vec.push_back(formatNode(prefix, refs));
         return;
     }
 
@@ -172,15 +197,15 @@ void SummNode::expand(Summarizer* summarizer, std::string prefix, std::vector<st
         if(unsummarized_only && !child->unsummarized) continue;
 
         std::vector<SummRow> strvec;
-        child->summarize(summarizer, strvec, 100);
+        child->summarize(strvec, 100);
 
-        for(it=strvec.begin(); it!=strvec.end(); it++) {
-            vec.push_back(format_node(prefix+(*it).str, child->refs));
+        for(const SummRow& row : strvec) {
+            vec.push_back(formatNode(prefix + row.str, row.refs));
         }
     }
 }
 
-void SummNode::summarize(Summarizer* summarizer, std::vector<SummRow>& output, int max_rows) {
+void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) {
 
     ASSERT(max_rows > 0);
 
@@ -194,23 +219,57 @@ void SummNode::summarize(Summarizer* summarizer, std::vector<SummRow>& output, i
         total_child_words += child->words;
     }
 
+    // NOTE shouldn't total_child_words == this->words ???
+
     std::vector<SummNode*> sorted_children = children;
-    std::sort(sorted_children.begin(), sorted_children.end(),
-        [](SummNode*a, SummNode*b) {
-            return b->words < a->words;
-    });
+
+    Summarizer::SortMode sort_mode = summarizer->getSortMode();
+
+    if(sort_mode == Summarizer::DELIMITER_COUNT) {
+
+        // delim sort
+        std::sort(sorted_children.begin(), sorted_children.end(),
+            [](SummNode*a, SummNode*b) {
+                if(b->delimiters == a->delimiters) {
+                    // secondary sort by words if same number
+                    return b->words < a->words;
+                }
+                return b->delimiters < a->delimiters;
+        });
+
+    } else {
+        // word sort
+        std::sort(sorted_children.begin(), sorted_children.end(),
+            [](SummNode*a, SummNode*b) {
+                return b->words < a->words;
+        });
+    }
 
     // pre-pass to determine if we expect there to be
     // unsummarized rows
 
     bool expect_unsummarized = false;
 
+    int child_depth = depth;
+
+    if(delimiter && parent != 0 && parent != summarizer->getRoot()) {
+        child_depth++;
+    }
+
     if(max_rows < sorted_children.size()) {
         expect_unsummarized = true;
     } else {
         for(SummNode* child : sorted_children) {
 
-            float percent      = (float) child->words / total_child_words;
+            float percent;
+
+            if(sort_mode == Summarizer::DELIMITER_COUNT && delimiters > 0) {
+                percent = (float) child->delimiters / delimiters;
+
+            } else {
+                percent = (float) child->words / total_child_words;
+            }
+
             int child_max_rows = (int)(percent * max_rows);
 
             if(child_max_rows <= 0) {
@@ -230,9 +289,26 @@ void SummNode::summarize(Summarizer* summarizer, std::vector<SummRow>& output, i
     int children_summarized = 0;
     std::deque<SummNode*> unsummarized_children;
 
+    bool allow_partial_abbreviations = true;
+
+    if((delimiter == true || !parent) && depth < summarizer->getAbbreviationDepth()) {
+        allow_partial_abbreviations = false;
+    }
+
+    // if we have not reached
+
     for(SummNode* child : sorted_children) {
 
-        float percent      = (float) child->words / total_child_words;
+        float percent;
+
+        // make this a method?
+        if(sort_mode == Summarizer::DELIMITER_COUNT && delimiters > 0) {
+            percent = (float) child->delimiters / delimiters;
+
+        } else {
+            percent = (float) child->words / total_child_words;
+        }
+
         int child_max_rows = (int)(percent * available_rows);
 
         if(spare_rows > 0) {
@@ -241,17 +317,47 @@ void SummNode::summarize(Summarizer* summarizer, std::vector<SummRow>& output, i
         }
 
         if(child_max_rows <= 0) {
+            // NOTE: unsummarized indicates row should appear in the mouse over list
+            // of an abbreviated row
             child->unsummarized = true;
             unsummarized_children.push_back(child);
             continue;
         }
 
-        child->unsummarized = false;
+        std::vector<SummRow> child_output;
+        child->summarize(child_output, child_max_rows, child_depth);
+
+        // if this node is a delimiter and we get back abbreviated children
+        // force this node to be abbreviated
+        if(allow_partial_abbreviations == false) {
+
+            bool has_abbreviated = false;
+
+            for(const SummRow& row : child_output) {
+
+                if(row.abbreviated && !row.source->delimiter) {
+                    has_abbreviated = true;
+                    break;
+                }
+            }
+
+            if(has_abbreviated) {
+                child_max_rows--;
+
+                if(child_max_rows > 0) {
+                    spare_rows += child_max_rows;
+                }
+
+                expect_unsummarized = true;
+                child->unsummarized = true;
+                unsummarized_children.push_back(child);
+                continue;
+            }
+        }
 
         children_summarized++;
 
-        std::vector<SummRow> child_output;
-        child->summarize(summarizer, child_output, child_max_rows);
+        child->unsummarized = false;
 
         size_t child_rows = child_output.size();
 
@@ -261,13 +367,13 @@ void SummNode::summarize(Summarizer* summarizer, std::vector<SummRow>& output, i
             if(parent!=0) child_output[j].prependChar(c);
         }
 
+        output.insert(output.end(), child_output.begin(), child_output.end());
+
         // if child didnt use all their rows add to spare rows
 
         if(child_rows < child_max_rows) {
             spare_rows += child_max_rows - child_rows;
         }
-
-        output.insert(output.end(), child_output.begin(), child_output.end());
     }
 
     if(children_summarized < sorted_children.size()) {
@@ -277,19 +383,31 @@ void SummNode::summarize(Summarizer* summarizer, std::vector<SummRow>& output, i
         // if only one row ends up being unsummarized
         // we have space to summarize it
 
+        bool abbreviate_self = true;
+
         if(unsummarized_children.size() == 1) {
             SummNode* child = unsummarized_children.front();
 
             std::vector<SummRow> child_output;
-            child->summarize(summarizer, child_output, 1);
-            child->unsummarized = false;
+            child->summarize(child_output, 1, child_depth);
 
             ASSERT(child_output.size()==1);
 
             SummRow& child_row = child_output[0];
-            child_row.prependChar(c);
-            output.push_back(child_row);
-        } else {
+
+            // add row if we're allowed to use it
+            if(   child_row.abbreviated == false
+               || child_row.source->delimiter
+               || allow_partial_abbreviations) {
+                child->unsummarized = false;
+                child_row.prependChar(c);
+                output.push_back(child_row);
+                abbreviate_self = false;
+            }
+        }
+
+        if(abbreviate_self) {
+            // abbreviated version of this node
             output.push_back(SummRow(this, true));
         }
     }
@@ -327,7 +445,7 @@ void SummItem::updateRow(const SummRow& unit) {
 
     char buff[1024];
 
-    if(unit.truncated) {
+    if(unit.abbreviated) {
         if(summarizer->showCount()) {
             snprintf(buff, 1024, "%03d %s* (%d)", unit.refs, unit.str.c_str(), (int) unit.expanded.size());
         } else {
@@ -407,7 +525,7 @@ void SummItem::draw(float alpha) {
 // Summarizer
 
 Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, float refresh_delay, std::string matchstr, std::string title)
-    : matchre(matchstr) {
+    : root(this), matchre(matchstr) {
 
     pos_x = top_gap = bottom_gap = 0.0f;
 
@@ -426,7 +544,6 @@ Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, 
     changed = false;
 
     incrementf = 0;
-    root       = SummNode();
 }
 
 int Summarizer::getScreenPercent() {
@@ -457,6 +574,14 @@ float Summarizer::getPosX() const {
     return pos_x;
 }
 
+const std::string& Summarizer::getTitle() const {
+    return title;
+}
+
+const SummNode *Summarizer::getRoot() const {
+    return &root;
+}
+
 void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
     this->pos_x      = x;
     this->top_gap    = top_gap;
@@ -467,8 +592,11 @@ void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
 
     font_gap = font.getMaxHeight() + 4;
 
-    max_strings = (int) ((display.height-top_gap-bottom_gap)/font_gap);
+    int height = display.height-top_gap-bottom_gap;
 
+    max_strings = (int) ((height)/font_gap);
+
+    // shouldn't this be before max strings ??
     if(!title.empty()) {
         this->top_gap+= font_gap;
     }
@@ -485,31 +613,40 @@ bool Summarizer::mouseOver(const vec2& pos) const {
     return true;
 }
 
+const SummItem* Summarizer::itemAtPos(const vec2& pos) {
+    for(SummItem& item : items) {
+        if(item.departing) continue;
+
+        if(item.pos.y <= pos.y && (item.pos.y+font.getMaxHeight()+4) > pos.y) {
+            if(pos.x < item.pos.x || pos.x > item.pos.x + item.width) continue;
+
+            return &item;
+        }
+    }
+
+    return 0;
+}
+
 bool Summarizer::getInfoAtPos(TextArea& textarea, const vec2& pos) {
 
     if(!mouseOver(pos)) return false;
 
     float y = pos.y;
 
-    for(SummItem& item : items) {
-        if(item.departing) continue;
+    const SummItem* item = itemAtPos(pos);
 
-        if(item.pos.y<=y && (item.pos.y+font.getMaxHeight()+4) > y) {
-            if(pos.x < item.pos.x || pos.x > item.pos.x + item.width) continue;
+    if(item != 0) {
+        textarea.setText(item->row.expanded);
+        textarea.setColour(vec3(item->colour));
+        textarea.setPos(pos);
 
-            textarea.setText(item.row.expanded);
-            textarea.setColour(vec3(item.colour));
-            textarea.setPos(pos);
-
-            return true;
-        }
+        return true;
     }
 
     return false;
 }
 
 bool Summarizer::setPrefixFilterAtPos(const vec2& pos) {
-
     return false;
 }
 
@@ -561,17 +698,15 @@ bool Summarizer::item_sorter(const SummItem& a, const SummItem& b) {
 }
 
 void Summarizer::summarize() {
-    if(!changed) return;
-
     changed = false;
 
     strings.clear();
-    root.summarize(this, strings, max_strings);
+    root.summarize(strings, max_strings);
 
     size_t nostrs = strings.size();
 
     for(size_t i=0;i<nostrs;i++) {
-        strings[i].buildSummary(this);
+        strings[i].buildSummary();
     }
 
     std::sort(strings.begin(), strings.end(), Summarizer::row_sorter);
@@ -580,6 +715,13 @@ void Summarizer::summarize() {
         incrementf  = (((float)display.height-font_gap-top_gap-bottom_gap)/(nostrs-1));
     } else {
         incrementf =0;
+    }
+}
+
+void Summarizer::getSummary(std::vector<std::string>& summary) const {
+    summary.clear();
+    for(const SummRow& row : strings) {
+        summary.push_back(row.str);
     }
 }
 
@@ -736,8 +878,18 @@ bool Summarizer::showCount() const {
     return showcount;
 }
 
+Summarizer::SortMode Summarizer::getSortMode() const {
+    return sort_mode;
+}
+
+void Summarizer::setSortMode(SortMode sort_mode) {
+    this->sort_mode = sort_mode;
+}
+
 void Summarizer::setAbbreviationDepth(int abbreviation_depth) {
-    this->abbreviation_depth = abbreviation_depth;
+    if(abbreviation_depth >= -1) {
+        this->abbreviation_depth = abbreviation_depth;
+    }
 }
 
 int Summarizer::getAbbreviationDepth() const {
@@ -746,7 +898,7 @@ int Summarizer::getAbbreviationDepth() const {
 
 bool Summarizer::isDelimiter(char c) const {
     for(char delim : delimiters) {
-        return c == delim;
+        if(c == delim) return true;
     }
 
     return false;

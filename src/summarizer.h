@@ -31,42 +31,49 @@ class Summarizer;
 
 class SummRow {
 public:
+    SummRow();
+    SummRow(SummNode* source, bool abbreviated = false);
+
     SummNode* source;
 
     int words;
     int refs;
     std::string str;
-    bool truncated;
+    bool abbreviated;
 
     std::vector<std::string> expanded;
 
     void prependChar(char c);
-    void buildSummary(Summarizer* summarizer);
-    SummRow();
-    SummRow(SummNode* source, bool truncated = false);
+    void buildSummary();
 };
 
 class SummNode {
 public:
+    Summarizer* summarizer;
     SummNode* parent;
 
-    SummNode();
-    SummNode(const std::string& str, size_t offset, SummNode* parent);
+    SummNode(Summarizer* summarizer);
+    SummNode(Summarizer* summarizer, SummNode* parent, const std::string& str, size_t offset);
 
     char c;
     int words;
     int refs;
+    int delimiters;
 
     std::vector<SummNode*> children;
     bool unsummarized;
+    bool delimiter;
 
-    void debug(int indent = 0);
+    void debug(int indent = 0) const;
     bool addWord(const std::string& str, size_t offset);
     bool removeWord(const std::string& str, size_t offset);
 
-    void expand(Summarizer* summarizer, std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
+    void expand(std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
 
-    void summarize(Summarizer* summarizer, std::vector<SummRow>& output, int no_words);
+    void summarize(std::vector<SummRow>& output, int no_words, int depth = 0);
+
+protected:
+    std::string formatNode(std::string str, int refs);
 };
 
 class SummItem {
@@ -105,6 +112,12 @@ public:
 };
 
 class Summarizer {
+public:
+    enum SortMode {
+        WORD_COUNT = 0,
+        DELIMITER_COUNT = 1
+    };
+protected:
     std::vector<SummRow> strings;
 
     std::vector<SummItem> items;
@@ -124,6 +137,7 @@ class Summarizer {
 
     std::vector<char> delimiters;
     int  abbreviation_depth;
+    Summarizer::SortMode  sort_mode;
 
     float incrementf;
 
@@ -141,12 +155,16 @@ protected:
     static bool row_sorter(const SummRow &a, const SummRow &b);
     static bool item_sorter(const SummItem &a, const SummItem &b);
 
+    const SummItem* itemAtPos(const vec2 &pos);
 public:
-    Summarizer(FXFont font, int percent, int abbreviation_depth = 0, float refresh_delay = 2.0f,
+    Summarizer(FXFont font, int percent, int abbreviation_depth = -1, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
 
     void  setPosX(float x);
     float getPosX() const;
+
+    const std::string& getTitle() const;
+    const SummNode* getRoot() const;
 
     void setSize(int x, float top_gap, float bottom_gap);
     bool isAnimating() const;
@@ -170,6 +188,9 @@ public:
     void setAbbreviationDepth(int abbreviation_depth);
     int getAbbreviationDepth() const;
 
+    Summarizer::SortMode getSortMode() const;
+    void setSortMode(Summarizer::SortMode sort_mode);
+
     FXFont& getFont();
 
     bool supportedString(const std::string& str);
@@ -188,6 +209,8 @@ public:
     float calcPosY(int i) const;
 
     void summarize();
+
+    void getSummary(std::vector<std::string>& summary) const;
 
     void recalc_display();
     void logic(float dt);
