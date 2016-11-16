@@ -201,6 +201,7 @@ public:
     void addDelimiter(char c);
     bool isDelimiter(char c) const;
 
+    const SummNode* getMatchingNode(const std::string& input) const;
     const std::string& getBestMatchStr(const std::string& str) const;
     int         getBestMatchIndex(const std::string& str) const;
     float       getPosY(const std::string& str) const;

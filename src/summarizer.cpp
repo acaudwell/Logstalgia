@@ -805,6 +805,40 @@ float Summarizer::calcPosY(int i) const {
     return top_gap + (incrementf * i) ;
 }
 
+const SummNode* Summarizer::getMatchingNode(const std::string& input) const {
+
+    if(input.empty()) return 0;
+
+    int index = 0;
+    const SummNode* node = &root;
+
+    do {
+        const SummNode* matching_node = 0;
+
+        for(SummNode* child : node->children) {
+            if(child->c == input[index]) {
+                matching_node = child;
+                break;
+            }
+        }
+
+        node = 0;
+
+        if(matching_node != 0) {
+            node = matching_node;
+
+            if(index == input.size()-1) {
+                return node;
+            }
+
+            index++;
+        }
+
+    } while(node != 0);
+
+    return node;
+}
+
 int Summarizer::getBestMatchIndex(const std::string& input) const {
 
     int best_diff = -1;
