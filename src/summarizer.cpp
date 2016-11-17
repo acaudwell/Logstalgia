@@ -237,27 +237,11 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
 
     std::vector<SummNode*> sorted_children = children;
 
-    Summarizer::SortMode sort_mode = summarizer->getSortMode();
-
-    if(sort_mode == Summarizer::DELIMITER_COUNT) {
-
-        // delim sort
-        std::sort(sorted_children.begin(), sorted_children.end(),
-            [](SummNode*a, SummNode*b) {
-                if(b->delimiters == a->delimiters) {
-                    // secondary sort by words if same number
-                    return b->words < a->words;
-                }
-                return b->delimiters < a->delimiters;
-        });
-
-    } else {
-        // word sort
-        std::sort(sorted_children.begin(), sorted_children.end(),
-            [](SummNode*a, SummNode*b) {
-                return b->words < a->words;
-        });
-    }
+    // word sort
+    std::sort(sorted_children.begin(), sorted_children.end(),
+        [](SummNode*a, SummNode*b) {
+            return b->words < a->words;
+    });
 
     // pre-pass to determine if we expect there to be
     // unsummarized rows
@@ -275,14 +259,7 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
     } else {
         for(SummNode* child : sorted_children) {
 
-            float percent;
-
-            if(sort_mode == Summarizer::DELIMITER_COUNT && delimiters > 0) {
-                percent = (float) child->delimiters / delimiters;
-
-            } else {
-                percent = (float) child->words / total_child_words;
-            }
+            float percent = (float) child->words / total_child_words;
 
             int child_max_rows = (int)(percent * max_rows);
 
@@ -313,15 +290,7 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
 
     for(SummNode* child : sorted_children) {
 
-        float percent;
-
-        // make this a method?
-        if(sort_mode == Summarizer::DELIMITER_COUNT && delimiters > 0) {
-            percent = (float) child->delimiters / delimiters;
-
-        } else {
-            percent = (float) child->words / total_child_words;
-        }
+        float percent = (float) child->words / total_child_words;
 
         int child_max_rows = (int)(percent * available_rows);
 
@@ -933,14 +902,6 @@ void Summarizer::setShowCount(bool showcount) {
 
 bool Summarizer::showCount() const {
     return showcount;
-}
-
-Summarizer::SortMode Summarizer::getSortMode() const {
-    return sort_mode;
-}
-
-void Summarizer::setSortMode(SortMode sort_mode) {
-    this->sort_mode = sort_mode;
 }
 
 void Summarizer::setAbbreviationDepth(int abbreviation_depth) {

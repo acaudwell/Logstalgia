@@ -255,10 +255,6 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             changeIPSummarizerDepth(+1);
         }
 
-        if(e->keysym.sym == SDLK_INSERT) {
-            changeGroupSummarizerMode();
-        }
-
         if(e->keysym.sym == SDLK_PAGEUP) {
             changeGroupSummarizerDepth(-1);
         }
@@ -272,7 +268,6 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
         }
     }
 }
-
 
 void Logstalgia::initPaddles() {
 
@@ -509,22 +504,6 @@ void Logstalgia::loadConfig(const std::string& config_file) {
 void Logstalgia::reloadConfig() {
     if(settings.load_config.empty()) return;
     loadConfig(settings.load_config);
-}
-
-void Logstalgia::changeGroupSummarizerMode() {
-    for(Summarizer* s : summarizers) {
-        Summarizer::SortMode sort_mode = s->getSortMode();
-        if(sort_mode == Summarizer::DELIMITER_COUNT) {
-            sort_mode = Summarizer::WORD_COUNT;
-        } else {
-            sort_mode = Summarizer::DELIMITER_COUNT;
-        }
-        debugLog("%s sort mode changed to %s mode", s->getTitle().c_str(),
-                 (sort_mode == Summarizer::DELIMITER_COUNT) ? "delimiter" : "word");
-        s->setSortMode(sort_mode);
-        s->summarize();
-        s->recalc_display();
-    }
 }
 
 void Logstalgia::changeSummarizerDepth(Summarizer* summarizer, int delta) {

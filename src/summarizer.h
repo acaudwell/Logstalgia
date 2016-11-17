@@ -113,11 +113,6 @@ public:
 };
 
 class Summarizer {
-public:
-    enum SortMode {
-        WORD_COUNT = 0,
-        DELIMITER_COUNT = 1
-    };
 protected:
     std::vector<SummRow> strings;
 
@@ -138,7 +133,6 @@ protected:
 
     std::vector<char> delimiters;
     int  abbreviation_depth;
-    Summarizer::SortMode  sort_mode;
 
     float incrementf;
 
@@ -188,9 +182,6 @@ public:
 
     void setAbbreviationDepth(int abbreviation_depth);
     int getAbbreviationDepth() const;
-
-    Summarizer::SortMode getSortMode() const;
-    void setSortMode(Summarizer::SortMode sort_mode);
 
     FXFont& getFont();
 

@@ -154,7 +154,6 @@ class Logstalgia : public SDLApp {
     void changeSummarizerDepth(Summarizer *summarizer, int delta);
     void changeIPSummarizerDepth(int delta);
     void changeGroupSummarizerDepth(int delta);
-    void changeGroupSummarizerMode();
 
     bool mouseOverSummarizerWidthAdjuster(const vec2& pos);
 
