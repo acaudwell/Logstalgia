@@ -85,6 +85,22 @@ SummNode::SummNode(Summarizer* summarizer, SummNode* parent, const std::string& 
     }
 }
 
+std::string SummNode::toString() const {
+
+    const SummNode* node = this;
+
+    std::string str;
+
+    do {
+        str.append(1, node->c);
+        node = node->parent;
+    } while(node->parent != 0);
+
+    std::reverse(str.begin(), str.end());
+
+    return str;
+}
+
 bool SummNode::removeWord(const std::string& str, size_t offset) {
 
     refs--;
@@ -219,8 +235,6 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
         total_child_words += child->words;
     }
 
-    // NOTE shouldn't total_child_words == this->words ???
-
     std::vector<SummNode*> sorted_children = children;
 
     Summarizer::SortMode sort_mode = summarizer->getSortMode();
@@ -316,58 +330,59 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
             spare_rows = 0;
         }
 
-        if(child_max_rows <= 0) {
-            // NOTE: unsummarized indicates row should appear in the mouse over list
-            // of an abbreviated row
-            child->unsummarized = true;
-            unsummarized_children.push_back(child);
-            continue;
-        }
-
         std::vector<SummRow> child_output;
-        child->summarize(child_output, child_max_rows, child_depth);
 
-        // if this node is a delimiter and we get back abbreviated children
-        // force this node to be abbreviated
-        if(allow_partial_abbreviations == false) {
+        if(child_max_rows > 0) {
 
-            bool has_abbreviated = false;
+            child->summarize(child_output, child_max_rows, child_depth);
 
-            for(const SummRow& row : child_output) {
+            // discard partially abbreviated rows if not allowed
+            if(allow_partial_abbreviations == false) {
 
-                if(row.abbreviated && !row.source->delimiter) {
-                    has_abbreviated = true;
-                    break;
+                for(auto it = child_output.begin(); it != child_output.end(); ) {
+
+                    SummRow& row = *it;
+
+                    if(row.abbreviated && !row.source->delimiter) {
+                        // NOTE: the child gets marked as unsummarized here
+                        // though is more likely 'partially summarized'
+                        //child->unsummarized = true;
+                        row.source->unsummarized = true;
+                        it = child_output.erase(it);
+
+                        //std::string child_row_str = row.source->toString();
+                        //debugLog("'%s' unsummarized due to partial abbreviation", child_row_str.c_str());
+
+                    } else {
+                        it++;
+                    }
                 }
-            }
 
-            if(has_abbreviated) {
-                child_max_rows--;
+                // if all the child output was discarded mark as unsummarized
 
-                if(child_max_rows > 0) {
-                    spare_rows += child_max_rows;
-                }
-
-                expect_unsummarized = true;
-                child->unsummarized = true;
-                unsummarized_children.push_back(child);
-                continue;
             }
         }
-
-        children_summarized++;
-
-        child->unsummarized = false;
 
         size_t child_rows = child_output.size();
 
         ASSERT(child_rows <= child_max_rows);
 
-        for(size_t j=0; j<child_rows; j++) {
-            if(parent!=0) child_output[j].prependChar(c);
-        }
+        if(child_rows > 0) {
+            // NOTE: unsummarized indicates row should appear in the mouse over list
+            // of an abbreviated row
+            child->unsummarized = false;
 
-        output.insert(output.end(), child_output.begin(), child_output.end());
+            children_summarized++;
+
+            for(size_t j=0; j<child_rows; j++) {
+                if(parent!=0) child_output[j].prependChar(c);
+            }
+
+            output.insert(output.end(), child_output.begin(), child_output.end());
+        } else {
+            child->unsummarized = true;
+            unsummarized_children.push_back(child);
+        }
 
         // if child didnt use all their rows add to spare rows
 
@@ -378,14 +393,12 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
 
     if(children_summarized < sorted_children.size()) {
 
-        ASSERT(expect_unsummarized == true);
-
         // if only one row ends up being unsummarized
-        // we have space to summarize it
+        // and we have space, add it to output
 
         bool abbreviate_self = true;
 
-        if(unsummarized_children.size() == 1) {
+        if(output.size() < max_rows && unsummarized_children.size() == 1) {
             SummNode* child = unsummarized_children.front();
 
             std::vector<SummRow> child_output;
@@ -400,14 +413,24 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
                || child_row.source->delimiter
                || allow_partial_abbreviations) {
                 child->unsummarized = false;
-                child_row.prependChar(c);
+                if(parent != 0) child_row.prependChar(c);
                 output.push_back(child_row);
                 abbreviate_self = false;
             }
         }
 
         if(abbreviate_self) {
-            // abbreviated version of this node
+
+            // otherwise return this node abbreviated
+            // making space if nessisary
+            // TODO: what if this is a partial abbreviation?
+
+            if(output.size() >= max_rows) {
+                SummRow& row = output.back();
+                row.source->unsummarized = true;
+                output.pop_back();
+            }
+
             output.push_back(SummRow(this, true));
         }
     }
