@@ -54,6 +54,7 @@ public:
 
     SummNode(Summarizer* summarizer);
     SummNode(Summarizer* summarizer, SummNode* parent, const std::string& str, size_t offset);
+    ~SummNode();
 
     char c;
     int words;
@@ -66,13 +67,14 @@ public:
 
     void debug(int indent = 0) const;
     bool addWord(const std::string& str, size_t offset);
-    bool removeWord(const std::string& str, size_t offset);
+    bool removeWord(const std::string& str, size_t offset, bool remove_all = false);
 
     void expand(std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
 
     void summarize(std::vector<SummRow>& output, int no_words, int depth = 0);
 
     std::string toString() const;
+    void getStrings(std::vector<std::string>& strings) const;
 protected:
     std::string formatNode(std::string str, int refs);
 };
@@ -144,6 +146,7 @@ protected:
     int screen_percent;
 
     std::string title;
+    std::string display_title;
     std::string prefix_filter;
     Regex matchre;
 protected:
@@ -151,6 +154,9 @@ protected:
     static bool item_sorter(const SummItem &a, const SummItem &b);
 
     const SummItem* itemAtPos(const vec2 &pos);
+
+    bool matchesPrefixFilter(const std::string &str) const;
+    void updateDisplayTitle();
 public:
     Summarizer(FXFont font, int percent, int abbreviation_depth = -1, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
@@ -187,7 +193,7 @@ public:
 
     bool supportedString(const std::string& str);
 
-    void removeString(const std::string& str);
+    void removeString(const std::string& str, bool remove_all = false);
     void addString(const std::string& str);
 
     void addDelimiter(char c);

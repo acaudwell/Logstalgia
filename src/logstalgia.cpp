@@ -598,11 +598,12 @@ void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
             }
         }
 
-//        if(!ipSummarizer->setPrefixFilterAtPos(mousepos)) {
-//        }
-
-        for(Summarizer* s : summarizers) {
-            if(s->setPrefixFilterAtPos(mousepos)) break;
+        if(!ipSummarizer->setPrefixFilterAtPos(mousepos)) {
+            for(Summarizer* s : summarizers) {
+                if(s->setPrefixFilterAtPos(mousepos)) {
+                    break;
+                }
+            }
         }
 
         if(mouseOverSummarizerWidthAdjuster(mousepos)) {
@@ -768,12 +769,17 @@ void Logstalgia::addStrings(LogEntry* le) {
 
     if(!groupSummarizer) return;
 
-    std::string hostname = le->hostname;
-    std::string pageurl  = le->path;
+    const std::string& hostname = le->hostname;
+    const std::string& pageurl  = le->path;
 
-    if(settings.hide_url_prefix) pageurl = filterURLHostname(pageurl);
+    if(!ipSummarizer->supportedString(hostname)) return;
 
-    groupSummarizer->addString(pageurl);
+    if(settings.hide_url_prefix) {
+        groupSummarizer->addString(filterURLHostname(pageurl));
+    } else {
+        groupSummarizer->addString(pageurl);
+    }
+
     ipSummarizer->addString(hostname);
 }
 
@@ -783,6 +789,8 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     Summarizer* groupSummarizer = getGroupSummarizer(le);
 
     if(!groupSummarizer) return;
+
+    if(!ipSummarizer->supportedString(le->hostname)) return;
 
     Paddle* entry_paddle = 0;
 

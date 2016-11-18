@@ -85,6 +85,12 @@ SummNode::SummNode(Summarizer* summarizer, SummNode* parent, const std::string& 
     }
 }
 
+SummNode::~SummNode() {
+    for(SummNode* child : children) {
+        delete child;
+    }
+}
+
 std::string SummNode::toString() const {
 
     const SummNode* node = this;
@@ -101,7 +107,20 @@ std::string SummNode::toString() const {
     return str;
 }
 
-bool SummNode::removeWord(const std::string& str, size_t offset) {
+
+void SummNode::getStrings(std::vector<std::string>& strings) const {
+
+    if(children.empty() && parent != 0) {
+        // TODO: pass in prefix as toString() is expensive
+        strings.push_back(toString());
+    }
+
+    for(SummNode* child : children) {
+        child->getStrings(strings);
+    }
+}
+
+bool SummNode::removeWord(const std::string& str, size_t offset, bool remove_all) {
 
     refs--;
 
@@ -111,6 +130,7 @@ bool SummNode::removeWord(const std::string& str, size_t offset) {
 
     words--;
 
+    // BUG: this never actually gets set to true, though nothing uses it
     bool removed = false;
 
     for(auto it = children.begin(); it != children.end(); it++) {
@@ -120,9 +140,9 @@ bool SummNode::removeWord(const std::string& str, size_t offset) {
         if(child->c == str[offset]) {
             delimiters -= child->delimiters;
 
-            removed = child->removeWord(str,++offset);
+            removed = child->removeWord(str,++offset, remove_all);
 
-            if(child->refs == 0) {
+            if(child->refs == 0 || remove_all) {
                 children.erase(it);
                 delete child;
             } else {
@@ -526,6 +546,8 @@ Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, 
     this->title = title;
     this->font  = font;
 
+    updateDisplayTitle();
+
     this->refresh_delay   = refresh_delay;
     this->refresh_elapsed = refresh_delay;
 
@@ -638,7 +660,34 @@ bool Summarizer::getInfoAtPos(TextArea& textarea, const vec2& pos) {
     return false;
 }
 
+void Summarizer::updateDisplayTitle() {
+    display_title = title;
+
+    if(!prefix_filter.empty()) {
+        if(display_title.empty()) {
+            display_title = prefix_filter;
+        } else {
+            display_title += std::string(" (") + prefix_filter + std::string(")");
+        }
+    }
+}
+
 bool Summarizer::setPrefixFilterAtPos(const vec2& pos) {
+    const SummItem* item = itemAtPos(pos);
+
+    if(!prefix_filter.empty()) {
+        if(pos.y <= top_gap && pos.y >= top_gap - font_gap) {
+            setPrefixFilter("");
+            return true;
+        }
+    }
+
+    if(item != 0) {
+        std::string prefix = item->row.str.c_str();
+        setPrefixFilter(prefix);
+        return true;
+    }
+
     return false;
 }
 
@@ -648,6 +697,23 @@ void Summarizer::setPrefixFilter(const std::string& prefix_filter) {
     // 2. new requests strings are ignored if they dont match filter, existing strings can still be removed
 
     this->prefix_filter = prefix_filter;
+    updateDisplayTitle();
+
+    if(!prefix_filter.empty()) {
+        // discard current words that don't match prefix filter
+
+        std::vector<std::string> words;
+        root.getStrings(words);
+
+        for(const std::string& word : words) {
+            if(!matchesPrefixFilter(word)) {
+                removeString(word, true);
+            }
+        }
+    }
+
+    summarize();
+    recalc_display();
 }
 
 const std::string& Summarizer::getPrefixFilter() const {
@@ -667,7 +733,21 @@ const vec3& Summarizer::getColour() const {
     return item_colour;
 }
 
+bool Summarizer::matchesPrefixFilter(const std::string& str) const {
+    if(prefix_filter.empty()) return true;
+
+    if(   str.size() < prefix_filter.size()
+       || str.substr(0, prefix_filter.size()) != prefix_filter) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Summarizer::supportedString(const std::string& str) {
+
+    if(!matchesPrefixFilter(str)) return false;
+
     return matchre.match(str);
 }
 
@@ -788,8 +868,8 @@ void Summarizer::recalc_display() {
     }
 }
 
-void Summarizer::removeString(const std::string& str) {
-    root.removeWord(str,0);
+void Summarizer::removeString(const std::string& str, bool remove_all) {
+    root.removeWord(str,0, remove_all);
     changed = true;
 }
 
@@ -962,9 +1042,9 @@ void Summarizer::draw(float dt, float alpha) {
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
 
-    if(title.size()) {
+    if(!display_title.empty()) {
         font.setColour(vec4(1.0f, 1.0f, 1.0f, alpha));
-        font.draw((int)pos_x, (int)(top_gap - font_gap), title.c_str());
+        font.draw((int)pos_x, (int)(top_gap - font_gap), display_title.c_str());
     }
 
     for(SummItem& item : items) {
