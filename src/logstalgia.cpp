@@ -593,8 +593,9 @@ void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
 
         if(hasProgressBar()) {
             float position;
-            if(slider.click(mousepos, &position)) {
+            if(slider.isVisible() && slider.click(mousepos, &position)) {
                 seekTo(position);
+                return;
             }
         }
 
@@ -676,11 +677,18 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     SDL_ShowCursor(true);
     mousehide_timeout = 5.0f;
 
-    float pos;
+    float pos;    
 
-    if(hasProgressBar() && slider.mouseOver(mousepos, &pos)) {
-        std::string date = dateAtPosition(pos);
-        slider.setCaption(date);
+    if(hasProgressBar()) {
+        // if the slider is visible and mouse is not over the summarizers
+        if(   slider.isVisible()
+           || ((mousepos.x > display.width / 3) && (mousepos.x < paddle_x)) ) {
+
+            if(slider.mouseMove(mousepos, &pos)) {
+                std::string date = dateAtPosition(pos);
+                slider.setCaption(date);
+            }
+        }
     }
 
     if(adjusting_size) {
@@ -1222,7 +1230,8 @@ void Logstalgia::logic(float t, float dt) {
         return;
     }
 
-    if(!mouseOverSummarizerWidthAdjuster(mousepos)) {
+    if(   !mouseOverSummarizerWidthAdjuster(mousepos)
+       && !slider.isMouseOver(mousepos)) {
 
         // update info window
 

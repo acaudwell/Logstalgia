@@ -40,6 +40,10 @@ const Bounds2D& PositionSlider::getBounds() const {
     return bounds;
 }
 
+bool PositionSlider::isVisible() const {
+    return alpha > 0.0f;
+}
+
 void PositionSlider::resize() {
 
     int gap    = 35;
@@ -58,7 +62,11 @@ void PositionSlider::show() {
     mouseover_elapsed = 0.0;
 }
 
-bool PositionSlider::mouseOver(vec2 pos, float* percent_ptr) {
+bool PositionSlider::isMouseOver(const vec2& pos) const {
+    return (isVisible() && bounds.contains(pos));
+}
+
+bool PositionSlider::mouseMove(const vec2& pos, float* percent_ptr) {
     if(bounds.contains(pos)) {
 
         mouseover_elapsed = 0;
@@ -76,8 +84,8 @@ bool PositionSlider::mouseOver(vec2 pos, float* percent_ptr) {
     return false;
 }
 
-bool PositionSlider::click(vec2 pos, float* percent_ptr) {
-    if(mouseOver(pos, &percent)) {
+bool PositionSlider::click(const vec2& pos, float* percent_ptr) {
+    if(mouseMove(pos, &percent)) {
 
         if(percent_ptr != 0) {
             *percent_ptr = percent;
