@@ -138,6 +138,7 @@ protected:
 
     float incrementf;
 
+    float title_top;
     float top_gap, bottom_gap;
 
     float refresh_delay;

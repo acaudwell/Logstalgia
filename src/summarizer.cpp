@@ -539,7 +539,7 @@ void SummItem::draw(float alpha) {
 Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, float refresh_delay, std::string matchstr, std::string title)
     : root(this), matchre(matchstr) {
 
-    pos_x = top_gap = bottom_gap = 0.0f;
+    pos_x = top_gap = title_top = bottom_gap = 0.0f;
 
     this->screen_percent = screen_percent;
     this->abbreviation_depth = abbreviation_depth;
@@ -598,6 +598,7 @@ const SummNode *Summarizer::getRoot() const {
 
 void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
     this->pos_x      = x;
+    this->title_top  = top_gap;
     this->top_gap    = top_gap;
     this->bottom_gap = bottom_gap;
 
@@ -611,9 +612,8 @@ void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
     max_strings = (int) ((height)/font_gap);
 
     // shouldn't this be before max strings ??
-    if(!title.empty()) {
-        this->top_gap+= font_gap;
-    }
+
+    updateDisplayTitle();
 
     changed = true;
     refresh_elapsed = refresh_delay;
@@ -665,10 +665,16 @@ void Summarizer::updateDisplayTitle() {
 
     if(!prefix_filter.empty()) {
         if(display_title.empty()) {
-            display_title = prefix_filter;
+            display_title = std::string("Filter [") + prefix_filter + std::string("*]");
         } else {
-            display_title += std::string(" (") + prefix_filter + std::string(")");
+            display_title += std::string(" [") + prefix_filter + std::string("*]");
         }
+    }
+
+    if(!display_title.empty()) {
+        top_gap = title_top + font_gap;
+    } else {
+        top_gap = title_top;
     }
 }
 
@@ -676,7 +682,7 @@ bool Summarizer::setPrefixFilterAtPos(const vec2& pos) {
     const SummItem* item = itemAtPos(pos);
 
     if(!prefix_filter.empty()) {
-        if(pos.y <= top_gap && pos.y >= top_gap - font_gap) {
+        if(pos.y <= top_gap && pos.y >= title_top) {
             setPrefixFilter("");
             return true;
         }

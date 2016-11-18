@@ -610,15 +610,6 @@ void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
             adjusting_size = true;
         }
     }
-
-    if(e->button == SDL_BUTTON_RIGHT) {
-        for(Summarizer* s: summarizers) {
-            if(s->mouseOver(mousepos) && !s->getPrefixFilter().empty()) {
-                s->setPrefixFilter("");
-                break;
-            }
-        }
-    }
 }
 
 //peek at the date under the mouse pointer on the slider
