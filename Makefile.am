@@ -5,7 +5,6 @@ bin_PROGRAMS = logstalgia
 logstalgia_CXXFLAGS = -std=gnu++0x -Wall -Wno-sign-compare -Wno-reorder -Wno-unused-but-set-variable -Wno-unused-variable
 
 logstalgia_SOURCES = \
-	src/ncsa.cpp \
 	src/core/conffile.cpp \
 	src/core/display.cpp \
 	src/core/frustum.cpp \
@@ -27,6 +26,12 @@ logstalgia_SOURCES = \
 	src/core/timezone.cpp \
 	src/core/vbo.cpp \
 	src/core/vectors.cpp \
+	src/FileWatcher/FileWatcher.cpp \
+        src/FileWatcher/FileWatcherOSX.cpp \
+	src/FileWatcher/FileWatcherLinux.cpp \
+	src/FileWatcher/FileWatcherWin32.cpp \
+	src/configwatcher.cpp \        
+        src/ncsa.cpp \
 	src/custom.cpp \
 	src/logentry.cpp \
 	src/logstalgia.cpp \
@@ -36,9 +41,10 @@ logstalgia_SOURCES = \
 	src/settings.cpp \
 	src/slider.cpp \
 	src/summarizer.cpp \
-	src/textarea.cpp
+	src/textarea.cpp \
+	src/tests.cpp
 
-AM_CPPFLAGS = -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
+AM_CPPFLAGS = -Isrc/FileWatcher -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
 
 dist_pkgdata_DATA = data/ball.tga data/example.log data/glow.tga
 
