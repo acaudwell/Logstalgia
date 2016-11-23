@@ -478,7 +478,7 @@ void Logstalgia::loadConfig(const std::string& config_file) {
 
         } else {
             for(int i = 0; i < settings.groups.size();i++) {
-                if(settings.groups[i] != new_settings.groups[i]) {
+                if(settings.groups[i].definition != new_settings.groups[i].definition) {
                     reinitialize = true;
                     break;
                 }
@@ -995,7 +995,7 @@ void Logstalgia::init() {
     summarizers.clear();
     summarizer_types.clear();
 
-    for(const std::string& group : settings.groups) {
+    for(const SummarizerGroup& group : settings.groups) {
         addGroup(group);
     }
 
@@ -1454,52 +1454,11 @@ void Logstalgia::logic(float t, float dt) {
     }
 }
 
-void Logstalgia::addGroup(const std::string& groupstr) {
-
-    std::vector<std::string> group_definition;
-    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,DEPTH=([^,]+))?,([^,]+)(?:,([^,]+))?$");
-    groupregex.match(groupstr, &group_definition);
-
-    /*
-    for(int i=0;i<group_definition.size();i++) {
-        debugLog("group_definition[%d] = %s", i, group_definition[i].c_str());
-    }
-    */
-
-    vec3 colour(0.0f, 0.0f, 0.0f);
-
-    if(group_definition.size()>=6) {
-        std::string group_name  = group_definition[0];
-        std::string group_type  = group_definition[1];
-        std::string group_regex = group_definition[2];
-        std::string separators  = group_definition[3];
-
-        int depth   = atoi(group_definition[4].c_str());
-        int percent = atoi(group_definition[5].c_str());
-
-        if(group_type.empty()) group_type = "URI";
-        if(separators.empty()) separators = "/";
-
-        debugLog("group_name %s group_type %s group_regex %s", group_name.c_str(), group_type.c_str(), group_regex.c_str());
-
-        // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
-
-        //check for optional colour param
-        if(group_definition.size() >= 7) {
-            int col;
-            int r, g, b;
-            if(sscanf(group_definition[6].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
-                colour = vec3( r, g, b );
-                debugLog("r = %d, g = %d, b = %d\n", r, g, b);
-                colour /= 255.0f;
-            }
-        }
-
-        addGroup(group_type, group_name, group_regex, separators, depth, percent, colour);
-    }
+void Logstalgia::addGroup(const SummarizerGroup& group) {
+    addGroup(group.type, group.title, group.regex, group.separators, group.depth, group.percent, group.colour);
 }
 
-void Logstalgia::addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, const std::string& separators, int depth, int percent, vec3 colour) {
+void Logstalgia::addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int depth, int percent, vec3 colour) {
 
     if(percent<0) return;
 
@@ -1511,11 +1470,10 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
         percent = remaining_percent;
     }
 
-
     Summarizer* summarizer = 0;
 
     try {
-        summarizer = new Summarizer(fontSmall, percent, settings.group_summarizer_depth, settings.update_rate, groupregex, grouptitle);
+        summarizer = new Summarizer(fontSmall, percent, settings.group_summarizer_depth, settings.update_rate, group_regex, group_title);
         summarizer->setAbbreviationDepth(depth);
 
         for(char c : separators) {
@@ -1523,19 +1481,19 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
         }
     }
     catch(RegexCompilationException& e) {
-        throw SDLAppException("invalid regular expression for group '%s'", grouptitle.c_str());
+        throw SDLAppException("invalid regular expression for group '%s'", group_title.c_str());
     }
 
     if(glm::dot(colour, colour) > 0.01f) {
         summarizer->setColour(colour);
     }
 
-    if(!summarizer_types[group_by]) {
-        summarizer_types[group_by] = new std::vector<Summarizer*>();
+    if(!summarizer_types[group_type]) {
+        summarizer_types[group_type] = new std::vector<Summarizer*>();
     }
 
     summarizers.push_back(summarizer);
-    summarizer_types[group_by]->push_back(summarizer);
+    summarizer_types[group_type]->push_back(summarizer);
 
     int space = (int) ( ((float)percent/100) * total_space );
     remaining_space -= space;

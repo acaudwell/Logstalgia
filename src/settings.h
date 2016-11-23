@@ -27,6 +27,23 @@
 #define PADDLE_PID    2
 #define PADDLE_VHOST  3
 
+class SummarizerGroup {
+public:
+    SummarizerGroup();
+
+    std::string title;
+    std::string type;
+    std::string regex;
+    std::string separators;
+    int depth;
+    int percent;
+    vec3 colour;
+
+    std::string definition;
+
+    static bool parse(const std::string& group_string, SummarizerGroup& group, std::string& error);
+};
+
 class LogstalgiaSettings : public SDLAppSettings {
 protected:
     void commandLineOption(const std::string& name, const std::string& value);
@@ -35,7 +52,7 @@ public:
     bool ffp;
 
     std::string path;
-    std::vector<std::string> groups;
+    std::vector<SummarizerGroup> groups;
 
     std::string load_config;
     std::string save_config;

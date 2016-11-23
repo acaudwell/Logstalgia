@@ -29,6 +29,7 @@
 #include "summarizer.h"
 #include "textarea.h"
 #include "slider.h"
+#include "settings.h"
 
 #include <string>
 #include <vector>
@@ -145,8 +146,8 @@ class Logstalgia : public SDLApp {
 
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
-    void addGroup(const std::string& groupstr);
-    void addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, const std::string& separators, int depth, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
+    void addGroup(const SummarizerGroup& group);
+    void addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int depth, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
     void togglePause();
 
     BaseLog* getLog();

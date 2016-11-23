@@ -396,7 +396,16 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         for(ConfEntry* entry : *group_entries) {
             if(!entry->hasValue()) conffile.entryException(entry, "specify group definition");
-            groups.push_back(entry->getString());
+
+            SummarizerGroup group;
+            std::string error;
+
+            if(!SummarizerGroup::parse(entry->getString(), group, error)) {
+                if(error.empty()) error = "invalid group definition";
+                conffile.entryException(entry, error);
+            }
+
+            groups.push_back(group);
         }
     }
 
@@ -581,8 +590,8 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
         settings->addEntry(new ConfEntry("start-position", stop_position));
     }
 
-    for(const std::string& group : groups) {
-        settings->addEntry("group", group);
+    for(const SummarizerGroup& group : groups) {
+        settings->addEntry("group", group.definition);
     }
 
     if(paddle_mode != PADDLE_NONE) {
@@ -663,4 +672,74 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
     }
 
     settings->addEntry("path", path);
+}
+
+// SummarizerGroup
+
+SummarizerGroup::SummarizerGroup() {
+    depth = 0;
+    percent = 0;
+    colour = vec3(0.0f);
+}
+
+bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& group, std::string& error) {
+
+    std::vector<std::string> group_definition;
+    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,DEPTH=([^,]+))?,([^,]+)(?:,([^,]+))?$");
+    groupregex.match(group_string, &group_definition);
+
+    /*
+    for(int i=0;i<group_definition.size();i++) {
+        debugLog("group_definition[%d] = %s", i, group_definition[i].c_str());
+    }
+    */
+
+    // TODO: make this white?
+    vec3 colour(0.0f, 0.0f, 0.0f);
+
+    if(group_definition.size()>=6) {
+        std::string group_name  = group_definition[0];
+        std::string group_type  = group_definition[1];
+        std::string group_regex = group_definition[2];
+        std::string separators  = group_definition[3];
+
+        int depth   = atoi(group_definition[4].c_str());
+        int percent = atoi(group_definition[5].c_str());
+
+        if(group_type.empty()) group_type = "URI";
+        if(separators.empty()) separators = "/";
+
+        //debugLog("group_name %s group_type %s group_regex %s", group_name.c_str(), group_type.c_str(), group_regex.c_str());
+
+        // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
+
+        //check for optional colour param
+        if(group_definition.size() >= 7) {
+            int r, g, b;
+            if(sscanf(group_definition[6].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
+                colour = vec3( r, g, b );
+                debugLog("r = %d, g = %d, b = %d\n", r, g, b);
+                colour /= 255.0f;
+            }
+        }
+
+        Regex regex(group_regex, true);
+        if(!regex.isValid()) {
+            error = "invalid regular expression '" + group_regex + "'";
+            return false;
+        }
+
+        group.title = group_name;
+        group.type = group_type;
+        group.regex = group_regex;
+        group.separators = separators;
+        group.depth = depth;
+        group.percent = percent;
+        group.colour = colour;
+        group.definition = group_string;
+
+        return true;
+    }
+
+    return false;
 }
