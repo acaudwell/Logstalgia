@@ -17,6 +17,7 @@ mingw {
     QMAKE_CXXFLAGS += -Dmain=SDL_main
     QMAKE_LFLAGS   += -mconsole
 
+    INCLUDEPATH += src/FileWatcher
     INCLUDEPATH += C:\msys64\mingw64\include\SDL2
     INCLUDEPATH += C:\msys64\mingw64\include\freetype2
 
