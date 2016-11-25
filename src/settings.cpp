@@ -42,6 +42,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("Options:\n");
     printf("  -WIDTHxHEIGHT              Set window size\n");
     printf("  -f                         Fullscreen\n\n");
+    printf("  --window-position XxY      Initial window position\n");
+    printf("  --frameless                Frameless window\n\n");
 
     printf("  -b --background FFFFFF     Background colour in hex\n\n");
 
@@ -86,7 +88,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  --glow-intensity           Intensity of the glow (default: 0.5)\n\n");
 
     printf("  --load-config CONF_FILE    Load a config file\n");
-    printf("  --save-config CONF_FILE    Save a config file with the current options\n\n");
+    printf("  --save-config CONF_FILE    Save a config file with the current options\n");
+    printf("  --detect-changes           Automatically reload modified config file\n\n");
 
     printf("  -o, --output-ppm-stream FILE   Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  -r, --output-framerate  FPS    Framerate of output (25,30,60)\n\n");
