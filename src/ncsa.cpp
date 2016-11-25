@@ -17,6 +17,7 @@
 
 #include "ncsa.h"
 #include "core/regex.h"
+#include "settings.h"
 
 #include <time.h>
 
@@ -44,6 +45,10 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
     entry.vhost    = matches[0];
     entry.hostname = matches[1];
     //entry.username = matches[1];
+
+    if(settings.display_log_entry) {
+        entry.log_entry = line;
+    }
 
     //parse timestamp
     struct tm time_str;

@@ -41,6 +41,8 @@ public:
 
     bool getValue(const std::string& field, std::string& value) const;
 
+    std::string log_entry;
+
     time_t timestamp;
 
     std::string hostname;

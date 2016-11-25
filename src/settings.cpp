@@ -61,7 +61,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("  --display-fields FIELDS    Comma separated list of fields shown on mouse over:\n");
     printf("                             timestamp,hostname,path,response_size,response_code\n");
-    printf("                             referrer,user_agent,vhost,pid\n\n");
+    printf("                             referrer,user_agent,vhost,log_entry,pid\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
 
@@ -192,6 +192,7 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     path = "";
     display_fields.clear();
+    display_log_entry = false;
 
     sync = false;
 
@@ -534,6 +535,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
     if((entry = settings->getEntry("display-fields")) != 0) {
         display_fields.clear();
+        display_log_entry = false;
 
         if(!entry->hasValue()) conffile.missingValueException(entry);
 
@@ -564,6 +566,10 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
             if(std::find(valid_fields.begin(), valid_fields.end(), field) == valid_fields.end()) {
                 std::string invalid_field_error = std::string("invalid display field ") + field;
                 conffile.entryException(entry, invalid_field_error);
+            }
+
+            if(field == "log_entry") {
+                display_log_entry = true;
             }
         }
     }

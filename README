@@ -120,6 +120,7 @@ options:
             referrer      - referrer of the request
             user_agent    - user agent
             vhost         - virtual host name
+            log_entry     - full log entry
             pid           - the pid of the instance that handled the request
 
             Separate multiple fields with commas (eg 'path,hostname')

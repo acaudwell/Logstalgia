@@ -146,9 +146,12 @@ const std::vector<std::string>& LogEntry::getFields() {
         fields.push_back("path");
         fields.push_back("vhost");
         fields.push_back("hostname");
+        fields.push_back("response_code");
+        fields.push_back("response_size");
         fields.push_back("referrer");
         fields.push_back("user_agent");
         fields.push_back("timestamp");
+        fields.push_back("log_entry");
     }
 
     return fields;
@@ -182,6 +185,7 @@ const std::string& LogEntry::getFieldTitle(const std::string& field) {
         field_titles["referrer"]      = "Referrer";
         field_titles["user_agent"]    = "User Agent";
         field_titles["timestamp"]     = "Timestamp";
+        field_titles["log_entry"]     = "Log Entry";
     }
 
     auto it = field_titles.find(field);
@@ -238,6 +242,11 @@ bool LogEntry::getValue(const std::string& field, std::string& value) const {
         char timestamp_buff[256];
         strftime(timestamp_buff, 256, "%Y-%m-%d %H:%M:%S", timeinfo);
         value = std::string(timestamp_buff);
+        return true;
+    }
+
+    if(field == "log_entry") {
+        value = log_entry;
         return true;
     }
 
