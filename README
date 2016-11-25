@@ -108,6 +108,22 @@ options:
     --paddle-position POSITION
             Paddle position as a fraction of the view width (0.25 - 0.75).
 
+    --display-fields REQUEST_FIELDS
+            List of one or more request fields that are shown when the user
+            hovers the mouse over an individual request:
+
+            path          - the path of the resource requested
+            hostname      - hostname or IP address
+            response_size - size of the response in bytes
+            response_code - the HTTP response code
+            timestamp     - timestamp of request
+            referrer      - referrer of the request
+            user_agent    - user agent
+            vhost         - virtual host name
+            pid           - the pid of the instance that handled the request
+
+            Separate multiple fields with commas (eg 'path,hostname')
+
     --sync  Read from STDIN, ignoring entries before the current time.
 
     --from, --to 'YYYY-MM-DD hh:mm:ss +tz'

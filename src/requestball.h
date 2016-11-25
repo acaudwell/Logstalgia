@@ -19,12 +19,13 @@
 #define REQUESTBALL_H
 
 #include <vector>
+#include <string>
 
-#include "logentry.h"
 #include "core/vectors.h"
 
 class FXFont;
 class TextArea;
+class LogEntry;
 
 class RequestBall {
 protected:
@@ -48,6 +49,8 @@ protected:
     bool no_bounce;
 
     vec2 offset;
+
+    void formatRequestDetail(LogEntry *le, std::vector<std::string>& content);
 
     float getProgress() const;
 

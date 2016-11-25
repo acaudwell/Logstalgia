@@ -4,6 +4,7 @@
  * Added --window-position XxY option.
  * Added --frameless option.
  * Added --detect-changes option to automatically reload config file.
+ * Added --display-fields FIELDS to set fields shown on mouse over of a request.
  * Reload config (F5).
  * Load config (F6).
  * Save config (Ctrl+S) with updated display settings.

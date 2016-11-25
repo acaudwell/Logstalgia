@@ -57,6 +57,8 @@ public:
     std::string load_config;
     std::string save_config;
 
+    std::vector<std::string> display_fields;
+
     bool detect_changes;
     bool run_tests;
 

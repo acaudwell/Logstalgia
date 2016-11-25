@@ -20,7 +20,9 @@
 #include "core/logger.h"
 #include "core/sdlapp.h"
 #include "core/seeklog.h"
+#include "logentry.h"
 
+#include <algorithm>
 #include <time.h>
 
 LogstalgiaSettings settings;
@@ -54,6 +56,10 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
+
+    printf("  --display-fields FIELDS    Comma separated list of fields shown on mouse over:\n");
+    printf("                             timestamp,hostname,path,response_size,response_code\n");
+    printf("                             referrer,user_agent,vhost,pid\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
 
@@ -176,11 +182,13 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["start-position"]     = "string";
     arg_types["stop-position"]      = "string";
     arg_types["paddle-mode"]        = "string";
+    arg_types["display-fields"]     = "string";
 }
 
 void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     path = "";
+    display_fields.clear();
 
     sync = false;
 
@@ -521,6 +529,42 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         detect_changes = true;
     }
 
+    if((entry = settings->getEntry("display-fields")) != 0) {
+        display_fields.clear();
+
+        if(!entry->hasValue()) conffile.missingValueException(entry);
+
+        std::string field_list = entry->getString();
+
+        size_t sep;
+        while((sep = field_list.find(",")) != std::string::npos) {
+
+            if(sep == 0 && field_list.size()==1) break;
+
+            if(sep == 0) {
+                field_list = field_list.substr(sep+1, field_list.size()-1);
+                continue;
+            }
+
+            std::string field = field_list.substr(0, sep);
+            display_fields.push_back(field);
+            field_list = field_list.substr(sep+1, field_list.size()-1);
+        }
+
+        if(field_list.size() > 0 && field_list != ",") {
+            display_fields.push_back(field_list);
+        }
+
+        const std::vector<std::string>& valid_fields = LogEntry::getFields();
+
+        for(const std::string& field : display_fields) {
+            if(std::find(valid_fields.begin(), valid_fields.end(), field) == valid_fields.end()) {
+                std::string invalid_field_error = std::string("invalid display field ") + field;
+                conffile.entryException(entry, invalid_field_error);
+            }
+        }
+    }
+
     //validate path
     if(settings->hasValue("path")) {
         path = settings->getString("path");
@@ -560,6 +604,18 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
     settings->addEntry(new ConfEntry("glow-multiplier", glow_multiplier));
     settings->addEntry(new ConfEntry("glow-duration", glow_duration));
     settings->addEntry(new ConfEntry("font-size", font_size));
+
+    if(!display_fields.empty()) {
+
+        std::string display_fields_string;
+
+        for(const std::string& field : display_fields) {
+            if(!display_fields_string.empty()) display_fields_string += ",";
+            display_fields_string += field;
+        }
+
+        settings->addEntry(new ConfEntry("display-fields", display_fields_string));
+    }
 
     if(background_colour != vec3(0.0f)) {
         char background_hex[256];

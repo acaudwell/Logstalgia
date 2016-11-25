@@ -18,6 +18,7 @@
 #include "requestball.h"
 #include "settings.h"
 #include "textarea.h"
+#include "logentry.h"
 
 RequestBall::RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, const vec2& dest)
     : le(le), pos(pos), dest(dest), colour(colour) {
@@ -173,6 +174,35 @@ LogEntry* RequestBall::getLogEntry() const {
     return le;
 }
 
+void RequestBall::formatRequestDetail(LogEntry* le, std::vector<std::string>& content) {
+
+    std::vector<std::string> fields = settings.display_fields;
+    if(fields.empty()) fields = LogEntry::getDefaultFields();
+
+    size_t longest_title = 0;
+    for(const std::string& field : fields) {
+        longest_title = std::max( longest_title, le->getFieldTitle(field).size() );
+    }
+
+    for(const std::string& field : fields) {
+
+        std::string title = le->getFieldTitle(field);
+
+        int title_padding_length = longest_title - title.size();
+
+        if(title_padding_length > 0) {
+            title += std::string().append(title_padding_length, ' ');
+        }
+
+        std::string value;
+        le->getValue(field, value);
+
+        if(!value.empty()) {
+            content.push_back( title + std::string(" ") + value);
+        }
+    }
+}
+
 bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
 
     //within 3 pixels
@@ -181,16 +211,7 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
     if( glm::dot(from_mouse, from_mouse) < 36.0f) {
 
         std::vector<std::string> content;
-
-        content.push_back( std::string( le->path ) );
-        content.push_back( " " );
-
-        if(le->vhost.size()>0) content.push_back( std::string("Virtual-Host: ") + le->vhost );
-
-        content.push_back( std::string("Remote-Host:  ") + le->hostname );
-
-        if(le->referrer.size()>0)   content.push_back( std::string("Referrer:     ") + le->referrer );
-        if(le->user_agent.size()>0) content.push_back( std::string("User-Agent:   ") + le->user_agent );
+        formatRequestDetail(le, content);
 
         textarea.setText(content);
         textarea.setPos(mouse);
