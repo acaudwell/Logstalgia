@@ -682,7 +682,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     if(hasProgressBar()) {
         // if the slider is visible and mouse is not over the summarizers
         if(   slider.isVisible()
-           || ((mousepos.x > display.width / 3) && (mousepos.x < paddle_x)) ) {
+           || ((mousepos.x > display.width/4) && (mousepos.x < paddle_x)) ) {
 
             if(slider.mouseMove(mousepos, &pos)) {
                 std::string date = dateAtPosition(pos);

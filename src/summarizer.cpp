@@ -621,7 +621,7 @@ void Summarizer::setSize(int x, float top_gap, float bottom_gap) {
 }
 
 bool Summarizer::mouseOver(const vec2& pos) const {
-    if(right && pos.x < pos_x || !right && pos.x > display.width/3) return false;
+    if((right && pos.x < pos_x) || (!right && pos.x > display.width/4)) return false;
     if(pos.y < top_gap || pos.y > (display.height - bottom_gap)) return false;
 
     return true;
