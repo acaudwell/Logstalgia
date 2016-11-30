@@ -1612,20 +1612,6 @@ void Logstalgia::draw(float t, float dt) {
     glDisable(GL_CULL_FACE);
     glDisable(GL_LIGHTING);
 
-    profile_start("draw ip summarizer");
-
-    ipSummarizer->draw(dt, font_alpha);
-
-    profile_stop();
-
-
-    profile_start("draw groups");
-
-    drawGroups(dt, font_alpha);
-
-    profile_stop();
-
-
     profile_start("draw balls");
 
     glEnable(GL_BLEND);
@@ -1639,7 +1625,24 @@ void Logstalgia::draw(float t, float dt) {
         ball->draw();
     }
 
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     profile_stop();
+
+
+    profile_start("draw ip summarizer");
+
+    ipSummarizer->draw(dt, font_alpha);
+
+    profile_stop();
+
+
+    profile_start("draw groups");
+
+    drawGroups(dt, font_alpha);
+
+    profile_stop();
+
 
     profile_start("draw response codes");
 
