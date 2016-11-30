@@ -1,5 +1,3 @@
-# NOTE: currently only building with Mingw-w64 on Windows is implemented
-
 TEMPLATE = app
 CONFIG += console
 CONFIG -= app_bundle
@@ -25,6 +23,18 @@ mingw {
     LIBS += -lSDL2_image.dll -lfreetype.dll -lpcre.dll -lpng.dll -lglew32.dll -lopengl32 -lglu32
     LIBS += -static-libgcc -static-libstdc++
     LIBS += -lcomdlg32
+}
+
+linux {
+    INCLUDEPATH += src/FileWatcher
+
+    INCLUDEPATH += /usr/include/GL        \
+                   /usr/include/SDL2      \
+                   /usr/include/libpng12  \
+                   /usr/include/freetype2 \
+                   /usr/include
+
+    LIBS += -lGL -lGLU -lfreetype -lpcre -lGLEW -lGLU -lGL -lSDL2_image -lSDL2 -lpng12
 }
 
 VPATH += ./src
