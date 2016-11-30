@@ -19,11 +19,16 @@
 
 #include <algorithm>
 
-#ifdef _WIN32
-#include "windows.h"
-#define ASSERT(x) if(!(x)) {DebugBreak();}
+#define ASSERTS_ENABLED
+#ifdef ASSERTS_ENABLED
+ #ifdef _WIN32
+  #include "windows.h"
+  #define ASSERT(x) if(!(x)) {DebugBreak();}
+ #else
+  #define ASSERT(x) assert(x)
+ #endif
 #else
-#define ASSERT(x) assert(x)
+ #define ASSERT(x)
 #endif
 
 /*
