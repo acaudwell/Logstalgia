@@ -120,7 +120,7 @@ void SummNode::getStrings(std::vector<std::string>& strings) const {
     }
 }
 
-bool SummNode::removeWord(const std::string& str, size_t offset, bool remove_all) {
+bool SummNode::removeWord(const std::string& str, size_t offset) {
 
     refs--;
 
@@ -140,9 +140,9 @@ bool SummNode::removeWord(const std::string& str, size_t offset, bool remove_all
         if(child->c == str[offset]) {
             delimiters -= child->delimiters;
 
-            removed = child->removeWord(str,++offset, remove_all);
+            removed = child->removeWord(str,++offset);
 
-            if(child->refs == 0 || remove_all) {
+            if(child->refs == 0) {
                 children.erase(it);
                 delete child;
             } else {
@@ -560,6 +560,10 @@ Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, 
     incrementf = 0;
 }
 
+void Summarizer::clear() {
+    root = SummNode(this);
+}
+
 int Summarizer::getScreenPercent() {
     return screen_percent;
 }
@@ -698,28 +702,8 @@ bool Summarizer::setPrefixFilterAtPos(const vec2& pos) {
 }
 
 void Summarizer::setPrefixFilter(const std::string& prefix_filter) {
-    // 1. user clicks on a strings in the summarizer (eg wants to see what images/* contains)
-    // 2. summary recalculated to only show strings with that prefix
-    // 2. new requests strings are ignored if they dont match filter, existing strings can still be removed
-
     this->prefix_filter = prefix_filter;
     updateDisplayTitle();
-
-    if(!prefix_filter.empty()) {
-        // discard current words that don't match prefix filter
-
-        std::vector<std::string> words;
-        root.getStrings(words);
-
-        for(const std::string& word : words) {
-            if(!matchesPrefixFilter(word)) {
-                removeString(word, true);
-            }
-        }
-    }
-
-    summarize();
-    recalc_display();
 }
 
 const std::string& Summarizer::getPrefixFilter() const {
@@ -751,9 +735,6 @@ bool Summarizer::matchesPrefixFilter(const std::string& str) const {
 }
 
 bool Summarizer::supportedString(const std::string& str) {
-
-    if(!matchesPrefixFilter(str)) return false;
-
     return matchre.match(str);
 }
 
@@ -874,8 +855,8 @@ void Summarizer::recalc_display() {
     }
 }
 
-void Summarizer::removeString(const std::string& str, bool remove_all) {
-    root.removeWord(str,0, remove_all);
+void Summarizer::removeString(const std::string& str) {
+    root.removeWord(str,0);
     changed = true;
 }
 

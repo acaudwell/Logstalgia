@@ -67,7 +67,7 @@ public:
 
     void debug(int indent = 0) const;
     bool addWord(const std::string& str, size_t offset);
-    bool removeWord(const std::string& str, size_t offset, bool remove_all = false);
+    bool removeWord(const std::string& str, size_t offset);
 
     void expand(std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
 
@@ -156,11 +156,12 @@ protected:
 
     const SummItem* itemAtPos(const vec2 &pos);
 
-    bool matchesPrefixFilter(const std::string &str) const;
     void updateDisplayTitle();
 public:
     Summarizer(FXFont font, int percent, int abbreviation_depth = -1, float refresh_delay = 2.0f,
                std::string matchstr = ".*", std::string title="");
+
+    void clear();
 
     void  setPosX(float x);
     float getPosX() const;
@@ -193,8 +194,9 @@ public:
     FXFont& getFont();
 
     bool supportedString(const std::string& str);
+    bool matchesPrefixFilter(const std::string& str) const;
 
-    void removeString(const std::string& str, bool remove_all = false);
+    void removeString(const std::string& str);
     void addString(const std::string& str);
 
     void addDelimiter(char c);

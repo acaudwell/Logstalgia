@@ -599,12 +599,50 @@ void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
             }
         }
 
-        if(!ipSummarizer->setPrefixFilterAtPos(mousepos)) {
+        Summarizer* filteredSummarizer = 0;
+
+        if(ipSummarizer->setPrefixFilterAtPos(mousepos)) {
+            filteredSummarizer = ipSummarizer;
+        } else {
             for(Summarizer* s : summarizers) {
                 if(s->setPrefixFilterAtPos(mousepos)) {
+                    filteredSummarizer = s;
                     break;
                 }
             }
+        }
+
+        if(filteredSummarizer != 0) {
+
+            // clear summarizer, reinsert active requests
+
+            filteredSummarizer->clear();
+
+            for(RequestBall* ball : balls) {
+
+                LogEntry* le = ball->getLogEntry();
+
+                Summarizer* groupSummarizer = getGroupSummarizer(le);
+
+                if(!groupSummarizer) continue;
+                if(!ipSummarizer->supportedString(le->hostname)) continue;
+                if(!ipSummarizer->matchesPrefixFilter(le->hostname)) continue;
+
+                if(filteredSummarizer == groupSummarizer) {
+
+                    if(settings.hide_url_prefix) {
+                        groupSummarizer->addString(filterURLHostname(le->path));
+                    } else {
+                        groupSummarizer->addString(le->path);
+                    }
+
+                } else if(filteredSummarizer == ipSummarizer) {
+                    ipSummarizer->addString(le->hostname);
+                }
+            }
+
+            filteredSummarizer->summarize();
+            filteredSummarizer->recalc_display();
         }
 
         if(mouseOverSummarizerWidthAdjuster(mousepos)) {
@@ -735,10 +773,13 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
     auto code_match_summarizers = summarizer_types["CODE"];
     auto uri_match_summarizers  = summarizer_types["URI"];
 
+    Summarizer* summarizer = 0;
+
     if(host_match_summarizers != 0) {
         for(Summarizer* s : *host_match_summarizers) {
             if(s->supportedString(le->hostname)) {
-                return s;
+                summarizer = s;
+                break;
             }
         }
     }
@@ -746,7 +787,8 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
     if(code_match_summarizers != 0) {
         for(Summarizer* s : *code_match_summarizers) {
             if(s->supportedString(le->response_code)) {
-                return s;
+                summarizer = s;
+                break;
             }
         }
     }
@@ -754,12 +796,20 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
     if(uri_match_summarizers != 0) {
         for(Summarizer* s : *uri_match_summarizers) {
             if(s->supportedString(le->path)) {
-                return s;
+                summarizer = s;
+                break;
             }
         }
     }
 
-    return 0;
+    // must also match prefix filter if there is one
+    if(summarizer != 0) {
+        if(!summarizer->matchesPrefixFilter(le->path)) {
+            return 0;
+        }
+    }
+
+    return summarizer;
 }
 
 void Logstalgia::addStrings(LogEntry* le) {
@@ -772,6 +822,7 @@ void Logstalgia::addStrings(LogEntry* le) {
     const std::string& pageurl  = le->path;
 
     if(!ipSummarizer->supportedString(hostname)) return;
+    if(!ipSummarizer->matchesPrefixFilter(hostname)) return;
 
     if(settings.hide_url_prefix) {
         groupSummarizer->addString(filterURLHostname(pageurl));
@@ -790,6 +841,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     if(!groupSummarizer) return;
 
     if(!ipSummarizer->supportedString(le->hostname)) return;
+    if(!ipSummarizer->matchesPrefixFilter(le->hostname)) return;
 
     Paddle* entry_paddle = 0;
 
@@ -1187,19 +1239,15 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
     LogEntry* le = ball->getLogEntry();
 
-    std::string url  = le->path;
-    std::string host = le->hostname;
-
-    for(Summarizer* s: summarizers) {
-        if(s->supportedString(url)) {
-
-            if(settings.hide_url_prefix) url = filterURLHostname(url);
-            s->removeString(url);
-            break;
-        }
+    if(Summarizer* s = getGroupSummarizer(le)) {
+        std::string url = le->path;
+        if(settings.hide_url_prefix) url = filterURLHostname(url);
+        s->removeString(url);
     }
 
-    ipSummarizer->removeString(host);
+    if(ipSummarizer->supportedString(le->hostname)) {
+        ipSummarizer->removeString(le->hostname);
+    }
 
     delete ball;
 }
