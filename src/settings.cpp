@@ -22,8 +22,9 @@
 #include "core/seeklog.h"
 #include "logentry.h"
 
-#include <algorithm>
 #include <time.h>
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
 
 LogstalgiaSettings settings;
 
@@ -540,6 +541,8 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         if(!entry->hasValue()) conffile.missingValueException(entry);
 
         std::string field_list = entry->getString();
+
+        boost::algorithm::erase_all(field_list, " ");
 
         size_t sep;
         while((sep = field_list.find(",")) != std::string::npos) {
