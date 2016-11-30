@@ -9,6 +9,7 @@ CONFIG += object_parallel_to_source
 
 gcc {
     QMAKE_CXXFLAGS_WARN_ON = -Wall -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-reorder
+    QMAKE_CXXFLAGS_DEBUG += -DASSERTS_ENABLED
 }
 
 mingw {

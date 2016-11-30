@@ -19,7 +19,6 @@
 
 #include <algorithm>
 
-#define ASSERTS_ENABLED
 #ifdef ASSERTS_ENABLED
  #ifdef _WIN32
   #include "windows.h"
