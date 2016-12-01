@@ -10,6 +10,9 @@
 				<Option output="logstalgia" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="src/FileWatcher" />
+				</Compiler>
 			</Target>
 		</Build>
 		<Compiler>
@@ -33,6 +36,17 @@
 			<Add library="freetype" />
 			<Add library="libpng16.dll.a" />
 		</Linker>
+		<Unit filename="src/FileWatcher/FileWatcher.cpp" />
+		<Unit filename="src/FileWatcher/FileWatcher.h" />
+		<Unit filename="src/FileWatcher/FileWatcherImpl.h" />
+		<Unit filename="src/FileWatcher/FileWatcherLinux.cpp" />
+		<Unit filename="src/FileWatcher/FileWatcherLinux.h" />
+		<Unit filename="src/FileWatcher/FileWatcherOSX.cpp" />
+		<Unit filename="src/FileWatcher/FileWatcherOSX.h" />
+		<Unit filename="src/FileWatcher/FileWatcherWin32.cpp" />
+		<Unit filename="src/FileWatcher/FileWatcherWin32.h" />
+		<Unit filename="src/configwatcher.cpp" />
+		<Unit filename="src/configwatcher.h" />
 		<Unit filename="src/core/bounds.h" />
 		<Unit filename="src/core/conffile.cpp" />
 		<Unit filename="src/core/conffile.h" />
@@ -98,6 +112,8 @@
 		<Unit filename="src/slider.h" />
 		<Unit filename="src/summarizer.cpp" />
 		<Unit filename="src/summarizer.h" />
+		<Unit filename="src/tests.cpp" />
+		<Unit filename="src/tests.h" />
 		<Unit filename="src/textarea.cpp" />
 		<Unit filename="src/textarea.h" />
 		<Extensions>
