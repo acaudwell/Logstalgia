@@ -7,7 +7,8 @@ class TesterException : public std::exception {
     std::string message;
 public:
     TesterException(const std::string& message) : message(message) {}
-    const char* what() const noexcept override {
+    virtual ~TesterException() throw() {};
+    const char* what() const noexcept {
         return message.c_str();
     }
 };
