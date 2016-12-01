@@ -50,7 +50,7 @@ protected:
 
     vec2 offset;
 
-    void formatRequestDetail(LogEntry *le, std::vector<std::string>& content);
+    void formatRequestDetail(LogEntry *le, TextArea& textarea);
 
     float getProgress() const;
 

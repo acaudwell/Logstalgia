@@ -174,7 +174,9 @@ LogEntry* RequestBall::getLogEntry() const {
     return le;
 }
 
-void RequestBall::formatRequestDetail(LogEntry* le, std::vector<std::string>& content) {
+void RequestBall::formatRequestDetail(LogEntry* le, TextArea& textarea) {
+
+    std::vector<std::string> content;
 
     std::vector<std::string> fields = settings.display_fields;
     if(fields.empty()) fields = LogEntry::getDefaultFields();
@@ -199,8 +201,9 @@ void RequestBall::formatRequestDetail(LogEntry* le, std::vector<std::string>& co
 
         std::string overflow_padding(title.size() + 1, ' ');
 
-        // TextArea::setText throws away characters after the first 100.
-        size_t max_value_length = std::max(0, 100 - (int) overflow_padding.size());
+        size_t max_characters = textarea.getMaxCharacters();
+
+        size_t max_value_length = std::max(0, (int) (max_characters - overflow_padding.size()));
 
         if(!value.empty() && max_value_length > 0) {
             content.push_back(title + std::string(" ") + value.substr(0, max_value_length));
@@ -210,6 +213,8 @@ void RequestBall::formatRequestDetail(LogEntry* le, std::vector<std::string>& co
             }
         }
     }
+
+    textarea.setText(content);
 }
 
 bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
@@ -220,9 +225,8 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
     if( glm::dot(from_mouse, from_mouse) < 36.0f) {
 
         std::vector<std::string> content;
-        formatRequestDetail(le, content);
+        formatRequestDetail(le, textarea);
 
-        textarea.setText(content);
         textarea.setPos(mouse);
         textarea.setColour(colour);
         return true;

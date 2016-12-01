@@ -40,6 +40,10 @@ void TextArea::hide() {
     this->visible=false;
 }
 
+int TextArea::getMaxCharacters() {
+    return (display.width / font.getMaxWidth()) * 0.8;
+}
+
 void TextArea::setColour(vec3 colour) {
     this->colour = colour;
 }
@@ -51,11 +55,12 @@ void TextArea::setText(const std::vector<std::string>& content_) {
     rectwidth  = 0;
     rectheight = content_.size() * (font.getMaxHeight()+4) + 2;
 
-    std::vector<std::string>::iterator it;
+    size_t max_characters = getMaxCharacters();
+
     for(std::string s : content_) {
 
-        if(s.size() > 100) {
-            s = s.substr(0,100);
+        if(s.size() > max_characters) {
+            s = s.substr(0,max_characters);
         }
 
         int width = font.getWidth(s) + 6;

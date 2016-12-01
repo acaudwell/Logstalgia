@@ -39,11 +39,14 @@ public:
     TextArea(std::vector<std::string>& content, FXFont font, vec3 colour);
 
     void hide();
+
+    int getMaxCharacters();
+
     void setText(const std::vector<std::string>& content);
     void setPos(vec2 pos);
     void setColour(vec3 colour);
-    void draw();
 
+    void draw();
 };
 
 #endif
