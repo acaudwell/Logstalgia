@@ -1257,8 +1257,10 @@ void Logstalgia::logic(float t, float dt) {
     float sdt = dt * settings.simulation_speed;
 
     //increment clock
-    elapsed_time += sdt;
-    currtime = starttime + (long)(elapsed_time);
+    if(!paused) {
+        elapsed_time += sdt;
+        currtime = starttime + (long)(elapsed_time);
+    }
 
     if(settings.stop_time && currtime > settings.stop_time) {
         currtime = settings.stop_time;
