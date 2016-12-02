@@ -155,6 +155,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["sync"]            = "bool";
     arg_types["full-hostnames"]  = "bool";
     arg_types["no-bounce"]       = "bool";
+    arg_types["detect-changes"]  = "bool";
     arg_types["ffp"]             = "bool";
 
     arg_types["hide-paddle"]        = "bool";
