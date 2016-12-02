@@ -115,7 +115,9 @@ options:
             path          - the path of the resource requested
             hostname      - hostname or IP address
             response_size - size of the response in bytes
-            response_code - the HTTP response code
+            response_code - response code
+            method        - method
+            protocol      - protocol
             timestamp     - timestamp of request
             referrer      - referrer of the request
             user_agent    - user agent

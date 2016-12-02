@@ -51,6 +51,8 @@ public:
     std::string path;
 
     std::string pid;
+    std::string method;
+    std::string protocol;
 
     std::string response_code;
     long response_size;

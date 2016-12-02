@@ -117,9 +117,9 @@ bool NCSALog::parseLine(std::string& line, LogEntry& entry) {
         return 0;
     }
 
-//    entry.method    = matches[0];
+    entry.method    = matches[0];
     entry.path        = (!matches[1].empty()) ? matches[1] : "???";
-//    entry.protocol  = matches[2];
+    entry.protocol  = matches[2];
 
     entry.response_code = matches[3];
     entry.response_size = atol(matches[4].c_str());

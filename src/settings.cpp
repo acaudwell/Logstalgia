@@ -62,7 +62,8 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("  --display-fields FIELDS    Comma separated list of fields shown on mouse over:\n");
     printf("                             timestamp,hostname,path,response_size,response_code\n");
-    printf("                             referrer,user_agent,vhost,log_entry,pid\n\n");
+    printf("                             method,protocol,referrer,user_agent,vhost,log_entry\n");
+    printf("                             pid\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
 

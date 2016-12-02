@@ -143,6 +143,8 @@ const std::vector<std::string>& LogEntry::getFields() {
 
     if(fields.empty()) {
         fields.push_back("pid");
+        fields.push_back("method");
+        fields.push_back("protocol");
         fields.push_back("path");
         fields.push_back("vhost");
         fields.push_back("hostname");
@@ -161,9 +163,10 @@ const std::vector<std::string>& LogEntry::getDefaultFields() {
 
     if(default_fields.empty()) {
         default_fields.push_back("vhost");
-        default_fields.push_back("path");
         default_fields.push_back("timestamp");
         default_fields.push_back("hostname");
+        default_fields.push_back("path");
+        default_fields.push_back("method");
         default_fields.push_back("response_code");
         default_fields.push_back("response_size");
         default_fields.push_back("referrer");
@@ -178,6 +181,8 @@ const std::string& LogEntry::getFieldTitle(const std::string& field) {
     if(field_titles.empty()) {
         field_titles["pid"]           = "PID";
         field_titles["path"]          = "Path";
+        field_titles["method"]        = "Method";
+        field_titles["protocol"]      = "Protocol";
         field_titles["vhost"]         = "Virtual Host";
         field_titles["hostname"]      = "Hostname";
         field_titles["response_size"] = "Response Size";
@@ -204,6 +209,16 @@ bool LogEntry::getValue(const std::string& field, std::string& value) const {
 
     if(field == "path") {
         value = path;
+        return true;
+    }
+
+    if(field == "method") {
+        value = method;
+        return true;
+    }
+
+    if(field == "protocol") {
+        value = protocol;
         return true;
     }
 
