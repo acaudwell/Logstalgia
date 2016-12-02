@@ -446,7 +446,7 @@ void Logstalgia::loadConfig(const std::string& config_file) {
         LogstalgiaSettings new_settings;
         new_settings.importLogstalgiaSettings(conf);
 
-        if(settings.path != new_settings.path) {
+        if(!new_settings.path.empty() && settings.path != new_settings.path) {
 
             if(settings.path == "-" || new_settings.path == "-") {
                 throw ConfFileException("cannot change streaming mode at run time", config_file, 0);
@@ -718,7 +718,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     SDL_ShowCursor(true);
     mousehide_timeout = 5.0f;
 
-    float pos;    
+    float pos;
 
     if(hasProgressBar()) {
         // if the slider is visible and mouse is not over the summarizers
