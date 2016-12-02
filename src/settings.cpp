@@ -33,7 +33,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
 #ifdef _WIN32
     //resize window to fit help message
-    SDLApp::resizeConsole(710);
+    SDLApp::resizeConsole(810);
     SDLApp::showConsole(true);
 #endif
 
@@ -60,10 +60,10 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
 
-    printf("  --display-fields FIELDS    Comma separated list of fields shown on mouse over:\n");
-    printf("                             timestamp,hostname,path,response_size,response_code\n");
-    printf("                             method,protocol,referrer,user_agent,vhost,log_entry\n");
-    printf("                             pid\n\n");
+    printf("  --display-fields FIELDS    Comma separated list of fields shown on hover:\n");
+    printf("                             timestamp,hostname,path,method,protocol\n");
+    printf("                             response_size,response_code,referrer\n");
+    printf("                             user_agent,vhost,pid,log_entry\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
 
