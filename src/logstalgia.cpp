@@ -787,7 +787,7 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
         }
     }
 
-    if(code_match_summarizers != 0) {
+    if(!summarizer && code_match_summarizers != 0) {
         for(Summarizer* s : *code_match_summarizers) {
             if(s->supportedString(le->response_code)) {
                 summarizer = s;
@@ -796,7 +796,7 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
         }
     }
 
-    if(uri_match_summarizers != 0) {
+    if(!summarizer && uri_match_summarizers != 0) {
         for(Summarizer* s : *uri_match_summarizers) {
             if(s->supportedString(le->path)) {
                 summarizer = s;
