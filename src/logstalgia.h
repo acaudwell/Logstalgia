@@ -134,6 +134,8 @@ class Logstalgia : public SDLApp {
     std::string dateAtPosition(float percent);
     void seekTo(float percent);
 
+    void filterLogLine(std::string& line);
+
     void readLog(int buffer_rows = 0);
 
     RequestBall* findNearest(Paddle* paddle, const std::string& paddle_token);

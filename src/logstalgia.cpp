@@ -23,6 +23,7 @@
 
 #include "core/png_writer.h"
 #include "core/timezone.h"
+#include "core/utf8/utf8.h"
 
 //Logstalgia
 
@@ -664,6 +665,8 @@ std::string Logstalgia::dateAtPosition(float percent) {
 
     if(percent<1.0 && seeklog->getNextLineAt(linestr, percent)) {
 
+        filterLogLine(linestr);
+
         LogEntry le;
 
         set_utc_tz();
@@ -891,6 +894,18 @@ BaseLog* Logstalgia::getLog() {
     return streamlog;
 }
 
+
+void Logstalgia::filterLogLine(std::string& line) {
+
+    try {
+        std::string filtered;
+        utf8::replace_invalid(line.begin(), line.end(), back_inserter(filtered), '?');
+        line = filtered;
+    } catch(...) {
+        line = "???";
+    }
+}
+
 void Logstalgia::readLog(int buffer_rows) {
 
     profile_start("readLog");
@@ -905,6 +920,8 @@ void Logstalgia::readLog(int buffer_rows) {
     time_t read_timestamp = 0;
 
     while( baselog->getNextLine(linestr) ) {
+
+        filterLogLine(linestr);
 
         //trim whitespace
         if(linestr.size()>0) {
