@@ -111,19 +111,6 @@ std::string SummNode::toString() const {
     return str;
 }
 
-
-void SummNode::getStrings(std::vector<std::string>& strings) const {
-
-    if(children.empty() && parent != 0) {
-        // TODO: pass in prefix as toString() is expensive
-        strings.push_back(toString());
-    }
-
-    for(SummNode* child : children) {
-        child->getStrings(strings);
-    }
-}
-
 bool SummNode::removeWord(const std::string& str, size_t offset) {
 
     refs--;

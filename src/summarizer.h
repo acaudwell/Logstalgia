@@ -74,7 +74,6 @@ public:
     void summarize(std::vector<SummRow>& output, int no_words, int depth = 0);
 
     std::string toString() const;
-    void getStrings(std::vector<std::string>& strings) const;
 protected:
     std::string formatNode(std::string str, int refs);
 };
