@@ -100,11 +100,11 @@ public:
     float glow_multiplier;
     float glow_duration;
 
-    int ip_summarizer_max_depth;
-    int ip_summarizer_abbrev_depth;
+    int address_max_depth;
+    int address_abbr_depth;
 
-    int group_summarizer_max_depth;
-    int group_summarizer_abbrev_depth;
+    int group_max_depth;
+    int group_abbr_depth;
 
     int font_size;
 

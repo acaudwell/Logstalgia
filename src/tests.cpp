@@ -30,7 +30,7 @@ void LogstalgiaTester::runTests() {
 
     SummarizerGroup failGroup;
     std::string parsingError;
-    bool parsingSuccess = SummarizerGroup::parse("FAIL,CODE=^[45],SEP=/,MAX=2,ABB=1,10", failGroup, parsingError);
+    bool parsingSuccess = SummarizerGroup::parse("FAIL,CODE=^[45],SEP=/,MAX=2,ABBR=1,10", failGroup, parsingError);
 
     test("parsing succeeded", parsingSuccess, true);
     test("no parsing error",  parsingError, "");

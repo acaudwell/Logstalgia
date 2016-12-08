@@ -1053,7 +1053,7 @@ void Logstalgia::init() {
         accesslog = 0;
     }
 
-    ipSummarizer = new Summarizer(fontSmall, 100, settings.ip_summarizer_max_depth, settings.ip_summarizer_abbrev_depth, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 100, settings.address_max_depth, settings.address_abbr_depth, 2.0f);
     ipSummarizer->addDelimiter(':');
     ipSummarizer->addDelimiter('.');
     ipSummarizer->setSize(2, 40, 0);
@@ -1068,8 +1068,8 @@ void Logstalgia::init() {
         addGroup(group);
     }
 
-    int default_max_depth    = settings.group_summarizer_max_depth;
-    int default_abbrev_depth = settings.group_summarizer_abbrev_depth;
+    int default_max_depth    = settings.group_max_depth;
+    int default_abbrev_depth = settings.group_abbr_depth;
 
     //add default groups
     if(summarizers.empty()) {

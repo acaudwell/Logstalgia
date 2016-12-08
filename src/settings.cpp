@@ -33,7 +33,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
 #ifdef _WIN32
     //resize window to fit help message
-    SDLApp::resizeConsole(810);
+    SDLApp::resizeConsole(890);
     SDLApp::showConsole(true);
 #endif
 
@@ -53,9 +53,15 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -p --pitch-speed           Speed balls travel across screen (default: 0.15)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
 
-    printf("  -g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABB=n],percent[,colour]\n");
+    printf("  -g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABBR=n],percent[,colour]\n");
     printf("                             Group together requests where the HOST, URI\n");
     printf("                             or response CODE matches a regular expression\n\n");
+
+    printf("  --address-max-depth DEPTH  Maximum depth to display in address summarizer\n");
+    printf("  --address-abbr-depth DEPTH Minimum abbreviation depth of address summarizer\n\n");
+
+    printf("  --group-max-depth DEPTH    Default maximum depth of groups\n");
+    printf("  --group-abbr-depth DEPTH   Default minimum abbreviation depth of groups\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
@@ -145,7 +151,11 @@ LogstalgiaSettings::LogstalgiaSettings() {
 
     // arg types
 
-    arg_types["font-size"] = "int";
+    arg_types["font-size"]          = "int";
+    arg_types["address-max-depth"]  = "int";
+    arg_types["address-abbr-depth"] = "int";
+    arg_types["group-max-depth"]    = "int";
+    arg_types["group-abbr-depth"]   = "int";
 
     arg_types["help"]          = "bool";
     arg_types["test"]          = "bool";
@@ -204,11 +214,11 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     start_position = 0.0f;
     stop_position  = 1.0f;
 
-    ip_summarizer_max_depth = 0;
-    ip_summarizer_abbrev_depth = 0;
+    address_max_depth = 0;
+    address_abbr_depth = 0;
 
-    group_summarizer_max_depth = 0;
-    group_summarizer_abbrev_depth = 0;
+    group_max_depth = 0;
+    group_abbr_depth = 0;
 
     detect_changes = false;
 
@@ -346,6 +356,50 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         font_size = entry->getInt();
 
         if(font_size<1 || font_size>100) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("address-max-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address max depth");
+
+        address_max_depth = entry->getInt();
+
+        if(address_max_depth < 0) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("address-abbr-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address abbreviation depth");
+
+        address_abbr_depth = entry->getInt();
+
+        if(address_abbr_depth < 0) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("group-max-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify group max depth");
+
+        group_max_depth = entry->getInt();
+
+        if(group_max_depth < 0) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("group-abbr-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify group abbreviation depth");
+
+        group_abbr_depth = entry->getInt();
+
+        if(group_abbr_depth < 0) {
             conffile.invalidValueException(entry);
         }
     }
@@ -619,8 +673,24 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
 
     settings->addEntry(new ConfEntry("glow-intensity",  glow_intensity));
     settings->addEntry(new ConfEntry("glow-multiplier", glow_multiplier));
-    settings->addEntry(new ConfEntry("glow-duration", glow_duration));
-    settings->addEntry(new ConfEntry("font-size", font_size));
+    settings->addEntry(new ConfEntry("glow-duration",   glow_duration));
+    settings->addEntry(new ConfEntry("font-size",       font_size));
+
+    if(address_max_depth != 0) {
+        settings->addEntry(new ConfEntry("address-max-depth", address_max_depth));
+    }
+
+    if(address_abbr_depth != 0) {
+        settings->addEntry(new ConfEntry("address-abbr-depth", address_abbr_depth));
+    }
+
+    if(group_max_depth != 0) {
+        settings->addEntry(new ConfEntry("group-max-depth", group_max_depth));
+    }
+
+    if(group_abbr_depth != 0) {
+        settings->addEntry(new ConfEntry("group-abbr-depth", group_abbr_depth));
+    }
 
     if(!display_fields.empty()) {
 
