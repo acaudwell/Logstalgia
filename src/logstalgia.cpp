@@ -23,7 +23,6 @@
 
 #include "core/png_writer.h"
 #include "core/timezone.h"
-#include "core/utf8/utf8.h"
 
 //Logstalgia
 
@@ -896,13 +895,8 @@ BaseLog* Logstalgia::getLog() {
 
 
 void Logstalgia::filterLogLine(std::string& line) {
-
-    try {
-        std::string filtered;
-        utf8::replace_invalid(line.begin(), line.end(), back_inserter(filtered), '?');
-        line = filtered;
-    } catch(...) {
-        line = "???";
+    for(char& c : line) {
+        if(c & 0x80) c = '?';
     }
 }
 
