@@ -918,7 +918,7 @@ void Logstalgia::readLog(int buffer_rows) {
         filterLogLine(linestr);
 
         //trim whitespace
-        if(linestr.size()>0) {
+        if(!linestr.empty()) {
             size_t string_end =
                 linestr.find_last_not_of(" \t\f\v\n\r");
 
