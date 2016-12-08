@@ -149,7 +149,7 @@ class Logstalgia : public SDLApp {
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
     void addGroup(const SummarizerGroup& group);
-    void addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int depth, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
+    void addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int max_depth, int abbrev_depth, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
     void togglePause();
 
     BaseLog* getLog();

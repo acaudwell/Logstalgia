@@ -5,7 +5,7 @@
  * Added --frameless option.
  * Added --detect-changes option to automatically reload config file.
  * Added --display-fields FIELDS to set fields shown mousing over a request.
- * Groups can now define separator characters and a minimum abbreviation depth.
+ * Groups can now specify delimiters, max depth and min abbreviation depth.
  * Reload config (F5).
  * Load config (F6).
  * Save config (Ctrl+S) with updated display settings.

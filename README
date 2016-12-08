@@ -67,18 +67,22 @@ options:
     -u, --update-rate
             Page Summary update speed. Defaults to 5 (5 seconds).
 
-    -g name,(HOST|URI|CODE)=regex[,SEP=list][,DEPTH=n],percent[,colour]
+    -g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABB=n],percent[,colour]
 
             Creates a new named summarizer group for requests for which a
             specified attribute (HOST, URI or response CODE) matches a
             regular expression. Percent specifies a vertical percentage of
             screen to use.
 
-            SEP=list can specify a list of separator characters (e.g. /)
+            SEP=chars can specify a list of separator characters (e.g. /)
             to split on. The default separator is /.
 
-            DEPTH=n specifies the minimum depth (measured in separators) to
-            allow partially abbreviated strings. The default is 0.
+            MAX=n specifies the max depth into the path to be displayed.
+            (e.g. MAX=1 would show only root directory names of paths). By
+            default there is 0 (no limit).
+
+            ABB=n specifies the minimum depth at which to allow partially
+            abbreviated strings. The default is 0.
 
             A colour may optionally be supplied in hexadecimal format
             (eg FF0000 for red) which will be applied to all labels

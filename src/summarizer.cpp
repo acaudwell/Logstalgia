@@ -263,6 +263,16 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
 
     if(delimiter && parent != 0 && parent != summarizer->getRoot()) {
         child_depth++;
+
+        if(summarizer->getMaxDepth() != 0 && child_depth >= summarizer->getMaxDepth()) {
+
+            for(SummNode* child : children) {
+                child->unsummarized=true;
+            }
+
+            output.push_back(SummRow(this, true));
+            return;
+        }
     }
 
     if(max_rows < sorted_children.size()) {
@@ -527,12 +537,13 @@ void SummItem::draw(float alpha) {
 
 // Summarizer
 
-Summarizer::Summarizer(FXFont font, int screen_percent, int abbreviation_depth, float refresh_delay, std::string matchstr, std::string title)
+Summarizer::Summarizer(FXFont font, int screen_percent, int max_depth, int abbreviation_depth, float refresh_delay, std::string matchstr, std::string title)
     : root(this), matchre(matchstr) {
 
     pos_x = top_gap = title_top = bottom_gap = 0.0f;
 
     this->screen_percent = screen_percent;
+    this->max_depth = max_depth;
     this->abbreviation_depth = abbreviation_depth;
     this->title = title;
     this->font  = font;
@@ -960,6 +971,14 @@ void Summarizer::setShowCount(bool showcount) {
 
 bool Summarizer::showCount() const {
     return showcount;
+}
+
+void Summarizer::setMaxDepth(int max_depth) {
+    this->max_depth = max_depth;
+}
+
+int Summarizer::getMaxDepth() const {
+    return max_depth;
 }
 
 void Summarizer::setAbbreviationDepth(int abbreviation_depth) {

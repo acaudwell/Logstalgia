@@ -1053,7 +1053,7 @@ void Logstalgia::init() {
         accesslog = 0;
     }
 
-    ipSummarizer = new Summarizer(fontSmall, 100, settings.ip_summarizer_depth, 2.0f);
+    ipSummarizer = new Summarizer(fontSmall, 100, settings.ip_summarizer_max_depth, settings.ip_summarizer_abbrev_depth, 2.0f);
     ipSummarizer->addDelimiter(':');
     ipSummarizer->addDelimiter('.');
     ipSummarizer->setSize(2, 40, 0);
@@ -1068,17 +1068,20 @@ void Logstalgia::init() {
         addGroup(group);
     }
 
+    int default_max_depth    = settings.group_summarizer_max_depth;
+    int default_abbrev_depth = settings.group_summarizer_abbrev_depth;
+
     //add default groups
     if(summarizers.empty()) {
         //images - file is under images or
-        addGroup("URI", "CSS", "(?i)\\.css\\b", "/", 0, 15);
-        addGroup("URI", "Script", "(?i)\\.js\\b", "/", 0, 15);
-        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", "/", 0, 20);
+        addGroup("URI", "CSS", "(?i)\\.css\\b", "/", default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Script", "(?i)\\.js\\b", "/", default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", "/", default_max_depth, default_abbrev_depth, 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
     if(remaining_space > 50) {
-        addGroup("URI", "Misc", ".*", "/", 0);
+        addGroup("URI", "Misc", ".*", "/", default_max_depth, default_abbrev_depth);
     }
 
     reset();
@@ -1522,10 +1525,10 @@ void Logstalgia::logic(float t, float dt) {
 }
 
 void Logstalgia::addGroup(const SummarizerGroup& group) {
-    addGroup(group.type, group.title, group.regex, group.separators, group.depth, group.percent, group.colour);
+    addGroup(group.type, group.title, group.regex, group.separators, group.max_depth, group.abbrev_depth, group.percent, group.colour);
 }
 
-void Logstalgia::addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int depth, int percent, vec3 colour) {
+void Logstalgia::addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int max_depth, int abbrev_depth, int percent, vec3 colour) {
 
     if(percent<0) return;
 
@@ -1540,8 +1543,7 @@ void Logstalgia::addGroup(const std::string& group_type, const std::string& grou
     Summarizer* summarizer = 0;
 
     try {
-        summarizer = new Summarizer(fontSmall, percent, settings.group_summarizer_depth, settings.update_rate, group_regex, group_title);
-        summarizer->setAbbreviationDepth(depth);
+        summarizer = new Summarizer(fontSmall, percent, max_depth, abbrev_depth, settings.update_rate, group_regex, group_title);
 
         for(char c : separators) {
             summarizer->addDelimiter(c);

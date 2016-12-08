@@ -53,7 +53,7 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -p --pitch-speed           Speed balls travel across screen (default: 0.15)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
 
-    printf("  -g name,(HOST|URI|CODE)=regex,percent[,colour]\n");
+    printf("  -g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABB=n],percent[,colour]\n");
     printf("                             Group together requests where the HOST, URI\n");
     printf("                             or response CODE matches a regular expression\n\n");
 
@@ -204,8 +204,11 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     start_position = 0.0f;
     stop_position  = 1.0f;
 
-    ip_summarizer_depth    = 0;
-    group_summarizer_depth = 0;
+    ip_summarizer_max_depth = 0;
+    ip_summarizer_abbrev_depth = 0;
+
+    group_summarizer_max_depth = 0;
+    group_summarizer_abbrev_depth = 0;
 
     detect_changes = false;
 
@@ -747,7 +750,8 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
 // SummarizerGroup
 
 SummarizerGroup::SummarizerGroup() {
-    depth = 0;
+    max_depth = 0;
+    abbrev_depth = 0;
     percent = 0;
     colour = vec3(0.0f);
 }
@@ -755,7 +759,7 @@ SummarizerGroup::SummarizerGroup() {
 bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& group, std::string& error) {
 
     std::vector<std::string> group_definition;
-    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,DEPTH=([^,]+))?,([^,]+)(?:,([^,]+))?$");
+    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,MAX=([^,]+))?(?:,ABB=([^,]+))?,([^,]+)(?:,([^,]+))?$");
     groupregex.match(group_string, &group_definition);
 
     /*
@@ -773,20 +777,22 @@ bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& gr
         std::string group_regex = group_definition[2];
         std::string separators  = group_definition[3];
 
-        int depth   = atoi(group_definition[4].c_str());
-        int percent = atoi(group_definition[5].c_str());
+        int max_depth    = atoi(group_definition[4].c_str());
+        int abbrev_depth = atoi(group_definition[5].c_str());
+        int percent      = atoi(group_definition[6].c_str());
 
         if(group_type.empty()) group_type = "URI";
         if(separators.empty()) separators = "/";
 
-        //debugLog("group_name %s group_type %s group_regex %s", group_name.c_str(), group_type.c_str(), group_regex.c_str());
+        debugLog("group name %s type %s regex %s max %d abbrev %d percent %d",
+                 group_name.c_str(), group_type.c_str(), group_regex.c_str(), max_depth, abbrev_depth, percent);
 
         // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
 
         //check for optional colour param
-        if(group_definition.size() >= 7) {
+        if(group_definition.size() >= 8) {
             int r, g, b;
-            if(sscanf(group_definition[6].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
+            if(sscanf(group_definition[7].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
                 colour = vec3( r, g, b );
                 debugLog("r = %d, g = %d, b = %d\n", r, g, b);
                 colour /= 255.0f;
@@ -803,7 +809,8 @@ bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& gr
         group.type = group_type;
         group.regex = group_regex;
         group.separators = separators;
-        group.depth = depth;
+        group.max_depth = max_depth;
+        group.abbrev_depth = abbrev_depth;
         group.percent = percent;
         group.colour = colour;
         group.definition = group_string;

@@ -19,18 +19,38 @@ void LogstalgiaTester::runTests() {
     FXFont font = fontmanager.grab("FreeMonoBold.ttf", settings.font_size);
 
     display.width  = 1024;
-    display.height = 768;
+    display.height = 768;    
 
-    int abbreviation_depth = -1;
+    int max_depth = 0;
+    int abbreviation_depth = 0;
     int percent = 50;
     float update_rate = 1.0f;
+
+    // group parser tests
+
+    SummarizerGroup failGroup;
+    std::string parsingError;
+    bool parsingSuccess = SummarizerGroup::parse("FAIL,CODE=^[45],SEP=/,MAX=2,ABB=1,10", failGroup, parsingError);
+
+    test("parsing succeeded", parsingSuccess, true);
+    test("no parsing error",  parsingError, "");
+
+    test("expected title",        failGroup.title, "FAIL");
+    test("expected type",         failGroup.type, "CODE");
+    test("expected separator",    failGroup.separators, "/");
+    test("expected regex",        failGroup.regex, "^[45]");
+    test("expected max_depth",    failGroup.max_depth, 2);
+    test("expected abbrev_depth", failGroup.abbrev_depth, 1);
+    test("expected percent",      failGroup.percent, 10);
+
+    // summarizer tests
 
     Summarizer* html_summarizer = 0;
     std::string html_title = "HTML";
     std::string html_regex = "\\.html?$";
 
     try {
-        html_summarizer = new Summarizer(font, percent, abbreviation_depth, update_rate, html_regex, html_title);
+        html_summarizer = new Summarizer(font, percent, max_depth, abbreviation_depth, update_rate, html_regex, html_title);
     } catch(RegexCompilationException&) {
 
     }
@@ -49,7 +69,7 @@ void LogstalgiaTester::runTests() {
     std::string image_title = "Images";
 
     try {
-        image_summarizer = new Summarizer(font, percent, abbreviation_depth, update_rate, image_regex, image_title);
+        image_summarizer = new Summarizer(font, percent, max_depth, abbreviation_depth, update_rate, image_regex, image_title);
     } catch(RegexCompilationException&) {
 
     }

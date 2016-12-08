@@ -134,6 +134,7 @@ protected:
 
     std::vector<char> delimiters;
     int  abbreviation_depth;
+    int  max_depth;
 
     float incrementf;
 
@@ -157,7 +158,7 @@ protected:
 
     void updateDisplayTitle();
 public:
-    Summarizer(FXFont font, int percent, int abbreviation_depth = -1, float refresh_delay = 2.0f,
+    Summarizer(FXFont font, int percent, int max_depth, int abbreviation_depth, float refresh_delay,
                std::string matchstr = ".*", std::string title="");
 
     void clear();
@@ -186,6 +187,9 @@ public:
 
     void setShowCount(bool showcount);
     bool showCount() const;
+
+    void setMaxDepth(int max_depth);
+    int getMaxDepth() const;
 
     void setAbbreviationDepth(int abbreviation_depth);
     int getAbbreviationDepth() const;

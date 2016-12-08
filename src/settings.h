@@ -35,7 +35,8 @@ public:
     std::string type;
     std::string regex;
     std::string separators;
-    int depth;
+    int max_depth;
+    int abbrev_depth;
     int percent;
     vec3 colour;
 
@@ -99,8 +100,11 @@ public:
     float glow_multiplier;
     float glow_duration;
 
-    int ip_summarizer_depth;
-    int group_summarizer_depth;
+    int ip_summarizer_max_depth;
+    int ip_summarizer_abbrev_depth;
+
+    int group_summarizer_max_depth;
+    int group_summarizer_abbrev_depth;
 
     int font_size;
 
