@@ -102,9 +102,11 @@ public:
 
     int address_max_depth;
     int address_abbr_depth;
+    std::string address_delimiters;
 
     int group_max_depth;
     int group_abbr_depth;
+    std::string group_delimiters;
 
     int font_size;
 

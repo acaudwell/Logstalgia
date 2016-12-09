@@ -1093,8 +1093,11 @@ void Logstalgia::init() {
     }
 
     ipSummarizer = new Summarizer(fontSmall, 100, settings.address_max_depth, settings.address_abbr_depth, 2.0f);
-    ipSummarizer->addDelimiter(':');
-    ipSummarizer->addDelimiter('.');
+
+    for(char c: settings.address_delimiters) {
+        ipSummarizer->addDelimiter(c);
+    }
+
     ipSummarizer->setSize(2, 40, 0);
 
     for(Summarizer* s : summarizers) {
@@ -1113,14 +1116,14 @@ void Logstalgia::init() {
     //add default groups
     if(summarizers.empty()) {
         //images - file is under images or
-        addGroup("URI", "CSS", "(?i)\\.css\\b", "/", default_max_depth, default_abbrev_depth, 15);
-        addGroup("URI", "Script", "(?i)\\.js\\b", "/", default_max_depth, default_abbrev_depth, 15);
-        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", "/", default_max_depth, default_abbrev_depth, 20);
+        addGroup("URI", "CSS", "(?i)\\.css\\b", settings.group_delimiters, default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Script", "(?i)\\.js\\b", settings.group_delimiters, default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", settings.group_delimiters, default_max_depth, default_abbrev_depth, 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
     if(remaining_space > 50) {
-        addGroup("URI", "Misc", ".*", "/", default_max_depth, default_abbrev_depth);
+        addGroup("URI", "Misc", ".*", settings.group_delimiters, default_max_depth, default_abbrev_depth);
     }
 
     reset();

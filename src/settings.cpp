@@ -199,6 +199,8 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["stop-position"]      = "string";
     arg_types["paddle-mode"]        = "string";
     arg_types["display-fields"]     = "string";
+    arg_types["address-delimiters"] = "string";
+    arg_types["group-delimiters"]   = "string";
 }
 
 void LogstalgiaSettings::setLogstalgiaDefaults() {
@@ -216,9 +218,11 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     address_max_depth = 0;
     address_abbr_depth = 0;
+    address_delimiters = ".:";
 
     group_max_depth = 0;
     group_abbr_depth = 0;
+    group_delimiters = "/";
 
     detect_changes = false;
 
@@ -382,6 +386,17 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         }
     }
 
+    if((entry = settings->getEntry("address-delimiters")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address delimiters");
+
+        address_delimiters = entry->getString();
+
+        if(address_delimiters.empty() || address_delimiters.size() > 100) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
     if((entry = settings->getEntry("group-max-depth")) != 0) {
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify group max depth");
@@ -400,6 +415,17 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         group_abbr_depth = entry->getInt();
 
         if(group_abbr_depth < -1) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("group-delimiters")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify group delimiters");
+
+        group_delimiters = entry->getString();
+
+        if(group_delimiters.empty() || group_delimiters.size() > 100) {
             conffile.invalidValueException(entry);
         }
     }
@@ -684,6 +710,10 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
         settings->addEntry(new ConfEntry("address-abbr-depth", address_abbr_depth));
     }
 
+    if(address_delimiters != ".:") {
+        settings->addEntry(new ConfEntry("address-delimiters", address_delimiters));
+    }
+
     if(group_max_depth != 0) {
         settings->addEntry(new ConfEntry("group-max-depth", group_max_depth));
     }
@@ -691,6 +721,11 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
     if(group_abbr_depth != 0) {
         settings->addEntry(new ConfEntry("group-abbr-depth", group_abbr_depth));
     }
+
+    if(group_delimiters != "/") {
+        settings->addEntry(new ConfEntry("group-delimiters", group_delimiters));
+    }
+
 
     if(!display_fields.empty()) {
 
