@@ -82,7 +82,7 @@ options:
             default there is 0 (no limit).
 
             ABBR=n specifies the minimum depth at which to allow partially
-            abbreviated strings. The default is 0.
+            abbreviated strings. The default is 0 (allow). -1 to disallow.
 
             A colour may optionally be supplied in hexadecimal format
             (eg FF0000 for red) which will be applied to all labels

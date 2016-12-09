@@ -326,11 +326,10 @@ void SummNode::summarize(const SummQuery& query, std::vector<SummRow>& output, i
     int children_summarized = 0;
     std::deque<SummNode*> unsummarized_children;
 
-    bool allow_partial_abbreviations = query.allowAbbreviations();
+    bool allow_partial_abbreviations = true;
 
-    if(   allow_partial_abbreviations
-       && (delimiter == true || !parent)
-       && depth < query.getAbbreviationDepth()) {
+    if(   (delimiter == true || !parent)
+       && (!query.allowAbbreviations() || depth < query.getAbbreviationDepth())) {
         allow_partial_abbreviations = false;
     }
 
@@ -790,7 +789,8 @@ void Summarizer::summarize() {
 
     strings.clear();
 
-    SummQuery query(max_depth, abbreviation_depth);
+    SummQuery query(prefix_filter.empty() ? max_depth : 0, abbreviation_depth);
+
     root.summarize(query, strings, max_strings);
 
     size_t nostrs = strings.size();

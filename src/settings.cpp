@@ -377,7 +377,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         address_abbr_depth = entry->getInt();
 
-        if(address_abbr_depth < 0) {
+        if(address_abbr_depth < -1) {
             conffile.invalidValueException(entry);
         }
     }
@@ -399,7 +399,7 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         group_abbr_depth = entry->getInt();
 
-        if(group_abbr_depth < 0) {
+        if(group_abbr_depth < -1) {
             conffile.invalidValueException(entry);
         }
     }
