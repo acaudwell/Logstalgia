@@ -64,16 +64,16 @@ If no groups are specified, the default groups are Images (image files), CSS (.c
 If there is enough space remaining a catch-all group 'Misc' will appear as the last group.
 .TP
 \fB\-\-address\-max\-depth DEPTH\fR
-Maximum depth to display in address summarizer.
+Maximum depth to display in address summarizer. 0 for no maximum.
 .TP
 \fB\-\-address\-abbr\-depth DEPTH\fR
-Minimum abbreviation depth of address summarizer.
+Minimum abbreviation depth of address summarizer. 0 to always allow abbreviations, -1 to never abbreviate.
 .TP
 \fB\-\-group\-max\-depth DEPTH\fR
-Default maximum depth of groups.
+Default maximum depth of groups. 0 for no maximum.
 .TP
 \fB\-\-group\-abbr\-depth DEPTH\fR
-Default minimum abbreviation depth of groups.
+Default minimum abbreviation depth of groups. 0 to always allow abbreviations, -1 to never abbreviate.
 .TP
 \fB\-\-paddle\-mode MODE\fR
 Paddle mode (pid, vhost, single).

@@ -101,16 +101,18 @@ options:
             will appear as the last group.
 
     --address-max-depth DEPTH
-            Maximum depth to display in address summarizer.
+            Maximum depth to display in address summarizer. 0 for no maximum.
 
     --address-abbr-depth DEPTH
             Minimum abbreviation depth of address summarizer.
+            0 to always allow abbreviations, -1 to never abbreviate.
 
     --group-max-depth DEPTH
-            Default maximum depth of groups.
+            Default maximum depth of groups. 0 for no maximum.
 
     --group-abbr-depth DEPTH
             Default minimum abbreviation depth of groups.
+            0 to always allow abbreviations, -1 to never abbreviate.
 
     --paddle-mode MODE
             Paddle mode (pid, vhost, single).
