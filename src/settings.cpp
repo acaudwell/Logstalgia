@@ -829,7 +829,7 @@ SummarizerGroup::SummarizerGroup() {
 bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& group, std::string& error) {
 
     std::vector<std::string> group_definition;
-    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,MAX=([^,]+))?(?:,ABBR=([^,]+))?,([^,]+)(?:,([^,]+))?$");
+    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,MAX=([^,]+))?(?:,ABBR=([^,]+))?,(\\d+)(?:,([^,]+))?$");
     groupregex.match(group_string, &group_definition);
 
     /*
@@ -872,6 +872,11 @@ bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& gr
         Regex regex(group_regex, true);
         if(!regex.isValid()) {
             error = "invalid regular expression '" + group_regex + "'";
+            return false;
+        }
+
+        if(percent < 0 || percent > 100) {
+            error = "invalid percent value";
             return false;
         }
 
