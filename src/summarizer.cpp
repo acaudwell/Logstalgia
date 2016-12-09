@@ -69,6 +69,28 @@ void SummRow::prependChar(char c) {
     str.insert(0,1,c);
 }
 
+//SummQuery
+
+SummQuery::SummQuery(int max_depth, int abbreviation_depth)
+    : max_depth(max_depth), abbreviation_depth(abbreviation_depth) {
+}
+
+bool SummQuery::limitMaxDepth() const {
+    return max_depth != 0;
+}
+
+bool SummQuery::allowAbbreviations() const {
+    return abbreviation_depth != -1;
+}
+
+int SummQuery::getMaxDepth() const {
+    return max_depth;
+}
+
+int SummQuery::getAbbreviationDepth() const {
+    return abbreviation_depth;
+}
+
 //SummNode
 
 SummNode::SummNode(Summarizer* summarizer)
@@ -223,8 +245,11 @@ void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool un
     for(SummNode* child : children) {
         if(unsummarized_only && !child->unsummarized) continue;
 
+        // for expanded detail don't limit depth
+        SummQuery query(0, 0);
+
         std::vector<SummRow> strvec;
-        child->summarize(strvec, 100);
+        child->summarize(query, strvec, 100);
 
         for(const SummRow& row : strvec) {
             vec.push_back(formatNode(prefix + row.str, row.refs));
@@ -232,7 +257,7 @@ void SummNode::expand(std::string prefix, std::vector<std::string>& vec, bool un
     }
 }
 
-void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) {
+void SummNode::summarize(const SummQuery& query, std::vector<SummRow>& output, int max_rows, int depth) {
 
     ASSERT(max_rows > 0);
 
@@ -264,7 +289,7 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
     if(delimiter && parent != 0 && parent != summarizer->getRoot()) {
         child_depth++;
 
-        if(summarizer->getMaxDepth() != 0 && child_depth >= summarizer->getMaxDepth()) {
+        if(query.limitMaxDepth() && child_depth >= query.getMaxDepth()) {
 
             for(SummNode* child : children) {
                 child->unsummarized=true;
@@ -301,9 +326,11 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
     int children_summarized = 0;
     std::deque<SummNode*> unsummarized_children;
 
-    bool allow_partial_abbreviations = true;
+    bool allow_partial_abbreviations = query.allowAbbreviations();
 
-    if((delimiter == true || !parent) && depth < summarizer->getAbbreviationDepth()) {
+    if(   allow_partial_abbreviations
+       && (delimiter == true || !parent)
+       && depth < query.getAbbreviationDepth()) {
         allow_partial_abbreviations = false;
     }
 
@@ -324,7 +351,7 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
 
         if(child_max_rows > 0) {
 
-            child->summarize(child_output, child_max_rows, child_depth);
+            child->summarize(query, child_output, child_max_rows, child_depth);
 
             // discard partially abbreviated rows if not allowed
             if(allow_partial_abbreviations == false) {
@@ -392,7 +419,7 @@ void SummNode::summarize(std::vector<SummRow>& output, int max_rows, int depth) 
             SummNode* child = unsummarized_children.front();
 
             std::vector<SummRow> child_output;
-            child->summarize(child_output, 1, child_depth);
+            child->summarize(query, child_output, 1, child_depth);
 
             ASSERT(child_output.size()==1);
 
@@ -762,7 +789,9 @@ void Summarizer::summarize() {
     changed = false;
 
     strings.clear();
-    root.summarize(strings, max_strings);
+
+    SummQuery query(max_depth, abbreviation_depth);
+    root.summarize(query, strings, max_strings);
 
     size_t nostrs = strings.size();
 

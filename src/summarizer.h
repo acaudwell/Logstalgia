@@ -47,6 +47,20 @@ public:
     void buildSummary();
 };
 
+class SummQuery {
+protected:
+    int max_depth;
+    int abbreviation_depth;
+public:
+    SummQuery(int max_depth, int abbreviation_depth);
+
+    bool limitMaxDepth() const;
+    bool allowAbbreviations() const;
+
+    int getMaxDepth() const;
+    int getAbbreviationDepth() const;
+};
+
 class SummNode {
 public:
     Summarizer* summarizer;
@@ -71,7 +85,7 @@ public:
 
     void expand(std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
 
-    void summarize(std::vector<SummRow>& output, int no_words, int depth = 0);
+    void summarize(const SummQuery& query, std::vector<SummRow>& output, int max_rows, int depth = 0);
 
     std::string toString() const;
 protected:
