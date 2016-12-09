@@ -829,7 +829,7 @@ SummarizerGroup::SummarizerGroup() {
 bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& group, std::string& error) {
 
     std::vector<std::string> group_definition;
-    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,MAX=([^,]+))?(?:,ABB=([^,]+))?,([^,]+)(?:,([^,]+))?$");
+    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,MAX=([^,]+))?(?:,ABBR=([^,]+))?,([^,]+)(?:,([^,]+))?$");
     groupregex.match(group_string, &group_definition);
 
     /*
@@ -872,6 +872,16 @@ bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& gr
         Regex regex(group_regex, true);
         if(!regex.isValid()) {
             error = "invalid regular expression '" + group_regex + "'";
+            return false;
+        }
+
+        if(abbrev_depth < -1) {
+            error = "invalid ABBR value";
+            return false;
+        }
+
+        if(max_depth < 0) {
+            error = "invalid MAX value";
             return false;
         }
 
