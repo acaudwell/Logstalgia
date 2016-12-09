@@ -154,9 +154,14 @@ class Logstalgia : public SDLApp {
 
     BaseLog* getLog();
 
-    void changeSummarizerDepth(Summarizer *summarizer, int delta);
-    void changeIPSummarizerDepth(int delta);
-    void changeGroupSummarizerDepth(int delta);
+    void changeSummarizerMaxDepth(Summarizer* summarizer, int delta);
+    void changeSummarizerAbbreviationDepth(Summarizer* summarizer, int delta);
+
+    void changeIPSummarizerMaxDepth(int delta);
+    void changeIPSummarizerAbbreviationDepth(int delta);
+
+    void changeGroupSummarizerMaxDepth(int delta);
+    void changeGroupSummarizerAbbreviationDepth(int delta);
 
     bool mouseOverSummarizerWidthAdjuster(const vec2& pos);
 

@@ -248,19 +248,36 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
         }
 
         if(e->keysym.sym == SDLK_HOME) {
-            changeIPSummarizerDepth(-1);
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeIPSummarizerAbbreviationDepth(+1);
+            } else {
+                changeIPSummarizerMaxDepth(+1);
+            }
         }
 
         if(e->keysym.sym == SDLK_END) {
-            changeIPSummarizerDepth(+1);
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeIPSummarizerAbbreviationDepth(-1);
+            } else {
+                changeIPSummarizerMaxDepth(-1);
+            }
         }
 
         if(e->keysym.sym == SDLK_PAGEUP) {
-            changeGroupSummarizerDepth(-1);
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeGroupSummarizerAbbreviationDepth(+1);
+            } else {
+                changeGroupSummarizerMaxDepth(+1);
+            }
         }
 
         if(e->keysym.sym == SDLK_PAGEDOWN) {
-            changeGroupSummarizerDepth(+1);
+
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeGroupSummarizerAbbreviationDepth(-1);
+            } else {
+                changeGroupSummarizerMaxDepth(-1);
+            }
         }
 
         if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
@@ -506,25 +523,53 @@ void Logstalgia::reloadConfig() {
     loadConfig(settings.load_config);
 }
 
-void Logstalgia::changeSummarizerDepth(Summarizer* summarizer, int delta) {
+void Logstalgia::changeSummarizerMaxDepth(Summarizer* summarizer, int delta) {
+    int depth = summarizer->getMaxDepth();
+    int new_depth = depth + delta;
+
+    if(new_depth >= 0) {
+        std::string title = (summarizer == ipSummarizer) ? "IP Summarizer" : summarizer->getTitle().c_str();
+        debugLog("%s max depth changed to %d", title.c_str(), new_depth);
+        summarizer->setMaxDepth(new_depth);
+        summarizer->summarize();
+        summarizer->recalc_display();
+    }
+}
+
+void Logstalgia::changeSummarizerAbbreviationDepth(Summarizer* summarizer, int delta) {
     int depth = summarizer->getAbbreviationDepth();
     int new_depth = depth + delta;
 
-    if(new_depth >= -1) {
-        debugLog("%s depth changed to %d", summarizer->getTitle().c_str(), new_depth);
+    if(new_depth >= -1) {        
+        std::string title = (summarizer == ipSummarizer) ? "IP Summarizer" : summarizer->getTitle().c_str();
+        debugLog("%s min abbreviation depth changed to %d", title.c_str(), new_depth);
         summarizer->setAbbreviationDepth(new_depth);
         summarizer->summarize();
         summarizer->recalc_display();
     }
 }
 
-void Logstalgia::changeIPSummarizerDepth(int delta) {
-    changeSummarizerDepth(ipSummarizer, delta);
+void Logstalgia::changeIPSummarizerMaxDepth(int delta) {
+    settings.address_max_depth = std::max(0, settings.address_max_depth + delta);
+    changeSummarizerMaxDepth(ipSummarizer, delta);
 }
 
-void Logstalgia::changeGroupSummarizerDepth(int delta) {
+void Logstalgia::changeIPSummarizerAbbreviationDepth(int delta) {
+    settings.address_abbr_depth = std::max(-1, settings.address_abbr_depth + delta);
+    changeSummarizerAbbreviationDepth(ipSummarizer, delta);
+}
+
+void Logstalgia::changeGroupSummarizerMaxDepth(int delta) {
+    settings.group_max_depth = std::max(0, settings.group_max_depth + delta);
     for(Summarizer* s : summarizers) {
-        changeSummarizerDepth(s, delta);
+        changeSummarizerMaxDepth(s, delta);
+    }
+}
+
+void Logstalgia::changeGroupSummarizerAbbreviationDepth(int delta) {
+    settings.group_abbr_depth = std::max(-1, settings.group_abbr_depth + delta);
+    for(Summarizer* s : summarizers) {
+        changeSummarizerAbbreviationDepth(s, delta);
     }
 }
 
