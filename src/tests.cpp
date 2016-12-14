@@ -30,18 +30,33 @@ void LogstalgiaTester::runTests() {
 
     SummarizerGroup failGroup;
     std::string parsingError;
-    bool parsingSuccess = SummarizerGroup::parse("FAIL,CODE=^[45],SEP=/,MAX=2,ABBR=1,10", failGroup, parsingError);
+    bool parsingSuccess = SummarizerGroup::parse("FAIL,CODE=^[45],SEP=/\\,MAX=2,ABBR=1,10", failGroup, parsingError);
 
     test("parsing succeeded", parsingSuccess, true);
     test("no parsing error",  parsingError, "");
 
     test("expected title",        failGroup.title, "FAIL");
     test("expected type",         failGroup.type, "CODE");
-    test("expected separator",    failGroup.separators, "/");
     test("expected regex",        failGroup.regex, "^[45]");
+    test("expected separator",    failGroup.separators, "/\\");
     test("expected max_depth",    failGroup.max_depth, 2);
     test("expected abbrev_depth", failGroup.abbrev_depth, 1);
     test("expected percent",      failGroup.percent, 10);
+
+    SummarizerGroup htmlGroup;
+
+    parsingSuccess = SummarizerGroup::parse("HTML,.html?$,10", htmlGroup, parsingError);
+
+    test("parsing succeeded", parsingSuccess, true);
+    test("no parsing error",  parsingError, "");
+
+    test("expected title",        htmlGroup.title, "HTML");
+    test("expected type",         htmlGroup.type, "URI");
+    test("expected regex",        htmlGroup.regex, ".html?$");
+    test("expected separator",    htmlGroup.separators,   settings.path_separators);
+    test("expected max_depth",    htmlGroup.max_depth,    settings.path_max_depth);
+    test("expected abbrev_depth", htmlGroup.abbrev_depth, settings.path_abbr_depth);
+    test("expected percent",      htmlGroup.percent, 10);
 
     // summarizer tests
 
