@@ -313,6 +313,11 @@ void Logstalgia::initRequestBalls() {
     }
 
     balls.clear();
+
+    ipSummarizer->clear();
+    for(Summarizer* s : summarizers) {
+        s->clear();
+    }
 }
 
 void Logstalgia::reset() {
