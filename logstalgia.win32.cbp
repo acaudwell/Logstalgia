@@ -16,6 +16,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-O2" />
 			<Add option="-std=gnu++0x" />
 			<Add option="-Dmain=SDL_main" />
 			<Add option="-DGLM_SWIZZLE" />
