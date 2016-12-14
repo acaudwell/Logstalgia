@@ -483,25 +483,6 @@ void Logstalgia::loadConfig(const std::string& config_file) {
             debugLog("path changed from %s to %s", settings.path.c_str(), new_settings.path.c_str());
         }
 
-        // figure out if we should call init()
-
-        bool reinitialize = false;
-
-        if(   settings.path != new_settings.path
-           || settings.font_size != new_settings.font_size
-           || settings.groups.size() != new_settings.groups.size()) {
-
-            reinitialize = true;
-
-        } else {
-            for(int i = 0; i < settings.groups.size();i++) {
-                if(settings.groups[i].definition != new_settings.groups[i].definition) {
-                    reinitialize = true;
-                    break;
-                }
-            }
-        }
-
         // if no exceptions were thrown, import settings
         settings.importLogstalgiaSettings(conf);
 
@@ -509,9 +490,7 @@ void Logstalgia::loadConfig(const std::string& config_file) {
 
         paused = false;
 
-        if(reinitialize) {
-            init();
-        }
+        init();
 
     } catch(ConfFileException& e) {
        setMessage(e.what());
@@ -1094,7 +1073,7 @@ void Logstalgia::init() {
 
     ipSummarizer = new Summarizer(fontSmall, 100, settings.address_max_depth, settings.address_abbr_depth, 2.0f);
 
-    for(char c: settings.address_delimiters) {
+    for(char c: settings.address_separators) {
         ipSummarizer->addDelimiter(c);
     }
 

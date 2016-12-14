@@ -218,11 +218,11 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     start_position = 0.0f;
     stop_position  = 1.0f;
 
-    address_max_depth = 0;
+    address_max_depth  = 0;
     address_abbr_depth = 0;
-    address_delimiters = ".:";
+    address_separators = ".:";
 
-    path_max_depth = 0;
+    path_max_depth  = 0;
     path_abbr_depth = 0;
     path_separators = "/";
 
@@ -366,6 +366,17 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         }
     }
 
+    if((entry = settings->getEntry("address-separators")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address separators");
+
+        address_separators = entry->getString();
+
+        if(address_separators.empty() || address_separators.size() > 100) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
     if((entry = settings->getEntry("address-max-depth")) != 0) {
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify address max depth");
@@ -388,20 +399,20 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         }
     }
 
-    if((entry = settings->getEntry("address-delimiters")) != 0) {
+    if((entry = settings->getEntry("path-separators")) != 0) {
 
-        if(!entry->hasValue()) conffile.entryException(entry, "specify address delimiters");
+        if(!entry->hasValue()) conffile.entryException(entry, "specify path separators");
 
-        address_delimiters = entry->getString();
+        path_separators = entry->getString();
 
-        if(address_delimiters.empty() || address_delimiters.size() > 100) {
+        if(path_separators.empty() || path_separators.size() > 100) {
             conffile.invalidValueException(entry);
         }
     }
 
-    if((entry = settings->getEntry("group-max-depth")) != 0) {
+    if((entry = settings->getEntry("path-max-depth")) != 0) {
 
-        if(!entry->hasValue()) conffile.entryException(entry, "specify group max depth");
+        if(!entry->hasValue()) conffile.entryException(entry, "specify path max depth");
 
         path_max_depth = entry->getInt();
 
@@ -410,24 +421,13 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         }
     }
 
-    if((entry = settings->getEntry("group-abbr-depth")) != 0) {
+    if((entry = settings->getEntry("path-abbr-depth")) != 0) {
 
-        if(!entry->hasValue()) conffile.entryException(entry, "specify group abbreviation depth");
+        if(!entry->hasValue()) conffile.entryException(entry, "specify path abbreviation depth");
 
         path_abbr_depth = entry->getInt();
 
         if(path_abbr_depth < -1) {
-            conffile.invalidValueException(entry);
-        }
-    }
-
-    if((entry = settings->getEntry("group-delimiters")) != 0) {
-
-        if(!entry->hasValue()) conffile.entryException(entry, "specify group delimiters");
-
-        path_separators = entry->getString();
-
-        if(path_separators.empty() || path_separators.size() > 100) {
             conffile.invalidValueException(entry);
         }
     }
@@ -704,6 +704,10 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
     settings->addEntry(new ConfEntry("glow-duration",   glow_duration));
     settings->addEntry(new ConfEntry("font-size",       font_size));
 
+    if(address_separators != ".:") {
+        settings->addEntry(new ConfEntry("address-separators", address_separators));
+    }
+
     if(address_max_depth != 0) {
         settings->addEntry(new ConfEntry("address-max-depth", address_max_depth));
     }
@@ -712,8 +716,8 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
         settings->addEntry(new ConfEntry("address-abbr-depth", address_abbr_depth));
     }
 
-    if(address_delimiters != ".:") {
-        settings->addEntry(new ConfEntry("address-delimiters", address_delimiters));
+    if(path_separators != "/") {
+        settings->addEntry(new ConfEntry("path-separators", path_separators));
     }
 
     if(path_max_depth != 0) {
@@ -723,11 +727,6 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
     if(path_abbr_depth != 0) {
         settings->addEntry(new ConfEntry("group-abbr-depth", path_abbr_depth));
     }
-
-    if(path_separators != "/") {
-        settings->addEntry(new ConfEntry("group-delimiters", path_separators));
-    }
-
 
     if(!display_fields.empty()) {
 

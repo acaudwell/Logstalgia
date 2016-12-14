@@ -102,7 +102,7 @@ public:
 
     int address_max_depth;
     int address_abbr_depth;
-    std::string address_delimiters;
+    std::string address_separators;
 
     int path_max_depth;
     int path_abbr_depth;
