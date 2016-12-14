@@ -100,8 +100,8 @@ options:
             If there is enough space remaining a catch-all group 'Misc'
             will appear as the last group.
 
-    --address-delimiters DELIMITERS
-            List of address delimiter characters. Defaults to '.:'.
+    --address-separators CHARS
+            List of address separator characters. Defaults to '.:'.
 
     --address-max-depth DEPTH
             Maximum depth to display in address summarizer. 0 for no maximum.
@@ -110,14 +110,15 @@ options:
             Minimum abbreviation depth of address summarizer.
             0 to always allow abbreviations, -1 to never abbreviate.
 
-    --group-delimiters DELIMITERS
-            Default list of path delimiter characters. Defaults to '/'.
+    --path-separators CHARS
+            Default list of path separator characters. Defaults to /.
 
-    --group-max-depth DEPTH
-            Default maximum depth of groups. 0 for no maximum.
+    --path-max-depth DEPTH
+            Default maximum path depth shown in the summarizer.
+            0 for no maximum.
 
-    --group-abbr-depth DEPTH
-            Default minimum abbreviation depth of groups.
+    --path-abbr-depth DEPTH
+            Default minimum path abbreviation depth.
             0 to always allow abbreviations, -1 to never abbreviate.
 
     --paddle-mode MODE

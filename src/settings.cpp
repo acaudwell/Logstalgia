@@ -33,7 +33,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
 #ifdef _WIN32
     //resize window to fit help message
-    SDLApp::resizeConsole(890);
+    SDLApp::resizeConsole(910);
     SDLApp::showConsole(true);
 #endif
 
@@ -57,11 +57,13 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("                             Group together requests where the HOST, URI\n");
     printf("                             or response CODE matches a regular expression\n\n");
 
+    printf("  --address-separators CHARS List of address separator characters\n");
     printf("  --address-max-depth DEPTH  Maximum depth to display in address summarizer\n");
     printf("  --address-abbr-depth DEPTH Minimum abbreviation depth of address summarizer\n\n");
 
-    printf("  --group-max-depth DEPTH    Default maximum depth of groups\n");
-    printf("  --group-abbr-depth DEPTH   Default minimum abbreviation depth of groups\n\n");
+    printf("  --path-separators CHARS   Default list of path separator characters\n");
+    printf("  --path-max-depth DEPTH    Default maximum path depth\n");
+    printf("  --path-abbr-depth DEPTH   Default minimum path abbreviation depth\n\n");
 
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
@@ -154,8 +156,8 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["font-size"]          = "int";
     arg_types["address-max-depth"]  = "int";
     arg_types["address-abbr-depth"] = "int";
-    arg_types["group-max-depth"]    = "int";
-    arg_types["group-abbr-depth"]   = "int";
+    arg_types["path-max-depth"]     = "int";
+    arg_types["path-abbr-depth"]    = "int";
 
     arg_types["help"]          = "bool";
     arg_types["test"]          = "bool";
@@ -199,8 +201,8 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["stop-position"]      = "string";
     arg_types["paddle-mode"]        = "string";
     arg_types["display-fields"]     = "string";
-    arg_types["address-delimiters"] = "string";
-    arg_types["group-delimiters"]   = "string";
+    arg_types["address-separators"] = "string";
+    arg_types["group-separators"]   = "string";
 }
 
 void LogstalgiaSettings::setLogstalgiaDefaults() {
@@ -220,9 +222,9 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
     address_abbr_depth = 0;
     address_delimiters = ".:";
 
-    group_max_depth = 0;
-    group_abbr_depth = 0;
-    group_delimiters = "/";
+    path_max_depth = 0;
+    path_abbr_depth = 0;
+    path_separators = "/";
 
     detect_changes = false;
 
@@ -401,9 +403,9 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify group max depth");
 
-        group_max_depth = entry->getInt();
+        path_max_depth = entry->getInt();
 
-        if(group_max_depth < 0) {
+        if(path_max_depth < 0) {
             conffile.invalidValueException(entry);
         }
     }
@@ -412,9 +414,9 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify group abbreviation depth");
 
-        group_abbr_depth = entry->getInt();
+        path_abbr_depth = entry->getInt();
 
-        if(group_abbr_depth < -1) {
+        if(path_abbr_depth < -1) {
             conffile.invalidValueException(entry);
         }
     }
@@ -423,9 +425,9 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify group delimiters");
 
-        group_delimiters = entry->getString();
+        path_separators = entry->getString();
 
-        if(group_delimiters.empty() || group_delimiters.size() > 100) {
+        if(path_separators.empty() || path_separators.size() > 100) {
             conffile.invalidValueException(entry);
         }
     }
@@ -714,16 +716,16 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
         settings->addEntry(new ConfEntry("address-delimiters", address_delimiters));
     }
 
-    if(group_max_depth != 0) {
-        settings->addEntry(new ConfEntry("group-max-depth", group_max_depth));
+    if(path_max_depth != 0) {
+        settings->addEntry(new ConfEntry("group-max-depth", path_max_depth));
     }
 
-    if(group_abbr_depth != 0) {
-        settings->addEntry(new ConfEntry("group-abbr-depth", group_abbr_depth));
+    if(path_abbr_depth != 0) {
+        settings->addEntry(new ConfEntry("group-abbr-depth", path_abbr_depth));
     }
 
-    if(group_delimiters != "/") {
-        settings->addEntry(new ConfEntry("group-delimiters", group_delimiters));
+    if(path_separators != "/") {
+        settings->addEntry(new ConfEntry("group-delimiters", path_separators));
     }
 
 
@@ -882,12 +884,13 @@ bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& gr
         std::string group_regex = group_definition[2];
         std::string separators  = group_definition[3];
 
-        int max_depth    = atoi(group_definition[4].c_str());
-        int abbrev_depth = atoi(group_definition[5].c_str());
-        int percent      = atoi(group_definition[6].c_str());
-
         if(group_type.empty()) group_type = "URI";
-        if(separators.empty()) separators = "/";
+        if(separators.empty()) separators = settings.path_separators;
+
+        int max_depth    = group_definition[4].empty() ? settings.path_max_depth  : atoi(group_definition[4].c_str());
+        int abbrev_depth = group_definition[5].empty() ? settings.path_abbr_depth : atoi(group_definition[5].c_str());
+
+        int percent      = atoi(group_definition[6].c_str());
 
         debugLog("group name %s type %s regex %s max %d abbrev %d percent %d",
                  group_name.c_str(), group_type.c_str(), group_regex.c_str(), max_depth, abbrev_depth, percent);

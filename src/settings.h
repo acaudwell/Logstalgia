@@ -104,9 +104,9 @@ public:
     int address_abbr_depth;
     std::string address_delimiters;
 
-    int group_max_depth;
-    int group_abbr_depth;
-    std::string group_delimiters;
+    int path_max_depth;
+    int path_abbr_depth;
+    std::string path_separators;
 
     int font_size;
 

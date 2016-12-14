@@ -560,14 +560,14 @@ void Logstalgia::changeIPSummarizerAbbreviationDepth(int delta) {
 }
 
 void Logstalgia::changeGroupSummarizerMaxDepth(int delta) {
-    settings.group_max_depth = std::max(0, settings.group_max_depth + delta);
+    settings.path_max_depth = std::max(0, settings.path_max_depth + delta);
     for(Summarizer* s : summarizers) {
         changeSummarizerMaxDepth(s, delta);
     }
 }
 
 void Logstalgia::changeGroupSummarizerAbbreviationDepth(int delta) {
-    settings.group_abbr_depth = std::max(-1, settings.group_abbr_depth + delta);
+    settings.path_abbr_depth = std::max(-1, settings.path_abbr_depth + delta);
     for(Summarizer* s : summarizers) {
         changeSummarizerAbbreviationDepth(s, delta);
     }
@@ -1110,20 +1110,20 @@ void Logstalgia::init() {
         addGroup(group);
     }
 
-    int default_max_depth    = settings.group_max_depth;
-    int default_abbrev_depth = settings.group_abbr_depth;
+    int default_max_depth    = settings.path_max_depth;
+    int default_abbrev_depth = settings.path_abbr_depth;
 
     //add default groups
     if(summarizers.empty()) {
         //images - file is under images or
-        addGroup("URI", "CSS", "(?i)\\.css\\b", settings.group_delimiters, default_max_depth, default_abbrev_depth, 15);
-        addGroup("URI", "Script", "(?i)\\.js\\b", settings.group_delimiters, default_max_depth, default_abbrev_depth, 15);
-        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", settings.group_delimiters, default_max_depth, default_abbrev_depth, 20);
+        addGroup("URI", "CSS", "(?i)\\.css\\b", settings.path_separators, default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Script", "(?i)\\.js\\b", settings.path_separators, default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", settings.path_separators, default_max_depth, default_abbrev_depth, 20);
     }
 
     //always fill remaining space with Misc, (if there is some)
     if(remaining_space > 50) {
-        addGroup("URI", "Misc", ".*", settings.group_delimiters, default_max_depth, default_abbrev_depth);
+        addGroup("URI", "Misc", ".*", settings.path_separators, default_max_depth, default_abbrev_depth);
     }
 
     reset();
