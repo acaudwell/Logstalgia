@@ -88,6 +88,8 @@ class Logstalgia : public SDLApp {
     TextureResource* balltex;
     TextureResource* glowtex;
 
+    float toggle_delay;
+
     float mousehide_timeout;
     vec2 mousepos;
     RequestBall* paddle_target;

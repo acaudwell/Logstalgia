@@ -99,6 +99,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     balltex = 0;
     glowtex = 0;
 
+    toggle_delay = 0.0f;
     mousehide_timeout = 0.0f;
 
     runtime = 0.0;
@@ -169,6 +170,11 @@ void Logstalgia::togglePause() {
 
 void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
     if (e->type == SDL_KEYDOWN) {
+
+        bool repeat = false;
+#if SDL_VERSION_ATLEAST(2,0,0)
+        repeat = (e->repeat > 0);
+#endif
 
         if (e->keysym.sym == SDLK_ESCAPE) {
             appFinished=true;
@@ -280,7 +286,7 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             }
         }
 
-        if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
+        if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT && !repeat) {
             toggleFullscreen();
         }
     }
@@ -1181,6 +1187,7 @@ void Logstalgia::resize(int width, int height) {
 
 void Logstalgia::toggleWindowFrame() {
 #if SDL_VERSION_ATLEAST(2,0,0)
+    if(toggle_delay > 0.0) return;
     if(display.isFullscreen()) return;
     if(frameExporter != 0) return;
 
@@ -1193,6 +1200,8 @@ void Logstalgia::toggleWindowFrame() {
     texturemanager.reload();
     shadermanager.reload();
     fontmanager.reload();
+
+    toggle_delay = 0.25;
 
     reposition();
 #endif
@@ -1311,6 +1320,8 @@ void Logstalgia::logic(float t, float dt) {
     if(settings.stop_time && currtime > settings.stop_time) {
         currtime = settings.stop_time;
     }
+
+    if(toggle_delay > 0.0) toggle_delay -= dt;
 
     if(mousehide_timeout>0.0f) {
         mousehide_timeout -= dt;
