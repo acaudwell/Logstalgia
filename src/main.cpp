@@ -148,12 +148,12 @@ int main(int argc, char *argv[]) {
 
     display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen);
 
+#if SDL_VERSION_ATLEAST(2,0,0)
     if(!display.isFullscreen() && settings.window_x >= 0 && settings.window_y >= 0) {
         SDL_SetWindowPosition(display.sdl_window, settings.window_x, settings.window_y);
     }
 
     // Don't minimize when alt-tabbing so you can fullscreen logstalgia on a second monitor
-#if SDL_VERSION_ATLEAST(2,0,0)
      SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 #endif
 
