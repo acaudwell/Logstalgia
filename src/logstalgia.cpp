@@ -422,7 +422,7 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     }
 }
 
-Regex ls_url_hostname_regex("^http://[^/]+(.+)$");
+Regex ls_url_hostname_regex("^https?://[^/]+(.+)$");
 
 std::string Logstalgia::filterURLHostname(const std::string& hostname) {
 
