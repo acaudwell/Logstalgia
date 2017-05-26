@@ -1,8 +1,7 @@
 aclocal.m4
 /logstalgia
+/dev/win64
 logstalgia.exe
-logstalgia.win32.depend
-logstalgia.win32.layout
 logstalgia.pro.user
 autom4te.cache
 debug.log

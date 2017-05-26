@@ -1,3 +1,6 @@
+# Note: this project file only supports building on Windows with Mingw-w64
+# See the INSTALL file for building instructions
+
 TEMPLATE = app
 CONFIG += console
 CONFIG -= app_bundle

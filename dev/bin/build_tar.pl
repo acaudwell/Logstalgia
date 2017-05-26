@@ -42,7 +42,7 @@ my @exclusions = (
 );
 
 my @inclusions = (
-    qr{^/logstalgia\.win32\.cbp$},
+    qr{^/logstalgia\.pro$},
     qr{^/ChangeLog$},
     qr{^/THANKS$},
     qr{^/COPYING$},
