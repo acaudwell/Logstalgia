@@ -4,10 +4,13 @@
 use strict;
 use warnings;
 use FindBin;
+use File::Copy;
 
-my $base_dir   = "$FindBin::Bin/../..";
-my $dll_dir    = "$base_dir/dev/win32";
-my $builds_dir = "$base_dir/dev/builds";
+my $base_dir     = "$FindBin::Bin/../..";
+my $build_dir    = "$base_dir/../build-logstalgia-Desktop_Qt_MinGW_64bit-Release/release";
+my $binaries_dir = "$base_dir/dev/win64";
+
+my $builds_output_dir = "$base_dir/dev/builds";
 
 sub logstalgia_version {
     my $version = `cat $base_dir/src/settings.h | grep LOGSTALGIA_VERSION`;
@@ -35,7 +38,27 @@ sub dosify {
     close OUTPUT;
 }
 
-chdir("$base_dir") or die("chdir to $base_dir failed");
+sub update_binaries {
+    copy("$build_dir/logstalgia.exe", "$binaries_dir/logstalgia.exe") or die("failed to copy $build_dir/logstalgia.exe: $!\n");
+
+    chdir($binaries_dir) or die("failed to change directory to $binaries_dir\n");
+
+    for my $existing_dll (glob("*.dll")) {
+        unlink($existing_dll) or die("failed to remove existing dll $existing_dll: $!\n");
+    }
+
+    my @dlls = `cygcheck ./logstalgia.exe | grep msys`;
+
+    for my $dll (@dlls) {
+        $dll =~ s/^\s+//g;
+        $dll =~ s/[\r\n]//g;
+        my($name) = $dll =~ m{\\([^\\]+\.dll)$};
+
+        warn "adding $name\n";
+
+        copy($dll, "$binaries_dir/$name") or die "failed to copy $name: $!\n"; 
+    }
+}
 
 my $nsis_script = q[
 !define MULTIUSER_MUI
@@ -63,6 +86,8 @@ OutFile "LOGSTALGIA_INSTALLER"
 
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
 !insertmacro MUI_PAGE_WELCOME
+!define MUI_PAGE_HEADER_TEXT "Legal Disclaimer"
+!insertmacro MUI_PAGE_LICENSE "..\..\nsis\disclaimer.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -140,7 +165,6 @@ SectionEnd
 ];
 
 my @logstalgia_files = qw(
-    logstalgia.exe
     data/example.log
     data/ball.tga
     data/glow.tga
@@ -158,15 +182,28 @@ my @logstalgia_txts = qw(
     THANKS
 );
 
-my @logstalgia_dlls = qw(
+my @bin_files = qw(
+    logstalgia.exe
+    glew32.dll
+    libbz2-1.dll
+    libfreetype-6.dll
+    libgcc_s_seh-1.dll
+    libglib-2.0-0.dll
+    libgraphite2.dll
+    libharfbuzz-0.dll
+    libiconv-2.dll
+    libintl-8.dll
+    libjpeg-8.dll
+    liblzma-5.dll
+    libpcre-1.dll
+    libpng16-16.dll
+    libstdc++-6.dll
+    libtiff-5.dll
+    libwebp-7.dll
+    libwinpthread-1.dll
     SDL2.dll
     SDL2_image.dll
-    libpcre-1.dll
-    libjpeg-9.dll
-    libpng16-16.dll
     zlib1.dll
-    glew32.dll
-    libfreetype-6.dll
 );
 
 my @logstalgia_dirs = qw(
@@ -175,7 +212,10 @@ my @logstalgia_dirs = qw(
     cmd
 );
 
-my $tmp_dir = "$builds_dir/logstalgia-build.$$";
+mkdir($binaries_dir)      unless -d $binaries_dir;
+mkdir($builds_output_dir) unless -d $builds_output_dir;
+
+my $tmp_dir = "$builds_output_dir/logstalgia-build.$$";
 
 doit("rm $tmp_dir") if -d $tmp_dir;
 mkdir($tmp_dir);
@@ -187,15 +227,19 @@ foreach my $dir (@logstalgia_dirs) {
 
 my @logstalgia_bundle;
 
-# copy general files
-foreach my $file (@logstalgia_files) {
-    doit("cp $file $tmp_dir/$file");
+update_binaries();
+
+chdir("$base_dir") or die("chdir to $base_dir failed");
+
+# copy binaries
+foreach my $file (@bin_files) {
+    doit("cp $binaries_dir/$file $tmp_dir/$file");
     push @logstalgia_bundle, $file;
 }
 
-# copy dlls
-foreach my $file (@logstalgia_dlls) {
-    doit("cp $dll_dir/$file $tmp_dir/$file");
+# copy general files
+foreach my $file (@logstalgia_files) {
+    doit("cp $file $tmp_dir/$file");
     push @logstalgia_bundle, $file;
 }
 
@@ -208,7 +252,7 @@ foreach my $file (@logstalgia_txts) {
 my $version = logstalgia_version();
 
 my $installer_name = "logstalgia-${version}-setup.exe";
-my $archive_name   = "logstalgia-${version}.win32.zip";
+my $archive_name   = "logstalgia-${version}.win64.zip";
 
 my $install_list = '';
 
@@ -241,8 +285,8 @@ chdir($tmp_dir) or die("failed to change directory to '$tmp_dir'\n");
 
 # remove existing copies of the version installer if they exist
 
-doit("rm ../$installer_name") if -e "../$installer_name";
-doit("rm ../$archive_name")   if -e "../$archive_name";
+unlink("../$installer_name") if -e "../$installer_name";
+unlink("../$archive_name")   if -e "../$archive_name";
 
 my $output_file = "logstalgia.nsi";
 

@@ -29,12 +29,15 @@
 #include "summarizer.h"
 #include "textarea.h"
 #include "slider.h"
+#include "settings.h"
 
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
 #include <time.h>
+
+class ConfigWatcher;
 
 class Logstalgia : public SDLApp {
 
@@ -52,6 +55,7 @@ class Logstalgia : public SDLApp {
     bool sync;
     bool end_reached;
     bool take_screenshot;
+    bool initialized;
 
     int highscore;
 
@@ -78,12 +82,13 @@ class Logstalgia : public SDLApp {
     int remaining_space;
     int total_entries;
 
-    vec3 background;
     vec4 paddle_colour;
     float paddle_x;
 
     TextureResource* balltex;
     TextureResource* glowtex;
+
+    float toggle_delay;
 
     float mousehide_timeout;
     vec2 mousepos;
@@ -93,6 +98,10 @@ class Logstalgia : public SDLApp {
     FXFont fontMedium;
     FXFont fontLarge;
     FXFont fontBall;
+
+    bool adjusting_size;
+    SDL_Cursor* default_cursor;
+    SDL_Cursor* resize_cursor;
 
     Summarizer* ipSummarizer;
 
@@ -117,10 +126,17 @@ class Logstalgia : public SDLApp {
     int frameskip;
     FrameExporter* frameExporter;
 
+    ConfigWatcher* config_watcher;
+    bool detect_changes;
+
+    bool hasProgressBar();
+
     std::string filterURLHostname(const std::string& hostname);
 
     std::string dateAtPosition(float percent);
     void seekTo(float percent);
+
+    void filterLogLine(std::string& line);
 
     void readLog(int buffer_rows = 0);
 
@@ -134,18 +150,39 @@ class Logstalgia : public SDLApp {
 
     void addBall(LogEntry* le,  float start_offset);
     void removeBall(RequestBall* ball);
-    void addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
+    void addGroup(const SummarizerGroup& group);
+    void addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int max_depth, int abbrev_depth, int percent = 0, vec3 colour = vec3(0.0f, 0.0f, 0.0f));
     void togglePause();
 
     BaseLog* getLog();
 
+    void changeSummarizerMaxDepth(Summarizer* summarizer, int delta);
+    void changeSummarizerAbbreviationDepth(Summarizer* summarizer, int delta);
+
+    void changeIPSummarizerMaxDepth(int delta);
+    void changeIPSummarizerAbbreviationDepth(int delta);
+
+    void changeGroupSummarizerMaxDepth(int delta);
+    void changeGroupSummarizerAbbreviationDepth(int delta);
+
+    bool mouseOverSummarizerWidthAdjuster(const vec2& pos);
+
+    void changePaddleX(float x);
+
+    void saveConfig();
+
+    void loadConfig();
+    void loadConfig(const std::string& config_file);
+
+    void reloadConfig();
+
     void reset();
 
-    void reinit();
+    void reposition();
 
     void initPaddles();
     void initRequestBalls();
-    void resizeGroups();
+    void resizeSummarizers();
 
     void setMessage(const char* str, ...);
 
@@ -159,11 +196,7 @@ public:
     Logstalgia(const std::string& logfile);
     ~Logstalgia();
 
-    void addGroup(const std::string& groupstr);
-
     void setFrameExporter(FrameExporter* exporter);
-
-    void setBackground(vec3 background);
 
     void resize(int width, int height);
     void toggleWindowFrame();
@@ -173,7 +206,7 @@ public:
     void update(float t, float dt);
 	void keyPress(SDL_KeyboardEvent *e);
 	void mouseMove(SDL_MouseMotionEvent *e);
-	void mouseClick(SDL_MouseButtonEvent *e);
+    void mouseClick(SDL_MouseButtonEvent *e);
 };
 
 #endif

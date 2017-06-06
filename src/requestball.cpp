@@ -18,6 +18,7 @@
 #include "requestball.h"
 #include "settings.h"
 #include "textarea.h"
+#include "logentry.h"
 
 RequestBall::RequestBall(LogEntry* le, const vec3& colour, const vec2& pos, const vec2& dest)
     : le(le), pos(pos), dest(dest), colour(colour) {
@@ -50,6 +51,31 @@ void RequestBall::addPoint(const vec2& p) {
     total_distance += line_length;
     points.push_back(p);
     line_lengths.push_back(line_length);
+}
+
+void RequestBall::changeDestX(float dest_x) {
+    if(has_bounced) return;
+
+    if(dest_x <= pos.x) {
+        bounce();
+        return;
+    }
+
+    float t = (dir.y / dir.x);
+
+    vec2 start = points[0];
+
+    float a = t * (dest_x - start.x);
+    float y = start.y + a;
+
+    dest = vec2(dest_x, y);
+
+    total_distance = 0.0f;
+    line_lengths.clear();
+
+    points.clear();
+    points.push_back(start);
+    addPoint(dest);
 }
 
 void RequestBall::project() {
@@ -148,6 +174,49 @@ LogEntry* RequestBall::getLogEntry() const {
     return le;
 }
 
+void RequestBall::formatRequestDetail(LogEntry* le, TextArea& textarea) {
+
+    std::vector<std::string> content;
+
+    std::vector<std::string> fields = settings.display_fields;
+    if(fields.empty()) fields = LogEntry::getDefaultFields();
+
+    size_t longest_title = 0;
+    for(const std::string& field : fields) {
+        longest_title = std::max( longest_title, le->getFieldTitle(field).size() );
+    }
+
+    for(const std::string& field : fields) {
+
+        std::string title = le->getFieldTitle(field);
+
+        int title_padding_length = longest_title - title.size();
+
+        if(title_padding_length > 0) {
+            title += std::string().append(title_padding_length, ' ');
+        }
+
+        std::string value;
+        le->getValue(field, value);
+
+        std::string overflow_padding(title.size() + 1, ' ');
+
+        size_t max_characters = textarea.getMaxCharacters();
+
+        size_t max_value_length = std::max(0, (int) (max_characters - overflow_padding.size()));
+
+        if(!value.empty() && max_value_length > 0) {
+            content.push_back(title + std::string(" ") + value.substr(0, max_value_length));
+
+            for(size_t i = max_value_length; i < value.length(); i += max_value_length) {
+                content.push_back(overflow_padding + value.substr(i, max_value_length));
+            }
+        }
+    }
+
+    textarea.setText(content);
+}
+
 bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
 
     //within 3 pixels
@@ -156,18 +225,8 @@ bool RequestBall::mouseOver(TextArea& textarea, vec2& mouse) {
     if( glm::dot(from_mouse, from_mouse) < 36.0f) {
 
         std::vector<std::string> content;
+        formatRequestDetail(le, textarea);
 
-        content.push_back( std::string( le->path ) );
-        content.push_back( " " );
-
-        if(le->vhost.size()>0) content.push_back( std::string("Virtual-Host: ") + le->vhost );
-
-        content.push_back( std::string("Remote-Host:  ") + le->hostname );
-
-        if(le->referrer.size()>0)   content.push_back( std::string("Referrer:     ") + le->referrer );
-        if(le->user_agent.size()>0) content.push_back( std::string("User-Agent:   ") + le->user_agent );
-
-        textarea.setText(content);
         textarea.setPos(mouse);
         textarea.setColour(colour);
         return true;

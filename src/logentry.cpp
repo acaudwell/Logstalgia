@@ -19,6 +19,7 @@
 #include "settings.h"
 #include "core/regex.h"
 
+#include <time.h>
 #include <algorithm>
 
 //AccessLog
@@ -27,6 +28,10 @@ AccessLog::AccessLog() {
 }
 
 //LogEntry
+
+std::vector<std::string> LogEntry::fields;
+std::vector<std::string> LogEntry::default_fields;
+std::map<std::string, std::string> LogEntry::field_titles;
 
 LogEntry::LogEntry() {
     timestamp = 0;
@@ -132,6 +137,136 @@ void LogEntry::setResponseColour() {
     else {
         response_colour = vec3(1.0f, 0.0f, 0.0f);
     }
+}
+
+const std::vector<std::string>& LogEntry::getFields() {
+
+    if(fields.empty()) {
+        fields.push_back("pid");
+        fields.push_back("method");
+        fields.push_back("protocol");
+        fields.push_back("path");
+        fields.push_back("vhost");
+        fields.push_back("hostname");
+        fields.push_back("response_code");
+        fields.push_back("response_size");
+        fields.push_back("referrer");
+        fields.push_back("user_agent");
+        fields.push_back("timestamp");
+        fields.push_back("log_entry");
+    }
+
+    return fields;
+}
+
+const std::vector<std::string>& LogEntry::getDefaultFields() {
+
+    if(default_fields.empty()) {
+        default_fields.push_back("vhost");
+        default_fields.push_back("timestamp");
+        default_fields.push_back("hostname");
+        default_fields.push_back("path");
+        default_fields.push_back("method");
+        default_fields.push_back("response_code");
+        default_fields.push_back("response_size");
+        default_fields.push_back("referrer");
+        default_fields.push_back("user_agent");
+    }
+
+    return default_fields;
+}
+
+const std::string& LogEntry::getFieldTitle(const std::string& field) {
+
+    if(field_titles.empty()) {
+        field_titles["pid"]           = "PID";
+        field_titles["path"]          = "Path";
+        field_titles["method"]        = "Method";
+        field_titles["protocol"]      = "Protocol";
+        field_titles["vhost"]         = "Virtual Host";
+        field_titles["hostname"]      = "Hostname";
+        field_titles["response_size"] = "Response Size";
+        field_titles["response_code"] = "Response Code";
+        field_titles["referrer"]      = "Referrer";
+        field_titles["user_agent"]    = "User Agent";
+        field_titles["timestamp"]     = "Timestamp";
+        field_titles["log_entry"]     = "Log Entry";
+    }
+
+    auto it = field_titles.find(field);
+
+    assert(it != field_titles.end());
+
+    return it->second;
+}
+
+bool LogEntry::getValue(const std::string& field, std::string& value) const {
+
+    if(field == "pid") {
+        value = pid;
+        return true;
+    }
+
+    if(field == "path") {
+        value = path;
+        return true;
+    }
+
+    if(field == "method") {
+        value = method;
+        return true;
+    }
+
+    if(field == "protocol") {
+        value = protocol;
+        return true;
+    }
+
+    if(field == "hostname") {
+        value = hostname;
+        return true;
+    }
+
+    if(field == "vhost") {
+        value = vhost;
+        return true;
+    }
+
+    if(field == "response_size") {
+        value = std::to_string(response_size);
+        return true;
+    }
+
+    if(field == "response_code") {
+        value = response_code;
+        return true;
+    }
+
+    if(field == "referrer") {
+        value = referrer;
+        return true;
+    }
+
+    if(field == "user_agent") {
+        value = user_agent;
+        return true;
+    }
+
+    if(field == "timestamp") {
+        struct tm* timeinfo = localtime ( &timestamp );
+        char timestamp_buff[256];
+        strftime(timestamp_buff, 256, "%Y-%m-%d %H:%M:%S", timeinfo);
+        value = std::string(timestamp_buff);
+        return true;
+    }
+
+    if(field == "log_entry") {
+        value = log_entry;
+        return true;
+    }
+
+    value = "";
+    return false;
 }
 
 bool LogEntry::validate() {

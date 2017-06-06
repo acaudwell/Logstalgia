@@ -1,6 +1,7 @@
 #include "custom.h"
 
 #include "core/regex.h"
+#include "settings.h"
 
 //timestamp
 //hostname
@@ -30,6 +31,10 @@ bool CustomAccessLog::parseLine(std::string& line, LogEntry& entry) {
     entry.path      = matches[2];
     entry.response_code = matches[3];
     entry.response_size = atol(matches[4].c_str());
+
+    if(settings.display_log_entry) {
+        entry.log_entry = line;
+    }
 
     //optional fields
 

@@ -21,10 +21,16 @@
 #include "core/vectors.h"
 
 #include <string>
+#include <vector>
+#include <map>
 
 class LogEntry {
 
 private:
+    static std::vector<std::string> fields;
+    static std::vector<std::string> default_fields;
+    static std::map<std::string, std::string> field_titles;
+
     std::string maskHostname(const std::string& hostname);
 public:
     LogEntry();
@@ -32,6 +38,10 @@ public:
 
     void setSuccess();
     void setResponseColour();
+
+    bool getValue(const std::string& field, std::string& value) const;
+
+    std::string log_entry;
 
     time_t timestamp;
 
@@ -41,6 +51,8 @@ public:
     std::string path;
 
     std::string pid;
+    std::string method;
+    std::string protocol;
 
     std::string response_code;
     long response_size;
@@ -51,6 +63,10 @@ public:
     vec3 response_colour;
 
     bool successful;
+
+    static const std::vector<std::string>& getFields();
+    static const std::vector<std::string>& getDefaultFields();
+    static const std::string& getFieldTitle(const std::string& field);
 };
 
 class AccessLog {

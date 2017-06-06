@@ -21,6 +21,12 @@ Fullscreen.
 \fB\-WIDTHxHEIGHT\fR
 Set the window size. If \-f is also supplied, will attempt to set the video mode to this also. Add ! to make the window non-resizable.
 .TP
+\fB\-\-window\-position XxY\fR
+Initial window position.
+.TP
+\fB\-\-frameless\fR
+Frameless window.
+.TP
 \fB\-b, \-\-background\fR
 Background colour in hex.
 .TP
@@ -36,8 +42,14 @@ Speed balls travel across the screen (defaults to 0.15).
 \fB\-u, \-\-update\-rate\fR
 Page Summary update speed. Defaults to 5 (5 seconds).
 .TP
-\fB\-g name,regex,percent[,colour]\fR
+\fB\-g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABBR=n],percent[,colour]\fR
 Creates a new named summarizer group for requests for which a specified attribute (HOST, URI or response CODE) matches a regular expression. Percent specifies a vertical percentage of screen to use.
+
+SEP=chars can specify a list of separator characters (e.g. /) to split on. The default separator is /.
+
+MAX=n specifies the max depth into the path to be displayed. (e.g. MAX=1 would show only root directory names of paths). By default there is 0 (no limit).
+
+ABBR=n specifies the minimum depth at which to allow partially abbreviated strings. The default is 0 (allow). -1 to disallow.
 
 A colour may optionally be supplied in hexadecimal format (eg FF0000 for red) which will be applied to all labels and request balls matched to the group.
 
@@ -51,6 +63,24 @@ If no groups are specified, the default groups are Images (image files), CSS (.c
 
 If there is enough space remaining a catch-all group 'Misc' will appear as the last group.
 .TP
+\fB\-\-address\-separators CHARS\fR
+List of address separator characters. Defaults to '.:'.
+.TP
+\fB\-\-address\-max\-depth DEPTH\fR
+Maximum depth to display in address summarizer. 0 for no maximum.
+.TP
+\fB\-\-address\-abbr\-depth DEPTH\fR
+Minimum abbreviation depth of address summarizer. 0 to always allow abbreviations, -1 to never abbreviate.
+.TP
+\fB\-\-path\-separators CHARS\fR
+Default list of path separator characters. Defaults to /.
+.TP
+\fB\-\-path\-max\-depth DEPTH\fR
+Default maximum path depth shown in the summarizer. 0 for no maximum.
+.TP
+\fB\-\-path\-abbr\-depth DEPTH\fR
+Default minimum path abbreviation depth. 0 to always allow abbreviations, -1 to never abbreviate.
+.TP
 \fB\-\-paddle\-mode MODE\fR
 Paddle mode (pid, vhost, single).
 
@@ -62,6 +92,24 @@ Paddle mode (pid, vhost, single).
 .TP
 \fB\-\-paddle\-position POSITION\fR
 Paddle position as a fraction of the view width (0.25 - 0.75).
+.TP
+\fB\-\-display\-fields REQUEST_FIELDS\fR
+List of one or more request fields that are shown when the user hovers the mouse over an individual request:
+
+    path          \- the path of the resource requested
+    hostname      \- hostname or IP address
+    response_size \- size of the response in bytes
+    response_code \- response code
+    method        \- method
+    protocol      \- protocol
+    timestamp     \- timestamp of request
+    referrer      \- referrer URL of the request
+    user_agent    \- user agent
+    vhost         \- virtual host name
+    log_entry     \- full log entry
+    pid           \- the pid of the instance that handled the request
+
+Separate multiple fields with commas (eg 'path,hostname')
 .TP
 \fB\-\-sync\fR
 Read from STDIN, ignoring entries before the current time.
@@ -130,6 +178,9 @@ Load a config file.
 .TP
 \fB\-\-save\-config CONFIG_FILE\fR
 Save a config file with the current options.
+.TP
+\fB\-\-detect\-changes\fR
+Automatically reload config file when it is modified. 
 .TP
 \fBlogfile\fR
 The path to the access log file to read or '\-' if you wish to supply log entries via STDIN.
@@ -230,6 +281,8 @@ The counter in the bottom right hand corner shows the number of requests display
 
 Pressing space at any time will pause/unpause the simulation. While paused you may use the mouse to inspect the detail of individual requests.
 
+You can click on summarizer group entries on the left and right side of the screen to filter to requests matching that entry. Click on the filter description to remove the filter.
+
 Interactive keyboard commands:
 .sp
 .ti 10
@@ -243,11 +296,25 @@ Interactive keyboard commands:
 .ti 10
 (<>) Adjust pitch speed.
 .ti 10
+(F5) Reload config
+.ti 10
+(F6) Load config
+.ti 10
 (F11) Window frame toggle
 .ti 10
 (F12) Screenshot
 .ti 10
 (Alt+Enter) Fullscreen toggle
+.ti 10
+(Ctrl+S) Save config
+.ti 10
+(Home/End)          Adjust address summarizer maximum depth
+.ti 10
+(Page Up/Down)      Adjust group summarizer maximum depth
+.ti 10
+(Ctrl+Home/End)     Adjust address summarizer abbreviation depth
+.ti 10
+(Ctrl+Page Up/Down) Adjust group summarizer abbreviation depth
 .ti 10
 (ESC) Quit
 

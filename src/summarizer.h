@@ -27,49 +27,73 @@
 extern const char* summ_wildcard;
 
 class SummNode;
+class Summarizer;
 
-class SummUnit {
+class SummRow {
 public:
+    SummRow();
+    SummRow(SummNode* source, bool abbreviated = false);
+
     SummNode* source;
 
     int words;
     int refs;
     std::string str;
-    bool truncated;
-    bool exceptions;
+    bool abbreviated;
 
     std::vector<std::string> expanded;
 
     void prependChar(char c);
     void buildSummary();
-    SummUnit();
-    SummUnit(SummNode* source, bool truncated = false, bool exceptions = false);
+};
+
+class SummQuery {
+protected:
+    int max_depth;
+    int abbreviation_depth;
+public:
+    SummQuery(int max_depth, int abbreviation_depth);
+
+    bool limitMaxDepth() const;
+    bool allowAbbreviations() const;
+
+    int getMaxDepth() const;
+    int getAbbreviationDepth() const;
 };
 
 class SummNode {
 public:
+    Summarizer* summarizer;
     SummNode* parent;
 
-    SummNode();
-    SummNode(const std::string& str, size_t offset, SummNode* parent);
+    SummNode(Summarizer* summarizer);
+    SummNode(Summarizer* summarizer, SummNode* parent, const std::string& str, size_t offset);
+    ~SummNode();
 
     char c;
     int words;
     int refs;
+    int delimiters;
 
     std::vector<SummNode*> children;
-    bool exception;
+    bool unsummarized;
+    bool delimiter;
 
-    void debug(int indent = 0);
+    void debug(int indent = 0) const;
     bool addWord(const std::string& str, size_t offset);
     bool removeWord(const std::string& str, size_t offset);
 
-    void expand(std::string prefix, std::vector<std::string>& expansion, bool exceptions);
+    void expand(std::string prefix, std::vector<std::string>& expansion, bool unsummarized_only);
 
-    int summarize(std::vector<SummUnit>& strvec, int no_words);
+    void summarize(const SummQuery& query, std::vector<SummRow>& output, int max_rows, int depth = 0);
+
+    std::string toString() const;
+protected:
+    std::string formatNode(std::string str, int refs);
 };
 
 class SummItem {
+    Summarizer* summarizer;
     vec2 dest;
     vec2 oldpos;
 
@@ -77,22 +101,21 @@ class SummItem {
 
     float elapsed;
     float eta;
-    float target_x;
-
-    vec3* icol;
-    bool showcount;
-    FXFont font;
 public:
+    SummItem(Summarizer* summarizer, SummRow row);
+
     bool departing;
     bool destroy;
 
     std::string displaystr;
     int width;
 
-    SummUnit unit;
+    SummRow row;
 
     vec4 colour;
     vec2 pos;
+
+    bool isMoving() const;
 
     void setDest(const vec2& dest);
     void setPos(const vec2& pos);
@@ -101,17 +124,18 @@ public:
     void logic(float dt);
     void draw(float alpha);
 
-    void updateUnit(const SummUnit& unit);
-    SummItem(SummUnit unit, float target_x, vec3* icol, FXFont font, bool showcount);
+    void updateRow(const SummRow& row);
 };
 
 class Summarizer {
-    std::vector<SummUnit> strings;
+protected:
+    std::vector<SummRow> strings;
 
     std::vector<SummItem> items;
     SummNode root;
 
-    vec3* item_colour;
+    vec3 item_colour;
+    bool has_colour;
 
     float pos_x;
     int max_strings;
@@ -120,11 +144,15 @@ class Summarizer {
 
     bool showcount;
     bool right;
-    bool mouseover;
     bool changed;
+
+    std::vector<char> delimiters;
+    int  abbreviation_depth;
+    int  max_depth;
 
     float incrementf;
 
+    float title_top;
     float top_gap, bottom_gap;
 
     float refresh_delay;
@@ -133,29 +161,65 @@ class Summarizer {
     int screen_percent;
 
     std::string title;
+    std::string display_title;
+    std::string prefix_filter;
     Regex matchre;
+protected:
+    static bool row_sorter(const SummRow &a, const SummRow &b);
+    static bool item_sorter(const SummItem &a, const SummItem &b);
+
+    const SummItem* itemAtPos(const vec2 &pos);
+
+    void updateDisplayTitle();
 public:
-    Summarizer(FXFont font, int percent, float refresh_delay = 2.0f,
+    Summarizer(FXFont font, int percent, int max_depth, int abbreviation_depth, float refresh_delay,
                std::string matchstr = ".*", std::string title="");
-    ~Summarizer();
+
+    void clear();
+
+    void  setPosX(float x);
+    float getPosX() const;
+
+    const std::string& getTitle() const;
+    const SummNode* getRoot() const;
 
     void setSize(int x, float top_gap, float bottom_gap);
+    bool isAnimating() const;
 
     int getScreenPercent();
 
-    bool mouseOver(TextArea& textarea, vec2 mouse);
-    void mouseOut();
+    bool setPrefixFilterAtPos(const vec2& pos);
+    void setPrefixFilter(const std::string& prefix_filter);
+    const std::string& getPrefixFilter() const;
 
-    bool isColoured();
-    void showCount(bool showcount);
-    void setColour(vec3 col);
-    vec3 getColour();
+    bool mouseOver(const vec2 &pos) const;
+    bool getInfoAtPos(TextArea& textarea, const vec2& pos);
+
+    bool hasColour() const;
+    void setColour(const vec3& col);
+    const vec3& getColour() const;
+
+    void setShowCount(bool showcount);
+    bool showCount() const;
+
+    void setMaxDepth(int max_depth);
+    int getMaxDepth() const;
+
+    void setAbbreviationDepth(int abbreviation_depth);
+    int getAbbreviationDepth() const;
+
+    FXFont& getFont();
 
     bool supportedString(const std::string& str);
+    bool matchesPrefixFilter(const std::string& str) const;
 
     void removeString(const std::string& str);
     void addString(const std::string& str);
 
+    void addDelimiter(char c);
+    bool isDelimiter(char c) const;
+
+    const SummNode* getMatchingNode(const std::string& input) const;
     const std::string& getBestMatchStr(const std::string& str) const;
     int         getBestMatchIndex(const std::string& str) const;
     float       getPosY(const std::string& str) const;
@@ -165,10 +229,11 @@ public:
 
     void summarize();
 
+    void getSummary(std::vector<std::string>& summary) const;
+
     void recalc_display();
     void logic(float dt);
     void draw(float dt, float alpha);
-
 };
 
 #endif

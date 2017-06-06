@@ -27,6 +27,24 @@
 #define PADDLE_PID    2
 #define PADDLE_VHOST  3
 
+class SummarizerGroup {
+public:
+    SummarizerGroup();
+
+    std::string title;
+    std::string type;
+    std::string regex;
+    std::string separators;
+    int max_depth;
+    int abbrev_depth;
+    int percent;
+    vec3 colour;
+
+    std::string definition;
+
+    static bool parse(const std::string& group_string, SummarizerGroup& group, std::string& error);
+};
+
 class LogstalgiaSettings : public SDLAppSettings {
 protected:
     void commandLineOption(const std::string& name, const std::string& value);
@@ -35,10 +53,16 @@ public:
     bool ffp;
 
     std::string path;
-    std::vector<std::string> groups;
+    std::vector<SummarizerGroup> groups;
 
     std::string load_config;
     std::string save_config;
+
+    std::vector<std::string> display_fields;
+    bool display_log_entry;
+
+    bool detect_changes;
+    bool run_tests;
 
     time_t start_time;
     time_t stop_time;
@@ -76,6 +100,14 @@ public:
     float glow_multiplier;
     float glow_duration;
 
+    int address_max_depth;
+    int address_abbr_depth;
+    std::string address_separators;
+
+    int path_max_depth;
+    int path_abbr_depth;
+    std::string path_separators;
+
     int font_size;
 
     LogstalgiaSettings();
@@ -83,6 +115,7 @@ public:
     void setLogstalgiaDefaults();
 
     void importLogstalgiaSettings(ConfFile& conf, ConfSection* settings = 0);
+    void exportLogstalgiaSettings(ConfFile& conf);
 
     void help(bool extended_help=false);
 };

@@ -46,6 +46,12 @@ options:
     -WxH    Set the window size. If -f is also supplied, will attempt to set the
             video mode to this also. Add ! to make the window non-resizable.
 
+    --window-position XxY
+            Initial window position.
+
+    --frameless
+            Frameless window.
+
     -b, --background FFFFFF
             Background colour in hex.
 
@@ -61,12 +67,22 @@ options:
     -u, --update-rate
             Page Summary update speed. Defaults to 5 (5 seconds).
 
-    -g name,(HOST|URI|CODE)=regex,percent[,colour]
+    -g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABBR=n],percent[,colour]
 
             Creates a new named summarizer group for requests for which a
             specified attribute (HOST, URI or response CODE) matches a
             regular expression. Percent specifies a vertical percentage of
             screen to use.
+
+            SEP=chars can specify a list of separator characters (e.g. /)
+            to split on. The default separator is /.
+
+            MAX=n specifies the max depth into the path to be displayed.
+            (e.g. MAX=1 would show only root directory names of paths). By
+            default there is 0 (no limit).
+
+            ABBR=n specifies the minimum depth at which to allow partially
+            abbreviated strings. The default is 0 (allow). -1 to disallow.
 
             A colour may optionally be supplied in hexadecimal format
             (eg FF0000 for red) which will be applied to all labels
@@ -84,6 +100,27 @@ options:
             If there is enough space remaining a catch-all group 'Misc'
             will appear as the last group.
 
+    --address-separators CHARS
+            List of address separator characters. Defaults to '.:'.
+
+    --address-max-depth DEPTH
+            Maximum depth to display in address summarizer. 0 for no maximum.
+
+    --address-abbr-depth DEPTH
+            Minimum abbreviation depth of address summarizer.
+            0 to always allow abbreviations, -1 to never abbreviate.
+
+    --path-separators CHARS
+            Default list of path separator characters. Defaults to /.
+
+    --path-max-depth DEPTH
+            Default maximum path depth shown in the summarizer.
+            0 for no maximum.
+
+    --path-abbr-depth DEPTH
+            Default minimum path abbreviation depth.
+            0 to always allow abbreviations, -1 to never abbreviate.
+
     --paddle-mode MODE
             Paddle mode (pid, vhost, single).
 
@@ -95,6 +132,25 @@ options:
 
     --paddle-position POSITION
             Paddle position as a fraction of the view width (0.25 - 0.75).
+
+    --display-fields REQUEST_FIELDS
+            List of one or more request fields that are shown when the user
+            hovers the mouse over an individual request:
+
+            path          - the path of the resource requested
+            hostname      - hostname or IP address
+            response_size - size of the response in bytes
+            response_code - response code
+            method        - method
+            protocol      - protocol
+            timestamp     - timestamp of request
+            referrer      - referrer of the request
+            user_agent    - user agent
+            vhost         - virtual host name
+            log_entry     - full log entry
+            pid           - the pid of the instance that handled the request
+
+            Separate multiple fields with commas (eg 'path,hostname')
 
     --sync  Read from STDIN, ignoring entries before the current time.
 
@@ -162,6 +218,9 @@ options:
 
     --save-config CONFIG_FILE
             Save a config file with the current options.
+
+    --detect-changes
+            Automatically reload config file when it is modified.
 
     logfile
             The path to the access log file to read or '-' if you wish to
@@ -248,15 +307,26 @@ displayed since the start of the current session.
 Pressing space at any time will pause/unpause the simulation. While paused you
 may use the mouse to inspect the detail of individual requests.
 
+You can click on summarizer group entries on the left and right side of the
+screen to filter to requests matching that entry. Click on the filter
+description to remove the filter.
+
 Interactive keyboard commands:
 
    (C)   Displays Logstalgia logo
    (N)   Jump forward in time to next log entry
    (+-)  Adjust simulation speed
    (<>)  Adjust pitch speed
+   (F5)  Reload config
+   (F6)  Load config
    (F11) Window frame toggle
    (F12) Screenshot
    (Alt+Enter) Fullscreen toggle
+   (Ctrl+S) Save config
+   (Home/End)          Adjust address summarizer maximum depth
+   (Page Up/Down)      Adjust group summarizer maximum depth
+   (Ctrl+Home/End)     Adjust address summarizer abbreviation depth
+   (Ctrl+Page Up/Down) Adjust group summarizer abbreviation depth
    (ESC) Quit
 
 

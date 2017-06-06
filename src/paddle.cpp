@@ -74,6 +74,10 @@ float Paddle::getX() {
     return pos.x;
 }
 
+void Paddle::setX(float x) {
+    pos.x = x;
+}
+
 RequestBall* Paddle::getTarget() {
     return target;
 }
@@ -95,7 +99,7 @@ void Paddle::setTarget(RequestBall* target) {
 
 bool Paddle::mouseOver(TextArea& textarea, vec2& mouse) {
 
-    if(pos.x <= mouse.x && pos.x + width >= mouse.x && abs(pos.y - mouse.y) < height/2) {
+    if(!token.empty() && pos.x <= mouse.x && pos.x + width >= mouse.x && abs(pos.y - mouse.y) < height/2) {
 
         std::vector<std::string> content;
 

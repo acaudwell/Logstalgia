@@ -36,8 +36,10 @@ public:
 
     const Bounds2D& getBounds() const;
 
-    bool mouseOver(vec2 pos, float* percent_ptr);
-    bool click(vec2 pos, float* percent_ptr);
+    bool isVisible() const;
+    bool isMouseOver(const vec2& pos) const;
+    bool mouseMove(const vec2& pos, float* percent_ptr);
+    bool click(const vec2& pos, float* percent_ptr);
     void logic(float dt);
     void draw(float dt);
 };

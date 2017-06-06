@@ -20,6 +20,11 @@
 #include "core/logger.h"
 #include "core/sdlapp.h"
 #include "core/seeklog.h"
+#include "logentry.h"
+
+#include <time.h>
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
 
 LogstalgiaSettings settings;
 
@@ -28,7 +33,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
 #ifdef _WIN32
     //resize window to fit help message
-    SDLApp::resizeConsole(710);
+    SDLApp::resizeConsole(910);
     SDLApp::showConsole(true);
 #endif
 
@@ -38,6 +43,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("Options:\n");
     printf("  -WIDTHxHEIGHT              Set window size\n");
     printf("  -f                         Fullscreen\n\n");
+    printf("  --window-position XxY      Initial window position\n");
+    printf("  --frameless                Frameless window\n\n");
 
     printf("  -b --background FFFFFF     Background colour in hex\n\n");
 
@@ -46,12 +53,25 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -p --pitch-speed           Speed balls travel across screen (default: 0.15)\n");
     printf("  -u --update-rate           Page summary update rate (default: 5)\n\n");
 
-    printf("  -g name,(HOST|URI|CODE)=regex,percent[,colour]\n");
+    printf("  -g name,(HOST|URI|CODE)=regex[,SEP=chars][,MAX=n][,ABBR=n],percent[,colour]\n");
     printf("                             Group together requests where the HOST, URI\n");
     printf("                             or response CODE matches a regular expression\n\n");
 
+    printf("  --address-separators CHARS List of address separator characters\n");
+    printf("  --address-max-depth DEPTH  Maximum depth to display in address summarizer\n");
+    printf("  --address-abbr-depth DEPTH Minimum abbreviation depth of address summarizer\n\n");
+
+    printf("  --path-separators CHARS   Default list of path separator characters\n");
+    printf("  --path-max-depth DEPTH    Default maximum path depth\n");
+    printf("  --path-abbr-depth DEPTH   Default minimum path abbreviation depth\n\n");
+
     printf("  --paddle-mode MODE         Paddle mode (single, pid, vhost)\n");
     printf("  --paddle-position POSITION Paddle position as a fraction of the view width\n\n");
+
+    printf("  --display-fields FIELDS    Comma separated list of fields shown on hover:\n");
+    printf("                             timestamp,hostname,path,method,protocol\n");
+    printf("                             response_size,response_code,referrer\n");
+    printf("                             user_agent,vhost,pid,log_entry\n\n");
 
     printf("  --sync                     Read from STDIN, ignoring entries before now\n\n");
 
@@ -78,7 +98,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  --glow-intensity           Intensity of the glow (default: 0.5)\n\n");
 
     printf("  --load-config CONF_FILE    Load a config file\n");
-    printf("  --save-config CONF_FILE    Save a config file with the current options\n\n");
+    printf("  --save-config CONF_FILE    Save a config file with the current options\n");
+    printf("  --detect-changes           Automatically reload modified config file\n\n");
 
     printf("  -o, --output-ppm-stream FILE   Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  -r, --output-framerate  FPS    Framerate of output (25,30,60)\n\n");
@@ -101,6 +122,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 LogstalgiaSettings::LogstalgiaSettings() {
     log_level = LOG_LEVEL_OFF;
     splash    = -1.0f;
+    run_tests = false;
 
     setLogstalgiaDefaults();
 
@@ -122,6 +144,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
 
     //command line only options
     conf_sections["help"]            = "command-line";
+    conf_sections["test"]            = "command-line";
     conf_sections["extended-help"]   = "command-line";
     conf_sections["load-config"]     = "command-line";
     conf_sections["save-config"]     = "command-line";
@@ -130,15 +153,21 @@ LogstalgiaSettings::LogstalgiaSettings() {
 
     // arg types
 
-    arg_types["font-size"] = "int";
+    arg_types["font-size"]          = "int";
+    arg_types["address-max-depth"]  = "int";
+    arg_types["address-abbr-depth"] = "int";
+    arg_types["path-max-depth"]     = "int";
+    arg_types["path-abbr-depth"]    = "int";
 
     arg_types["help"]          = "bool";
+    arg_types["test"]          = "bool";
     arg_types["extended-help"] = "bool";
     arg_types["splash"]        = "bool";
 
     arg_types["sync"]            = "bool";
     arg_types["full-hostnames"]  = "bool";
     arg_types["no-bounce"]       = "bool";
+    arg_types["detect-changes"]  = "bool";
     arg_types["ffp"]             = "bool";
 
     arg_types["hide-paddle"]        = "bool";
@@ -171,11 +200,16 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["start-position"]     = "string";
     arg_types["stop-position"]      = "string";
     arg_types["paddle-mode"]        = "string";
+    arg_types["display-fields"]     = "string";
+    arg_types["address-separators"] = "string";
+    arg_types["group-separators"]   = "string";
 }
 
 void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     path = "";
+    display_fields.clear();
+    display_log_entry = false;
 
     sync = false;
 
@@ -183,6 +217,16 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     start_position = 0.0f;
     stop_position  = 1.0f;
+
+    address_max_depth  = 0;
+    address_abbr_depth = 0;
+    address_separators = ".:";
+
+    path_max_depth  = 0;
+    path_abbr_depth = 0;
+    path_separators = "/";
+
+    detect_changes = false;
 
     paddle_mode     = PADDLE_SINGLE;
     paddle_position = 0.67f;
@@ -221,6 +265,11 @@ void LogstalgiaSettings::commandLineOption(const std::string& name, const std::s
 
     if(name == "help") {
         help();
+    }
+
+    if(name == "test") {
+        run_tests = true;
+        return;
     }
 
     if(name == "extended-help") {
@@ -317,6 +366,72 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         }
     }
 
+    if((entry = settings->getEntry("address-separators")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address separators");
+
+        address_separators = entry->getString();
+
+        if(address_separators.empty() || address_separators.size() > 100) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("address-max-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address max depth");
+
+        address_max_depth = entry->getInt();
+
+        if(address_max_depth < 0) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("address-abbr-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify address abbreviation depth");
+
+        address_abbr_depth = entry->getInt();
+
+        if(address_abbr_depth < -1) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("path-separators")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify path separators");
+
+        path_separators = entry->getString();
+
+        if(path_separators.empty() || path_separators.size() > 100) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("path-max-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify path max depth");
+
+        path_max_depth = entry->getInt();
+
+        if(path_max_depth < 0) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
+    if((entry = settings->getEntry("path-abbr-depth")) != 0) {
+
+        if(!entry->hasValue()) conffile.entryException(entry, "specify path abbreviation depth");
+
+        path_abbr_depth = entry->getInt();
+
+        if(path_abbr_depth < -1) {
+            conffile.invalidValueException(entry);
+        }
+    }
+
     if((entry = settings->getEntry("background")) != 0) {
 
         if(!entry->hasValue()) conffile.entryException(entry, "specify background colour (FFFFFF)");
@@ -381,7 +496,16 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         for(ConfEntry* entry : *group_entries) {
             if(!entry->hasValue()) conffile.entryException(entry, "specify group definition");
-            groups.push_back(entry->getString());
+
+            SummarizerGroup group;
+            std::string error;
+
+            if(!SummarizerGroup::parse(entry->getString(), group, error)) {
+                if(error.empty()) error = "invalid group definition";
+                conffile.entryException(entry, error);
+            }
+
+            groups.push_back(group);
         }
     }
 
@@ -493,6 +617,53 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         ffp = true;
     }
 
+    if(settings->getBool("detect-changes")) {
+        detect_changes = true;
+    }
+
+    if((entry = settings->getEntry("display-fields")) != 0) {
+        display_fields.clear();
+        display_log_entry = false;
+
+        if(!entry->hasValue()) conffile.missingValueException(entry);
+
+        std::string field_list = entry->getString();
+
+        boost::algorithm::erase_all(field_list, " ");
+
+        size_t sep;
+        while((sep = field_list.find(",")) != std::string::npos) {
+
+            if(sep == 0 && field_list.size()==1) break;
+
+            if(sep == 0) {
+                field_list = field_list.substr(sep+1, field_list.size()-1);
+                continue;
+            }
+
+            std::string field = field_list.substr(0, sep);
+            display_fields.push_back(field);
+            field_list = field_list.substr(sep+1, field_list.size()-1);
+        }
+
+        if(field_list.size() > 0 && field_list != ",") {
+            display_fields.push_back(field_list);
+        }
+
+        const std::vector<std::string>& valid_fields = LogEntry::getFields();
+
+        for(const std::string& field : display_fields) {
+            if(std::find(valid_fields.begin(), valid_fields.end(), field) == valid_fields.end()) {
+                std::string invalid_field_error = std::string("invalid display field ") + field;
+                conffile.entryException(entry, invalid_field_error);
+            }
+
+            if(field == "log_entry") {
+                display_log_entry = true;
+            }
+        }
+    }
+
     //validate path
     if(settings->hasValue("path")) {
         path = settings->getString("path");
@@ -522,4 +693,252 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
 
         std::cin.clear();
     }
+}
+
+void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
+
+    ConfSection* settings = conf.addSection("logstalgia");
+
+    settings->addEntry(new ConfEntry("glow-intensity",  glow_intensity));
+    settings->addEntry(new ConfEntry("glow-multiplier", glow_multiplier));
+    settings->addEntry(new ConfEntry("glow-duration",   glow_duration));
+    settings->addEntry(new ConfEntry("font-size",       font_size));
+
+    if(address_separators != ".:") {
+        settings->addEntry(new ConfEntry("address-separators", address_separators));
+    }
+
+    if(address_max_depth != 0) {
+        settings->addEntry(new ConfEntry("address-max-depth", address_max_depth));
+    }
+
+    if(address_abbr_depth != 0) {
+        settings->addEntry(new ConfEntry("address-abbr-depth", address_abbr_depth));
+    }
+
+    if(path_separators != "/") {
+        settings->addEntry(new ConfEntry("path-separators", path_separators));
+    }
+
+    if(path_max_depth != 0) {
+        settings->addEntry(new ConfEntry("group-max-depth", path_max_depth));
+    }
+
+    if(path_abbr_depth != 0) {
+        settings->addEntry(new ConfEntry("group-abbr-depth", path_abbr_depth));
+    }
+
+    if(!display_fields.empty()) {
+
+        std::string display_fields_string;
+
+        for(const std::string& field : display_fields) {
+            if(!display_fields_string.empty()) display_fields_string += ",";
+            display_fields_string += field;
+        }
+
+        settings->addEntry(new ConfEntry("display-fields", display_fields_string));
+    }
+
+    if(background_colour != vec3(0.0f)) {
+        char background_hex[256];
+        vec3 bg = background_colour * 255.0f;
+        snprintf(background_hex, 256, "%02X%02X%02X", (int)bg.x,(int)bg.y,(int)bg.z);
+        settings->addEntry(new ConfEntry("background", std::string(background_hex)));
+    }
+
+    if(start_time != 0) {
+        char timestr[256];
+        struct tm* timeinfo = localtime ( &start_time );
+        strftime(timestr, 256, "%s", timeinfo);
+        settings->addEntry(new ConfEntry("from", std::string(timestr)));
+    }
+
+    if(stop_time != 0) {
+        char timestr[256];
+        struct tm* timeinfo = localtime ( &stop_time );
+        strftime(timestr, 256, "%s", timeinfo);
+        settings->addEntry(new ConfEntry("to", std::string(timestr)));
+    }
+
+    if(start_position > 0.0f) {
+        settings->addEntry(new ConfEntry("start-position", start_position));
+    }
+
+    if(stop_position < 1.0f) {
+        settings->addEntry(new ConfEntry("start-position", stop_position));
+    }
+
+    for(const SummarizerGroup& group : groups) {
+        settings->addEntry("group", group.definition);
+    }
+
+    if(paddle_mode != PADDLE_NONE) {
+        std::string paddle_mode_string;
+
+        switch(paddle_mode) {
+            case PADDLE_PID:
+                paddle_mode_string = "pid";
+                break;
+            case PADDLE_VHOST:
+                paddle_mode_string = "vhost";
+                break;
+            case PADDLE_SINGLE:
+            default:
+                break;
+        }
+
+        if(!paddle_mode_string.empty()) {
+            settings->addEntry(new ConfEntry("paddle-mode", paddle_mode_string));
+        }
+    } else {
+        settings->addEntry(new ConfEntry("hide-paddle", true));
+    }
+
+    settings->addEntry(new ConfEntry("paddle-position", paddle_position));
+    settings->addEntry(new ConfEntry("pitch-speed", pitch_speed));
+
+    if(simulation_speed != 1.0f) {
+        settings->addEntry(new ConfEntry("simulation-speed", simulation_speed));
+    }
+
+    if(update_rate != 5.0f) {
+        settings->addEntry(new ConfEntry("update-rate", update_rate));
+    }
+
+    if(sync) {
+        settings->addEntry(new ConfEntry("sync", sync));
+    }
+
+    if(hide_paddle_tokens) {
+        settings->addEntry(new ConfEntry("hide-paddle-tokens", hide_paddle_tokens));
+    }
+
+    if(hide_response_code) {
+        settings->addEntry(new ConfEntry("hide-response-code", hide_response_code));
+    }
+
+    if(no_bounce) {
+        settings->addEntry(new ConfEntry("no-bounce", no_bounce));
+    }
+
+    if(disable_auto_skip) {
+        settings->addEntry(new ConfEntry("disable-auto-skip", disable_auto_skip));
+    }
+
+    if(disable_progress) {
+        settings->addEntry(new ConfEntry("disable-progress", disable_progress));
+    }
+
+    if(disable_glow) {
+        settings->addEntry(new ConfEntry("disable-glow", disable_glow));
+    }
+
+    if(mask_hostnames == false) {
+        settings->addEntry(new ConfEntry("full-hostnames", true));
+    }
+
+    if(hide_url_prefix) {
+        settings->addEntry(new ConfEntry("hide-url-prefix", hide_url_prefix));
+    }
+
+    if(ffp) {
+        settings->addEntry(new ConfEntry("ffp", ffp));
+    }
+
+    if(detect_changes) {
+        settings->addEntry(new ConfEntry("detect-changes", true));
+    }
+
+    settings->addEntry("path", path);
+}
+
+// SummarizerGroup
+
+SummarizerGroup::SummarizerGroup() {
+    max_depth = 0;
+    abbrev_depth = 0;
+    percent = 0;
+    colour = vec3(0.0f);
+}
+
+bool SummarizerGroup::parse(const std::string& group_string, SummarizerGroup& group, std::string& error) {
+
+    std::vector<std::string> group_definition;
+    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+)(?:,SEP=([^,]+))?(?:,MAX=([^,]+))?(?:,ABBR=([^,]+))?,(\\d+)(?:,([^,]+))?$");
+    groupregex.match(group_string, &group_definition);
+
+    /*
+    for(int i=0;i<group_definition.size();i++) {
+        debugLog("group_definition[%d] = %s", i, group_definition[i].c_str());
+    }
+    */
+
+    // TODO: make this white?
+    vec3 colour(0.0f, 0.0f, 0.0f);
+
+    if(group_definition.size()>=6) {
+        std::string group_name  = group_definition[0];
+        std::string group_type  = group_definition[1];
+        std::string group_regex = group_definition[2];
+        std::string separators  = group_definition[3];
+
+        if(group_type.empty()) group_type = "URI";
+        if(separators.empty()) separators = settings.path_separators;
+
+        int max_depth    = group_definition[4].empty() ? settings.path_max_depth  : atoi(group_definition[4].c_str());
+        int abbrev_depth = group_definition[5].empty() ? settings.path_abbr_depth : atoi(group_definition[5].c_str());
+
+        int percent      = atoi(group_definition[6].c_str());
+
+        debugLog("group name %s type %s regex %s max %d abbrev %d percent %d",
+                 group_name.c_str(), group_type.c_str(), group_regex.c_str(), max_depth, abbrev_depth, percent);
+
+        // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
+
+        //check for optional colour param
+        if(group_definition.size() >= 8) {
+            int r, g, b;
+            if(sscanf(group_definition[7].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
+                colour = vec3( r, g, b );
+                debugLog("r = %d, g = %d, b = %d\n", r, g, b);
+                colour /= 255.0f;
+            }
+        }
+
+        Regex regex(group_regex, true);
+        if(!regex.isValid()) {
+            error = "invalid regular expression '" + group_regex + "'";
+            return false;
+        }
+
+        if(percent < 0 || percent > 100) {
+            error = "invalid percent value";
+            return false;
+        }
+
+        if(abbrev_depth < -1) {
+            error = "invalid ABBR value";
+            return false;
+        }
+
+        if(max_depth < 0) {
+            error = "invalid MAX value";
+            return false;
+        }
+
+        group.title = group_name;
+        group.type = group_type;
+        group.regex = group_regex;
+        group.separators = separators;
+        group.max_depth = max_depth;
+        group.abbrev_depth = abbrev_depth;
+        group.percent = percent;
+        group.colour = colour;
+        group.definition = group_string;
+
+        return true;
+    }
+
+    return false;
 }

@@ -40,23 +40,27 @@ void TextArea::hide() {
     this->visible=false;
 }
 
+int TextArea::getMaxCharacters() {
+    return (display.width / font.getMaxWidth()) * 0.8;
+}
+
 void TextArea::setColour(vec3 colour) {
     this->colour = colour;
 }
 
-void TextArea::setText(std::vector<std::string>& content_) {
+void TextArea::setText(const std::vector<std::string>& content_) {
     this->content.clear();
 
     //calculate area
     rectwidth  = 0;
     rectheight = content_.size() * (font.getMaxHeight()+4) + 2;
 
-    std::vector<std::string>::iterator it;
-    for(it = content_.begin(); it != content_.end(); it++) {
-        std::string s = *it;
+    size_t max_characters = getMaxCharacters();
 
-        if(s.size() > 100) {
-            s = s.substr(0,100);
+    for(std::string s : content_) {
+
+        if(s.size() > max_characters) {
+            s = s.substr(0,max_characters);
         }
 
         int width = font.getWidth(s) + 6;
@@ -83,7 +87,9 @@ void TextArea::setPos(vec2 pos) {
     }
 
     if(corner.y < 0) corner.y += rectheight + fontheight;
-    if(corner.y +rectheight > display.height) corner.y -= rectheight;
+    if(corner.y +rectheight > display.height) {
+        corner.y = std::max(0.0f, corner.y-rectheight);
+    }
 
 }
 
@@ -94,7 +100,8 @@ void TextArea::draw() {
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    vec4 col(colour, 0.2f);
+    vec4 col(colour*0.2f, 0.6f);
+
     glColor4fv(glm::value_ptr(col));
     glBegin(GL_QUADS);
         glVertex2f(corner.x,           corner.y);

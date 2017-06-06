@@ -1,4 +1,5 @@
-# NOTE: currently only building with Mingw-w64 on Windows is implemented
+# Note: this project file only supports building on Windows with Mingw-w64
+# See the INSTALL file for building instructions
 
 TEMPLATE = app
 CONFIG += console
@@ -11,12 +12,14 @@ CONFIG += object_parallel_to_source
 
 gcc {
     QMAKE_CXXFLAGS_WARN_ON = -Wall -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-reorder
+    QMAKE_CXXFLAGS_DEBUG += -DASSERTS_ENABLED
 }
 
 mingw {
     QMAKE_CXXFLAGS += -Dmain=SDL_main
     QMAKE_LFLAGS   += -mconsole
 
+    INCLUDEPATH += src/FileWatcher
     INCLUDEPATH += C:\msys64\mingw64\include\SDL2
     INCLUDEPATH += C:\msys64\mingw64\include\freetype2
 
@@ -24,6 +27,18 @@ mingw {
     LIBS += -lSDL2_image.dll -lfreetype.dll -lpcre.dll -lpng.dll -lglew32.dll -lopengl32 -lglu32
     LIBS += -static-libgcc -static-libstdc++
     LIBS += -lcomdlg32
+}
+
+linux {
+    INCLUDEPATH += src/FileWatcher
+
+    INCLUDEPATH += /usr/include/GL        \
+                   /usr/include/SDL2      \
+                   /usr/include/libpng12  \
+                   /usr/include/freetype2 \
+                   /usr/include
+
+    LIBS += -lGL -lGLU -lfreetype -lpcre -lGLEW -lGLU -lGL -lSDL2_image -lSDL2 -lpng12
 }
 
 VPATH += ./src
@@ -39,6 +54,8 @@ SOURCES += custom.cpp \
     slider.cpp \
     summarizer.cpp \
     textarea.cpp \
+    src/tests.cpp \
+    configwatcher.cpp \
     core/conffile.cpp \
     core/display.cpp \
     core/frustum.cpp \
@@ -59,7 +76,11 @@ SOURCES += custom.cpp \
     core/texture.cpp \
     core/timezone.cpp \
     core/vbo.cpp \
-    core/vectors.cpp
+    core/vectors.cpp \
+    FileWatcher/FileWatcher.cpp \
+    FileWatcher/FileWatcherLinux.cpp \
+    FileWatcher/FileWatcherOSX.cpp \
+    FileWatcher/FileWatcherWin32.cpp
 
 HEADERS += custom.h \
     logentry.h \
@@ -71,6 +92,8 @@ HEADERS += custom.h \
     slider.h \
     summarizer.h \
     textarea.h \
+    configwatcher.h \
+    src/tests.h \
     core/bounds.h \
     core/conffile.h \
     core/display.h \
@@ -95,4 +118,9 @@ HEADERS += custom.h \
     core/timezone.h \
     core/vbo.h \
     core/vectors.h \
-    core/settings.h
+    core/settings.h \
+    FileWatcher/FileWatcher.h \
+    FileWatcher/FileWatcherImpl.h \
+    FileWatcher/FileWatcherLinux.h \
+    FileWatcher/FileWatcherOSX.h \
+    FileWatcher/FileWatcherWin32.h

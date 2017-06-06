@@ -65,6 +65,8 @@ public:
     void drawShadow();
     void draw();
 
+    void setX(float x);
+
     float getX();
     float getY();
 };

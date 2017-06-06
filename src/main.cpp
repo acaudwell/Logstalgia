@@ -17,6 +17,7 @@
 
 #include "logstalgia.h"
 #include "settings.h"
+#include "tests.h"
 
 #ifdef _WIN32
 std::string win32LogSelector() {
@@ -135,6 +136,9 @@ int main(int argc, char *argv[]) {
     //enable vsync
     display.enableVsync(settings.vsync);
 
+    //enable frameless
+    display.enableFrameless(settings.frameless);
+
     // this causes corruption on some video drivers
     if(settings.multisample) display.multiSample(4);
 
@@ -144,10 +148,26 @@ int main(int argc, char *argv[]) {
 
     display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen);
 
-    // Don't minimize when alt-tabbing so you can fullscreen logstalgia on a second monitor
 #if SDL_VERSION_ATLEAST(2,0,0)
+    if(!display.isFullscreen() && settings.window_x >= 0 && settings.window_y >= 0) {
+        SDL_SetWindowPosition(display.sdl_window, settings.window_x, settings.window_y);
+    }
+
+    // Don't minimize when alt-tabbing so you can fullscreen logstalgia on a second monitor
      SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 #endif
+
+    // run unit tests
+     if(settings.run_tests) {
+         LogstalgiaTester tester;
+         try {
+             tester.runTests();
+         } catch(std::exception& e) {
+            SDLAppQuit(e.what());
+         }
+         display.quit();
+         exit(0);
+     }
      
     //disable OpenGL 2.0 functions if not supported
     if(!GLEW_VERSION_2_0) settings.ffp = true;
@@ -180,12 +200,6 @@ int main(int argc, char *argv[]) {
         if(exporter != 0) {
             ls->setFrameExporter(exporter);
         }
-
-        for(const std::string& group : settings.groups) {
-            ls->addGroup(group);
-        }
-
-        ls->setBackground(settings.background_colour);
 
         ls->run();
 

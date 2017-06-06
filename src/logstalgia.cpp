@@ -19,6 +19,7 @@
 #include "settings.h"
 #include "ncsa.h"
 #include "custom.h"
+#include "configwatcher.h"
 
 #include "core/png_writer.h"
 #include "core/timezone.h"
@@ -27,8 +28,6 @@
 
 //turn performance profiling
 //#define LS_PERFORMANCE_PROFILE
-
-bool  gSyncLog  = false;
 
 std::string profile_name;
 Uint32 profile_start_msec;
@@ -60,6 +59,8 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     retarget   = false;
     next       = false;
 
+    initialized = false;
+
     this->logfile = logfile;
 
     spawn_delay=0;
@@ -80,7 +81,6 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     if(logfile == "-") {
         streamlog = new StreamLog();
-        settings.disable_progress = true;
 
     } else {
         try {
@@ -91,27 +91,15 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
         }
     }
 
-    total_space = display.height - 40;
-    remaining_space = total_space - 2;
+    total_space = 0;
+    remaining_space = 0;
 
     total_entries=0;
 
-    background = vec3(0.0, 0.0, 0.0);
+    balltex = 0;
+    glowtex = 0;
 
-    fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
-    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
-    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
-    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", settings.font_size);
-
-    fontLarge.dropShadow(true);
-    fontMedium.dropShadow(true);
-    fontSmall.dropShadow(true);
-
-    balltex  = texturemanager.grab("ball.tga");
-    glowtex = texturemanager.grab("glow.tga");
-
-    infowindow = TextArea(fontSmall);
-
+    toggle_delay = 0.0f;
     mousehide_timeout = 0.0f;
 
     runtime = 0.0;
@@ -132,6 +120,13 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
     screen_blank_period   = 60.0;
     screen_blank_elapsed  = 0.0;
 
+    adjusting_size = false;
+    default_cursor = SDL_GetDefaultCursor();
+    resize_cursor  = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+
+    detect_changes = settings.detect_changes;
+    config_watcher = 0;
+
     init_tz();
 }
 
@@ -145,6 +140,7 @@ Logstalgia::~Logstalgia() {
 
     if(seeklog!=0) delete seeklog;
     if(streamlog!=0) delete streamlog;
+    if(config_watcher!=0) delete config_watcher;
 
     for(auto& it : summarizer_types) {
         if(it.second != 0) delete it.second;
@@ -169,17 +165,16 @@ void Logstalgia::togglePause() {
             mintime = time(0);
             elapsed_time = mintime - starttime;
         }
-
-        ipSummarizer->mouseOut();
-
-        for(Summarizer* s : summarizers) {
-            s->mouseOut();
-        }
     }
 }
 
 void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
     if (e->type == SDL_KEYDOWN) {
+
+        bool repeat = false;
+#if SDL_VERSION_ATLEAST(2,0,0)
+        repeat = (e->repeat > 0);
+#endif
 
         if (e->keysym.sym == SDLK_ESCAPE) {
             appFinished=true;
@@ -201,6 +196,18 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             if(GLEW_VERSION_2_0) {
                 settings.ffp = !settings.ffp;
             }
+        }
+
+        if (e->keysym.sym == SDLK_s && e->keysym.mod & KMOD_CTRL) {
+            saveConfig();
+        }
+
+        if (e->keysym.sym == SDLK_F5) {
+            reloadConfig();
+        }
+
+        if (e->keysym.sym == SDLK_F6) {
+            loadConfig();
         }
 
         if(e->keysym.sym == SDLK_SPACE) {
@@ -246,12 +253,44 @@ void Logstalgia::keyPress(SDL_KeyboardEvent *e) {
             retarget=true;
         }
 
-        if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT) {
+        if(e->keysym.sym == SDLK_HOME) {
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeIPSummarizerAbbreviationDepth(+1);
+            } else {
+                changeIPSummarizerMaxDepth(+1);
+            }
+        }
+
+        if(e->keysym.sym == SDLK_END) {
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeIPSummarizerAbbreviationDepth(-1);
+            } else {
+                changeIPSummarizerMaxDepth(-1);
+            }
+        }
+
+        if(e->keysym.sym == SDLK_PAGEUP) {
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeGroupSummarizerAbbreviationDepth(+1);
+            } else {
+                changeGroupSummarizerMaxDepth(+1);
+            }
+        }
+
+        if(e->keysym.sym == SDLK_PAGEDOWN) {
+
+            if(e->keysym.mod & KMOD_CTRL) {
+                changeGroupSummarizerAbbreviationDepth(-1);
+            } else {
+                changeGroupSummarizerMaxDepth(-1);
+            }
+        }
+
+        if(e->keysym.sym == SDLK_RETURN && e->keysym.mod & KMOD_ALT && !repeat) {
             toggleFullscreen();
         }
     }
 }
-
 
 void Logstalgia::initPaddles() {
 
@@ -280,6 +319,11 @@ void Logstalgia::initRequestBalls() {
     }
 
     balls.clear();
+
+    ipSummarizer->clear();
+    for(Summarizer* s : summarizers) {
+        s->clear();
+    }
 }
 
 void Logstalgia::reset() {
@@ -306,6 +350,217 @@ void Logstalgia::reset() {
     elapsed_time  = 0;
     starttime     = 0;
     lasttime      = 0;
+}
+
+void Logstalgia::saveConfig() {
+
+    // update display settings
+
+    settings.display_width  = display.width;
+    settings.display_height = display.height;
+
+    settings.fullscreen = display.isFullscreen();
+    settings.frameless  = display.isFrameless();
+
+    if(!settings.fullscreen) {
+        SDL_GetWindowPosition(display.sdl_window, &settings.window_x, &settings.window_y);
+    } else {
+        settings.window_x = -1;
+        settings.window_y = -1;
+    }
+
+#ifdef _WIN32
+    if(settings.load_config.empty()) {
+        //get original directory
+        char cwd_buff[1024];
+
+        if(getcwd(cwd_buff, 1024) != cwd_buff) {
+            SDLAppQuit("error getting current working directory");
+        }
+
+        OPENFILENAME ofn;
+
+        char filepath[_MAX_PATH];
+        filepath[0] = '\0';
+
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = 0;
+        ofn.lpstrFile = filepath;
+        ofn.nMaxFile = sizeof(filepath);
+        ofn.lpstrFilter = "Config File (*.cfg)\0*.cfg\0*.*\0*.*\0";
+        ofn.nFilterIndex = 1;
+        ofn.lpstrFileTitle = 0;
+        ofn.nMaxFileTitle = 0;
+        ofn.lpstrInitialDir = 0;
+        ofn.Flags = OFN_PATHMUSTEXIST;
+
+        GetSaveFileName(&ofn);
+
+        //change back to original directory
+        if(chdir(cwd_buff) != 0) {
+            SDLAppQuit("error changing directory");
+        }
+
+        settings.load_config = std::string(filepath);
+    }
+#endif
+
+    if(settings.load_config.empty()) return;
+
+    ConfFile conf;
+    settings.exportDisplaySettings(conf);
+    settings.exportLogstalgiaSettings(conf);
+
+    std::string config_file = settings.load_config;
+
+    try {
+        conf.save(config_file);
+
+        // TODO: stop message disappearing too quickly due to large dt value
+        // while waiting for the user to choose the save location
+
+        setMessage("Wrote config %s", config_file.c_str());
+    } catch(ConfFileException&) {
+        setMessage("Failed to save config to %s", config_file.c_str());
+    }
+}
+
+void Logstalgia::loadConfig() {
+#ifdef _WIN32
+    //get original directory
+    char cwd_buff[1024];
+
+    if(getcwd(cwd_buff, 1024) != cwd_buff) {
+        SDLAppQuit("error getting current working directory");
+    }
+
+    OPENFILENAME ofn;
+
+    char filepath[_MAX_PATH];
+    filepath[0] = '\0';
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = 0;
+    ofn.lpstrFile = filepath;
+    ofn.nMaxFile = sizeof(filepath);
+    ofn.lpstrFilter = "Config File (*.cfg)\0*.cfg\0*.*\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = 0;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = 0;
+    ofn.Flags = OFN_PATHMUSTEXIST;
+
+    GetOpenFileName(&ofn);
+
+    //change back to original directory
+    if(chdir(cwd_buff) != 0) {
+        SDLAppQuit("error changing directory");
+    }
+
+    loadConfig(std::string(filepath));
+#endif
+}
+
+void Logstalgia::loadConfig(const std::string& config_file) {
+
+    try {
+        ConfFile conf;
+        conf.load(config_file);
+
+        // validate config
+        LogstalgiaSettings new_settings;
+        new_settings.importLogstalgiaSettings(conf);
+
+        if(!new_settings.path.empty() && settings.path != new_settings.path) {
+
+            if(settings.path == "-" || new_settings.path == "-") {
+                throw ConfFileException("cannot change streaming mode at run time", config_file, 0);
+            }
+
+            SeekLog* new_seeklog = 0;
+
+            try {
+                new_seeklog = new SeekLog(new_settings.path);
+            }
+            catch(SeekLogException& e) {
+                throw ConfFileException("unable to read log file", config_file, 0);
+            }
+
+            if(seeklog != 0) delete seeklog;
+            seeklog = new_seeklog;
+
+            debugLog("path changed from %s to %s", settings.path.c_str(), new_settings.path.c_str());
+        }
+
+        // if no exceptions were thrown, import settings
+        settings.importLogstalgiaSettings(conf);
+
+        settings.load_config = config_file;
+
+        paused = false;
+
+        init();
+
+    } catch(ConfFileException& e) {
+       setMessage(e.what());
+    }
+}
+
+void Logstalgia::reloadConfig() {
+    if(settings.load_config.empty()) return;
+    loadConfig(settings.load_config);
+}
+
+void Logstalgia::changeSummarizerMaxDepth(Summarizer* summarizer, int delta) {
+    int depth = summarizer->getMaxDepth();
+    int new_depth = depth + delta;
+
+    if(new_depth >= 0) {
+        std::string title = (summarizer == ipSummarizer) ? "IP Summarizer" : summarizer->getTitle().c_str();
+        debugLog("%s max depth changed to %d", title.c_str(), new_depth);
+        summarizer->setMaxDepth(new_depth);
+        summarizer->summarize();
+        summarizer->recalc_display();
+    }
+}
+
+void Logstalgia::changeSummarizerAbbreviationDepth(Summarizer* summarizer, int delta) {
+    int depth = summarizer->getAbbreviationDepth();
+    int new_depth = depth + delta;
+
+    if(new_depth >= -1) {        
+        std::string title = (summarizer == ipSummarizer) ? "IP Summarizer" : summarizer->getTitle().c_str();
+        debugLog("%s min abbreviation depth changed to %d", title.c_str(), new_depth);
+        summarizer->setAbbreviationDepth(new_depth);
+        summarizer->summarize();
+        summarizer->recalc_display();
+    }
+}
+
+void Logstalgia::changeIPSummarizerMaxDepth(int delta) {
+    settings.address_max_depth = std::max(0, settings.address_max_depth + delta);
+    changeSummarizerMaxDepth(ipSummarizer, delta);
+}
+
+void Logstalgia::changeIPSummarizerAbbreviationDepth(int delta) {
+    settings.address_abbr_depth = std::max(-1, settings.address_abbr_depth + delta);
+    changeSummarizerAbbreviationDepth(ipSummarizer, delta);
+}
+
+void Logstalgia::changeGroupSummarizerMaxDepth(int delta) {
+    settings.path_max_depth = std::max(0, settings.path_max_depth + delta);
+    for(Summarizer* s : summarizers) {
+        changeSummarizerMaxDepth(s, delta);
+    }
+}
+
+void Logstalgia::changeGroupSummarizerAbbreviationDepth(int delta) {
+    settings.path_abbr_depth = std::max(-1, settings.path_abbr_depth + delta);
+    for(Summarizer* s : summarizers) {
+        changeSummarizerAbbreviationDepth(s, delta);
+    }
 }
 
 void Logstalgia::screenshot() {
@@ -344,9 +599,13 @@ void Logstalgia::setMessage(const char* str, ...) {
     message_timer = 5.0;
 }
 
+bool Logstalgia::hasProgressBar() {
+    return seeklog != 0 && !settings.disable_progress;
+}
+
 void Logstalgia::seekTo(float percent) {
 
-    if(settings.disable_progress) return;
+    if(!seeklog) return;
 
     //disable pause if enabled before seeking
     if(paused) paused = false;
@@ -360,15 +619,69 @@ void Logstalgia::seekTo(float percent) {
 
 void Logstalgia::mouseClick(SDL_MouseButtonEvent *e) {
 
-    if(e->type != SDL_MOUSEBUTTONDOWN) return;
+    if(e->type != SDL_MOUSEBUTTONDOWN) {
+        adjusting_size = false;
+        return;
+    }
 
     if(e->button == SDL_BUTTON_LEFT) {
 
-        if(!settings.disable_progress) {
+        if(hasProgressBar()) {
             float position;
-            if(slider.click(mousepos, &position)) {
+            if(slider.isVisible() && slider.click(mousepos, &position)) {
                 seekTo(position);
+                return;
             }
+        }
+
+        Summarizer* filteredSummarizer = 0;
+
+        if(ipSummarizer->setPrefixFilterAtPos(mousepos)) {
+            filteredSummarizer = ipSummarizer;
+        } else {
+            for(Summarizer* s : summarizers) {
+                if(s->setPrefixFilterAtPos(mousepos)) {
+                    filteredSummarizer = s;
+                    break;
+                }
+            }
+        }
+
+        if(filteredSummarizer != 0) {
+
+            // clear summarizer, reinsert active requests
+
+            filteredSummarizer->clear();
+
+            for(RequestBall* ball : balls) {
+
+                LogEntry* le = ball->getLogEntry();
+
+                Summarizer* groupSummarizer = getGroupSummarizer(le);
+
+                if(!groupSummarizer) continue;
+                if(!ipSummarizer->supportedString(le->hostname)) continue;
+                if(!ipSummarizer->matchesPrefixFilter(le->hostname)) continue;
+
+                if(filteredSummarizer == groupSummarizer) {
+
+                    if(settings.hide_url_prefix) {
+                        groupSummarizer->addString(filterURLHostname(le->path));
+                    } else {
+                        groupSummarizer->addString(le->path);
+                    }
+
+                } else if(filteredSummarizer == ipSummarizer) {
+                    ipSummarizer->addString(le->hostname);
+                }
+            }
+
+            filteredSummarizer->summarize();
+            filteredSummarizer->recalc_display();
+        }
+
+        if(mouseOverSummarizerWidthAdjuster(mousepos)) {
+            adjusting_size = true;
         }
     }
 }
@@ -385,6 +698,8 @@ std::string Logstalgia::dateAtPosition(float percent) {
     std::string linestr;
 
     if(percent<1.0 && seeklog->getNextLineAt(linestr, percent)) {
+
+        filterLogLine(linestr);
 
         LogEntry le;
 
@@ -409,6 +724,29 @@ std::string Logstalgia::dateAtPosition(float percent) {
     return date;
 }
 
+bool Logstalgia::mouseOverSummarizerWidthAdjuster(const vec2& pos) {
+    return (paddle_x >= (pos.x - 3) && paddle_x <= (pos.x + 3));
+}
+
+void Logstalgia::changePaddleX(float x) {
+
+    paddle_x = x;
+
+    for(Summarizer* s : summarizers) {
+        s->setPosX(paddle_x);
+    }
+
+    float paddle_offset = paddle_x - 20;
+
+    for(auto it : paddles) {
+        it.second->setX(paddle_offset);
+    }
+
+    for(RequestBall* ball: balls) {
+        ball->changeDestX(paddle_offset);
+    }
+}
+
 void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
     mousepos = vec2(e->x, e->y);
     SDL_ShowCursor(true);
@@ -416,9 +754,40 @@ void Logstalgia::mouseMove(SDL_MouseMotionEvent *e) {
 
     float pos;
 
-    if(!settings.disable_progress && slider.mouseOver(mousepos, &pos)) {
-        std::string date = dateAtPosition(pos);
-        slider.setCaption(date);
+    if(hasProgressBar()) {
+        // if the slider is visible and mouse is not over the summarizers
+        if(   slider.isVisible()
+           || ((mousepos.x > display.width/4) && (mousepos.x < paddle_x)) ) {
+
+            if(slider.mouseMove(mousepos, &pos)) {
+                std::string date = dateAtPosition(pos);
+                slider.setCaption(date);
+            }
+        }
+    }
+
+    if(adjusting_size) {
+
+        // dont allow adjusting size while an animation is happening
+
+        bool can_adjust = true;
+
+        for(Summarizer* s : summarizers) {
+            if(s->isAnimating()) {
+                can_adjust = false;
+                break;
+            }
+        }
+
+        if(can_adjust) {
+            changePaddleX(mousepos.x);
+        }
+    }
+
+    if(mouseOverSummarizerWidthAdjuster(mousepos)) {
+        SDL_SetCursor(resize_cursor);
+    } else {
+        SDL_SetCursor(default_cursor);
     }
 }
 
@@ -441,31 +810,43 @@ Summarizer* Logstalgia::getGroupSummarizer(LogEntry* le) {
     auto code_match_summarizers = summarizer_types["CODE"];
     auto uri_match_summarizers  = summarizer_types["URI"];
 
+    Summarizer* summarizer = 0;
+
     if(host_match_summarizers != 0) {
         for(Summarizer* s : *host_match_summarizers) {
             if(s->supportedString(le->hostname)) {
-                return s;
+                summarizer = s;
+                break;
             }
         }
     }
 
-    if(code_match_summarizers != 0) {
+    if(!summarizer && code_match_summarizers != 0) {
         for(Summarizer* s : *code_match_summarizers) {
             if(s->supportedString(le->response_code)) {
-                return s;
+                summarizer = s;
+                break;
             }
         }
     }
 
-    if(uri_match_summarizers != 0) {
+    if(!summarizer && uri_match_summarizers != 0) {
         for(Summarizer* s : *uri_match_summarizers) {
             if(s->supportedString(le->path)) {
-                return s;
+                summarizer = s;
+                break;
             }
         }
     }
 
-    return 0;
+    // must also match prefix filter if there is one
+    if(summarizer != 0) {
+        if(!summarizer->matchesPrefixFilter(le->path)) {
+            return 0;
+        }
+    }
+
+    return summarizer;
 }
 
 void Logstalgia::addStrings(LogEntry* le) {
@@ -474,12 +855,18 @@ void Logstalgia::addStrings(LogEntry* le) {
 
     if(!groupSummarizer) return;
 
-    std::string hostname = le->hostname;
-    std::string pageurl  = le->path;
+    const std::string& hostname = le->hostname;
+    const std::string& pageurl  = le->path;
 
-    if(settings.hide_url_prefix) pageurl = filterURLHostname(pageurl);
+    if(!ipSummarizer->supportedString(hostname)) return;
+    if(!ipSummarizer->matchesPrefixFilter(hostname)) return;
 
-    groupSummarizer->addString(pageurl);
+    if(settings.hide_url_prefix) {
+        groupSummarizer->addString(filterURLHostname(pageurl));
+    } else {
+        groupSummarizer->addString(pageurl);
+    }
+
     ipSummarizer->addString(hostname);
 }
 
@@ -489,6 +876,9 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
     Summarizer* groupSummarizer = getGroupSummarizer(le);
 
     if(!groupSummarizer) return;
+
+    if(!ipSummarizer->supportedString(le->hostname)) return;
+    if(!ipSummarizer->matchesPrefixFilter(le->hostname)) return;
 
     Paddle* entry_paddle = 0;
 
@@ -525,7 +915,7 @@ void Logstalgia::addBall(LogEntry* le, float start_offset) {
 
     const std::string& match = ipSummarizer->getBestMatchStr(hostname);
 
-    vec3 colour = groupSummarizer->isColoured() ? groupSummarizer->getColour() : colourHash(match);
+    vec3 colour = groupSummarizer->hasColour() ? groupSummarizer->getColour() : colourHash(match);
 
     RequestBall* ball = new RequestBall(le, colour, ball_start, ball_dest);
 
@@ -536,6 +926,13 @@ BaseLog* Logstalgia::getLog() {
     if(seeklog !=0) return seeklog;
 
     return streamlog;
+}
+
+
+void Logstalgia::filterLogLine(std::string& line) {
+    for(char& c : line) {
+        if(c & 0x80) c = '?';
+    }
 }
 
 void Logstalgia::readLog(int buffer_rows) {
@@ -553,8 +950,10 @@ void Logstalgia::readLog(int buffer_rows) {
 
     while( baselog->getNextLine(linestr) ) {
 
+        filterLogLine(linestr);
+
         //trim whitespace
-        if(linestr.size()>0) {
+        if(!linestr.empty()) {
             size_t string_end =
                 linestr.find_last_not_of(" \t\f\v\n\r");
 
@@ -647,7 +1046,7 @@ void Logstalgia::readLog(int buffer_rows) {
             return;
         }
 
-        if(!settings.disable_progress) slider.setPercent(percent);
+        if(hasProgressBar()) slider.setPercent(percent);
     }
 
     //set start time if currently 0
@@ -659,37 +1058,98 @@ void Logstalgia::readLog(int buffer_rows) {
 
 void Logstalgia::init() {
 
-    ipSummarizer = new Summarizer(fontSmall, 100, 2.0f);
+    fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
+    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16);
+    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16);
+    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", settings.font_size);
+
+    fontLarge.dropShadow(true);
+    fontMedium.dropShadow(true);
+    fontSmall.dropShadow(true);
+
+    if(!balltex) balltex = texturemanager.grab("ball.tga");
+    if(!glowtex) glowtex = texturemanager.grab("glow.tga");
+
+    infowindow = TextArea(fontSmall);
+
+    if(ipSummarizer != 0) delete ipSummarizer;
+
+    total_space     = display.height - 40;
+    remaining_space = total_space - 2;
+
+    if(accesslog != 0) {
+        delete accesslog;
+        accesslog = 0;
+    }
+
+    ipSummarizer = new Summarizer(fontSmall, 100, settings.address_max_depth, settings.address_abbr_depth, 2.0f);
+
+    for(char c: settings.address_separators) {
+        ipSummarizer->addDelimiter(c);
+    }
+
     ipSummarizer->setSize(2, 40, 0);
+
+    for(Summarizer* s : summarizers) {
+        delete s;
+    }
+    summarizers.clear();
+    summarizer_types.clear();
+
+    for(const SummarizerGroup& group : settings.groups) {
+        addGroup(group);
+    }
+
+    int default_max_depth    = settings.path_max_depth;
+    int default_abbrev_depth = settings.path_abbr_depth;
+
+    //add default groups
+    if(summarizers.empty()) {
+        //images - file is under images or
+        addGroup("URI", "CSS", "(?i)\\.css\\b", settings.path_separators, default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Script", "(?i)\\.js\\b", settings.path_separators, default_max_depth, default_abbrev_depth, 15);
+        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", settings.path_separators, default_max_depth, default_abbrev_depth, 20);
+    }
+
+    //always fill remaining space with Misc, (if there is some)
+    if(remaining_space > 50) {
+        addGroup("URI", "Misc", ".*", settings.path_separators, default_max_depth, default_abbrev_depth);
+    }
 
     reset();
 
     readLog();
 
-    //add default groups
-    if(summarizers.empty()) {
-        //images - file is under images or
-        addGroup("URI", "CSS", "(?i)\\.css\\b", 15);
-        addGroup("URI", "Script", "(?i)\\.js\\b", 15);
-        addGroup("URI", "Images", "(?i)/images/|\\.(jpe?g|gif|bmp|tga|ico|png)\\b", 20);
-    }
-
-    //always fill remaining space with Misc, (if there is some)
-    if(remaining_space>50) {
-        addGroup("URI", "Misc", ".*");
-    }
-
-    resizeGroups();
-
-    SDL_ShowCursor(false);
+    resizeSummarizers();
 
     //set start position
     if(settings.start_position > 0.0 && settings.start_position < 1.0) {
         seekTo(settings.start_position);
     }
 
-    // show slider so user knows its there unless recording
-    if(frameExporter==0) slider.show();
+    if(detect_changes) {
+        if(config_watcher != 0) delete config_watcher;
+
+        config_watcher = new ConfigWatcher();
+        config_watcher->setConfig(settings.load_config);
+
+        if(!config_watcher->start()) {
+            delete config_watcher;
+            config_watcher = 0;
+        }
+    }
+
+    if(!initialized) {
+
+        SDL_ShowCursor(false);
+
+        // show slider so user knows its there unless recording
+        if(hasProgressBar() && !frameExporter) {
+            slider.show();
+        }
+    }
+
+    initialized = true;
 }
 
 void Logstalgia::toggleFullscreen() {
@@ -707,7 +1167,7 @@ void Logstalgia::toggleFullscreen() {
     shadermanager.reload();
     fontmanager.reload();
 
-    reinit();
+    reposition();
 }
 
 void Logstalgia::resize(int width, int height) {
@@ -722,12 +1182,13 @@ void Logstalgia::resize(int width, int height) {
     shadermanager.reload();
     fontmanager.reload();
 
-    reinit();
+    reposition();
 }
 
 void Logstalgia::toggleWindowFrame() {
 #if SDL_VERSION_ATLEAST(2,0,0)
-    if(display.fullscreen) return;
+    if(toggle_delay > 0.0) return;
+    if(display.isFullscreen()) return;
     if(frameExporter != 0) return;
 
     texturemanager.unload();
@@ -740,19 +1201,17 @@ void Logstalgia::toggleWindowFrame() {
     shadermanager.reload();
     fontmanager.reload();
 
-    reinit();
+    toggle_delay = 0.25;
+
+    reposition();
 #endif
 }
 
-void Logstalgia::reinit() {
+void Logstalgia::reposition() {
     initPaddles();
     initRequestBalls();
-    resizeGroups();
+    resizeSummarizers();
     slider.resize();
-}
-
-void Logstalgia::setBackground(vec3 background) {
-    this->background = background;
 }
 
 void Logstalgia::setFrameExporter(FrameExporter* exporter) {
@@ -835,19 +1294,15 @@ void Logstalgia::removeBall(RequestBall* ball) {
 
     LogEntry* le = ball->getLogEntry();
 
-    std::string url  = le->path;
-    std::string host = le->hostname;
-
-    for(Summarizer* s: summarizers) {
-        if(s->supportedString(url)) {
-
-            if(settings.hide_url_prefix) url = filterURLHostname(url);
-            s->removeString(url);
-            break;
-        }
+    if(Summarizer* s = getGroupSummarizer(le)) {
+        std::string url = le->path;
+        if(settings.hide_url_prefix) url = filterURLHostname(url);
+        s->removeString(url);
     }
 
-    ipSummarizer->removeString(host);
+    if(ipSummarizer->supportedString(le->hostname)) {
+        ipSummarizer->removeString(le->hostname);
+    }
 
     delete ball;
 }
@@ -857,12 +1312,16 @@ void Logstalgia::logic(float t, float dt) {
     float sdt = dt * settings.simulation_speed;
 
     //increment clock
-    elapsed_time += sdt;
-    currtime = starttime + (long)(elapsed_time);
+    if(!paused) {
+        elapsed_time += sdt;
+        currtime = starttime + (long)(elapsed_time);
+    }
 
     if(settings.stop_time && currtime > settings.stop_time) {
         currtime = settings.stop_time;
     }
+
+    if(toggle_delay > 0.0) toggle_delay -= dt;
 
     if(mousehide_timeout>0.0f) {
         mousehide_timeout -= dt;
@@ -878,31 +1337,38 @@ void Logstalgia::logic(float t, float dt) {
         return;
     }
 
-    //if paused, dont move anything, only check what is under mouse
-    if(paused) {
+    if(   !mouseOverSummarizerWidthAdjuster(mousepos)
+       && !slider.isMouseOver(mousepos)) {
 
-        for(auto& it: paddles) {
-            Paddle* paddle = it.second;
+        // update info window
 
-            if(paddle->mouseOver(infowindow, mousepos)) {
-                break;
+        if(paused) {
+
+            for(auto& it: paddles) {
+                Paddle* paddle = it.second;
+
+                if(paddle->mouseOver(infowindow, mousepos)) {
+                    break;
+                }
+            }
+
+            for(RequestBall* ball : balls) {
+                if(ball->mouseOver(infowindow, mousepos)) {
+                    break;
+                }
             }
         }
 
-        for(RequestBall* ball : balls) {
-            if(ball->mouseOver(infowindow, mousepos)) {
-                break;
-            }
-        }
+        // inspect summarizer detail
 
-        if(!ipSummarizer->mouseOver(infowindow,mousepos)) {
+        if(!ipSummarizer->getInfoAtPos(infowindow,mousepos)) {
             for(Summarizer* s: summarizers) {
-                if(s->mouseOver(infowindow, mousepos)) break;
+                if(s->getInfoAtPos(infowindow, mousepos)) break;
             }
         }
-
-        return;
     }
+
+    if(paused) return;
 
     //next will fast forward clock to the time of the next entry,
     //if the next entry is in the future
@@ -1095,43 +1561,11 @@ void Logstalgia::logic(float t, float dt) {
     }
 }
 
-void Logstalgia::addGroup(const std::string& groupstr) {
-
-    std::vector<std::string> group_definition;
-    Regex groupregex("^([^,]+),(?:(HOST|CODE|URI)=)?([^,]+),([^,]+)(?:,([^,]+))?$");
-    groupregex.match(groupstr, &group_definition);
-
-    vec3 colour(0.0f, 0.0f, 0.0f);
-
-    if(group_definition.size()>=4) {
-        std::string group_name  = group_definition[0];
-        std::string group_type  = group_definition[1];
-        std::string group_regex = group_definition[2];
-
-        if(group_type.empty()) group_type = "URI";
-
-        debugLog("group_name %s group_type %s group_regex %s", group_name.c_str(), group_type.c_str(), group_regex.c_str());
-
-        int percent = atoi(group_definition[3].c_str());
-
-        // TODO: allow ommiting percent, if percent == 0, divide up remaining space amoung groups with no percent
-
-        //check for optional colour param
-        if(group_definition.size()>=5) {
-            int col;
-            int r, g, b;
-            if(sscanf(group_definition[4].c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
-                colour = vec3( r, g, b );
-                debugLog("r = %d, g = %d, b = %d\n", r, g, b);
-                colour /= 255.0f;
-            }
-        }
-
-        addGroup(group_type, group_name, group_regex, percent, colour);
-    }
+void Logstalgia::addGroup(const SummarizerGroup& group) {
+    addGroup(group.type, group.title, group.regex, group.separators, group.max_depth, group.abbrev_depth, group.percent, group.colour);
 }
 
-void Logstalgia::addGroup(const std::string& group_by, const std::string& grouptitle, const std::string& groupregex, int percent, vec3 colour) {
+void Logstalgia::addGroup(const std::string& group_type, const std::string& group_title, const std::string& group_regex, const std::string& separators, int max_depth, int abbrev_depth, int percent, vec3 colour) {
 
     if(percent<0) return;
 
@@ -1143,39 +1577,42 @@ void Logstalgia::addGroup(const std::string& group_by, const std::string& groupt
         percent = remaining_percent;
     }
 
-
     Summarizer* summarizer = 0;
 
     try {
-        summarizer = new Summarizer(fontSmall, percent, settings.update_rate, groupregex, grouptitle);
+        summarizer = new Summarizer(fontSmall, percent, max_depth, abbrev_depth, settings.update_rate, group_regex, group_title);
+
+        for(char c : separators) {
+            summarizer->addDelimiter(c);
+        }
     }
     catch(RegexCompilationException& e) {
-        throw SDLAppException("invalid regular expression for group '%s'", grouptitle.c_str());
+        throw SDLAppException("invalid regular expression for group '%s'", group_title.c_str());
     }
 
     if(glm::dot(colour, colour) > 0.01f) {
         summarizer->setColour(colour);
     }
 
-    if(!summarizer_types[group_by]) {
-        summarizer_types[group_by] = new std::vector<Summarizer*>();
+    if(!summarizer_types[group_type]) {
+        summarizer_types[group_type] = new std::vector<Summarizer*>();
     }
 
     summarizers.push_back(summarizer);
-    summarizer_types[group_by]->push_back(summarizer);
+    summarizer_types[group_type]->push_back(summarizer);
 
     int space = (int) ( ((float)percent/100) * total_space );
     remaining_space -= space;
 }
 
-void Logstalgia::resizeGroups() {
+void Logstalgia::resizeSummarizers() {
+
+    ipSummarizer->setSize(2, 40, 0);
 
     total_space = display.height - 40;
     remaining_space = total_space - 2;
 
     for(Summarizer* s : summarizers) {
-
-        int remaining_percent = (int) ( ((float) remaining_space/total_space) * 100);
 
         int percent = s->getScreenPercent();
 
@@ -1211,9 +1648,19 @@ void Logstalgia::drawGroups(float dt, float alpha) {
 void Logstalgia::draw(float t, float dt) {
     if(appFinished) return;
 
-    if(!settings.disable_progress) slider.logic(dt);
+    if(config_watcher != 0) {
+        if(config_watcher->changeDetected()) {
+            debugLog("config file modified");
+            reloadConfig();
+        }
+        // perform check after to add a delay between
+        // the file being modified and being reloaded
+        config_watcher->update();
+    }
 
-    display.setClearColour(background);
+    if(hasProgressBar()) slider.logic(dt);
+
+    display.setClearColour(settings.background_colour);
     display.clear();
 
     glDisable(GL_FOG);
@@ -1222,20 +1669,6 @@ void Logstalgia::draw(float t, float dt) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDisable(GL_LIGHTING);
-
-    profile_start("draw ip summarizer");
-
-    ipSummarizer->draw(dt, font_alpha);
-
-    profile_stop();
-
-
-    profile_start("draw groups");
-
-    drawGroups(dt, font_alpha);
-
-    profile_stop();
-
 
     profile_start("draw balls");
 
@@ -1250,7 +1683,24 @@ void Logstalgia::draw(float t, float dt) {
         ball->draw();
     }
 
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     profile_stop();
+
+
+    profile_start("draw ip summarizer");
+
+    ipSummarizer->draw(dt, font_alpha);
+
+    profile_stop();
+
+
+    profile_start("draw groups");
+
+    drawGroups(dt, font_alpha);
+
+    profile_stop();
+
 
     profile_start("draw response codes");
 
@@ -1304,8 +1754,6 @@ void Logstalgia::draw(float t, float dt) {
             (*it)->drawGlow();
         }
     }
-
-    infowindow.draw();
 
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1371,7 +1819,9 @@ void Logstalgia::draw(float t, float dt) {
 
     fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
 
-    if(!settings.disable_progress) slider.draw(dt);
+    infowindow.draw();
+
+    if(hasProgressBar()) slider.draw(dt);
 
     if(take_screenshot) {
         screenshot();
