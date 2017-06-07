@@ -52,7 +52,6 @@ class Logstalgia : public SDLApp {
     bool paused;
     bool retarget;
     bool next;
-    bool sync;
     bool end_reached;
     bool take_screenshot;
     bool initialized;
@@ -92,7 +91,6 @@ class Logstalgia : public SDLApp {
 
     float mousehide_timeout;
     vec2 mousepos;
-    RequestBall* paddle_target;
 
     FXFont fontSmall;
     FXFont fontMedium;
