@@ -53,7 +53,13 @@ namespace FW
 	//--------
 	WatchID FileWatcher::addWatch(const String& directory, FileWatchListener* watcher)
 	{
-		return mImpl->addWatch(directory, watcher);
+		return mImpl->addWatch(directory, watcher, false);
+	}
+
+	//--------
+	WatchID FileWatcher::addWatch(const String& directory, FileWatchListener* watcher, bool recursive)
+	{
+		return mImpl->addWatch(directory, watcher, recursive);
 	}
 
 	//--------

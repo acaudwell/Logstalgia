@@ -43,7 +43,7 @@ namespace FW
 	{
 		OVERLAPPED mOverlapped;
 		HANDLE mDirHandle;
-		BYTE mBuffer[32 * 1024];
+		BYTE mBuffer[4 * 1024];
 		LPARAM lParam;
 		DWORD mNotifyFilter;
 		bool mStopNow;
@@ -51,6 +51,7 @@ namespace FW
 		FileWatchListener* mFileWatchListener;
 		char* mDirName;
 		WatchID mWatchid;
+		bool mIsRecursive;
 	};
 
 #pragma region Internal Functions
@@ -61,36 +62,40 @@ namespace FW
 	/// Unpacks events and passes them to a user defined callback.
 	void CALLBACK WatchCallback(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
 	{
-		TCHAR szFile[MAX_PATH];
 		PFILE_NOTIFY_INFORMATION pNotify;
 		WatchStruct* pWatch = (WatchStruct*) lpOverlapped;
-		size_t offset = 0;
 
 		if(dwNumberOfBytesTransfered == 0)
 			return;
 
 		if (dwErrorCode == ERROR_SUCCESS)
 		{
+			size_t offset = 0;
 			do
 			{
 				pNotify = (PFILE_NOTIFY_INFORMATION) &pWatch->mBuffer[offset];
 				offset += pNotify->NextEntryOffset;
 
-#			if defined(UNICODE)
+				int requiredSize = WideCharToMultiByte(CP_ACP, 0, pNotify->FileName,
+					pNotify->FileNameLength / sizeof(WCHAR), NULL, 0, NULL, NULL);
+				if (!requiredSize)
+					continue;
+				PCHAR szFile = new CHAR[requiredSize + 1];
+				int count = WideCharToMultiByte(CP_ACP, 0, pNotify->FileName,
+					pNotify->FileNameLength / sizeof(WCHAR),
+					szFile, requiredSize, NULL, NULL);
+				if (!count)
 				{
-					lstrcpynW(szFile, pNotify->FileName,
-						min(MAX_PATH, pNotify->FileNameLength / sizeof(WCHAR) + 1));
+					delete[] szFile;
+					continue;
 				}
-#			else
-				{
-					int count = WideCharToMultiByte(CP_ACP, 0, pNotify->FileName,
-						pNotify->FileNameLength / sizeof(WCHAR),
-						szFile, MAX_PATH - 1, NULL, NULL);
-					szFile[count] = TEXT('\0');
-				}
-#			endif
+				szFile[requiredSize] = 0;
 
 				pWatch->mFileWatcher->handleAction(pWatch, szFile, pNotify->Action);
+				if (szFile != NULL)
+				{
+					delete[] szFile;
+				}
 
 			} while (pNotify->NextEntryOffset != 0);
 		}
@@ -105,7 +110,7 @@ namespace FW
 	bool RefreshWatch(WatchStruct* pWatch, bool _clear)
 	{
 		return ReadDirectoryChangesW(
-			pWatch->mDirHandle, pWatch->mBuffer, sizeof(pWatch->mBuffer), FALSE,
+			pWatch->mDirHandle, pWatch->mBuffer, sizeof(pWatch->mBuffer), pWatch->mIsRecursive,
 			pWatch->mNotifyFilter, NULL, &pWatch->mOverlapped, _clear ? 0 : WatchCallback) != 0;
 	}
 
@@ -133,13 +138,13 @@ namespace FW
 	}
 
 	/// Starts monitoring a directory.
-	WatchStruct* CreateWatch(LPCTSTR szDirectory, DWORD mNotifyFilter)
+	WatchStruct* CreateWatch(LPCSTR szDirectory, bool recursive, DWORD mNotifyFilter)
 	{
 		WatchStruct* pWatch;
 		size_t ptrsize = sizeof(*pWatch);
 		pWatch = static_cast<WatchStruct*>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptrsize));
 
-		pWatch->mDirHandle = CreateFile(szDirectory, FILE_LIST_DIRECTORY,
+		pWatch->mDirHandle = CreateFileA(szDirectory, FILE_LIST_DIRECTORY,
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, 
 			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);
 
@@ -147,6 +152,7 @@ namespace FW
 		{
 			pWatch->mOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 			pWatch->mNotifyFilter = mNotifyFilter;
+			pWatch->mIsRecursive = recursive;
 
 			if (RefreshWatch(pWatch))
 			{
@@ -184,11 +190,11 @@ namespace FW
 	}
 
 	//--------
-	WatchID FileWatcherWin32::addWatch(const String& directory, FileWatchListener* watcher)
+	WatchID FileWatcherWin32::addWatch(const String& directory, FileWatchListener* watcher, bool recursive)
 	{
 		WatchID watchid = ++mLastWatchID;
 
-		WatchStruct* watch = CreateWatch(directory.c_str(),
+		WatchStruct* watch = CreateWatch(directory.c_str(), recursive,
 			FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_FILE_NAME);
 
 		if(!watch)
@@ -258,7 +264,7 @@ namespace FW
 		case FILE_ACTION_MODIFIED:
 			fwAction = Actions::Modified;
 			break;
-		};
+		}
 
 		watch->mFileWatchListener->handleFileAction(watch->mWatchid, watch->mDirName, filename, fwAction);
 	}
