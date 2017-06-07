@@ -318,7 +318,7 @@ Interactive keyboard commands:
    (+-)  Adjust simulation speed
    (<>)  Adjust pitch speed
    (F5)  Reload config
-   (F6)  Load config
+   (F6)  Load config (Windows only)
    (F11) Window frame toggle
    (F12) Screenshot
    (Alt+Enter) Fullscreen toggle
