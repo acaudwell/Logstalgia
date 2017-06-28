@@ -10,6 +10,7 @@
  * Save config (Ctrl+S) with updated display settings.
  * Fixed queued log entries not being deleted when seeking using the timeline.
  * Made --hide-url-prefix apply to https URLs (rudisimo).
+ * Now requires SDL 2 to build (deprecated SDL 1.2 support removed).
 
 1.0.7:
  * Added window frame toggle (F11).
