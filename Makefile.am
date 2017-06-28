@@ -30,7 +30,7 @@ logstalgia_SOURCES = \
         src/FileWatcher/FileWatcherOSX.cpp \
 	src/FileWatcher/FileWatcherLinux.cpp \
 	src/FileWatcher/FileWatcherWin32.cpp \
-	src/configwatcher.cpp \        
+	src/configwatcher.cpp \
         src/ncsa.cpp \
 	src/custom.cpp \
 	src/logentry.cpp \
