@@ -530,7 +530,7 @@ void Logstalgia::changeSummarizerAbbreviationDepth(Summarizer* summarizer, int d
     int depth = summarizer->getAbbreviationDepth();
     int new_depth = depth + delta;
 
-    if(new_depth >= -1) {        
+    if(new_depth >= -1) {
         std::string title = (summarizer == ipSummarizer) ? "IP Summarizer" : summarizer->getTitle().c_str();
         debugLog("%s min abbreviation depth changed to %d", title.c_str(), new_depth);
         summarizer->setAbbreviationDepth(new_depth);
@@ -1809,6 +1809,12 @@ void Logstalgia::draw(float t, float dt) {
     } else {
         fontMedium.draw(2,2,  displaydate.c_str());
         fontMedium.draw(2,19, displaytime.c_str());
+    }
+
+    if (settings.windows_title.length() > 0) {
+        int titlew = fontMedium.getWidth(settings.windows_title);
+        int titlex = (display.width / 2) - (titlew / 2);
+        fontMedium.print(titlex, 2, "%s", settings.windows_title.c_str());
     }
 
     fontLarge.setColour(vec4(1.0f,1.0f,1.0f,font_alpha));

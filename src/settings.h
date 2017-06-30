@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_SETTINGS_H
 #define LOGSTALGIA_SETTINGS_H
 
-#define LOGSTALGIA_VERSION "1.0.8"
+#define LOGSTALGIA_VERSION "1.0.8-wintitle"
 
 #include "core/settings.h"
 
@@ -109,6 +109,8 @@ public:
     std::string path_separators;
 
     int font_size;
+
+    std::string windows_title;
 
     LogstalgiaSettings();
 
