@@ -104,7 +104,7 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -o, --output-ppm-stream FILE   Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  -r, --output-framerate  FPS    Framerate of output (25,30,60)\n\n");
 
-    printf("  --windows-title TITLE      Title for Logstalgia window (default: empty)\n\n");
+    printf("  --title TITLE              Set a title\n\n");
 
     printf("FILE should be a log file or '-' to read STDIN.\n\n");
 
@@ -206,7 +206,7 @@ LogstalgiaSettings::LogstalgiaSettings() {
     arg_types["address-separators"] = "string";
     arg_types["group-separators"]   = "string";
 
-    arg_types["windows-title"]   = "string";
+    arg_types["title"] = "string";
 }
 
 void LogstalgiaSettings::setLogstalgiaDefaults() {
@@ -262,7 +262,7 @@ void LogstalgiaSettings::setLogstalgiaDefaults() {
 
     font_size = 14;
 
-    windows_title = "";
+    title = "";
 
     groups.clear();
 }
@@ -700,15 +700,11 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         std::cin.clear();
     }
 
-    if((entry = settings->getEntry("windows-title")) != 0) {
+    if((entry = settings->getEntry("title")) != 0) {
 
-        if(!entry->hasValue()) conffile.entryException(entry, "specify windows title");
+        if(!entry->hasValue()) conffile.entryException(entry, "specify title");
 
-        windows_title = entry->getString();
-
-        if(windows_title.empty() || windows_title.size() > 100) {
-            conffile.invalidValueException(entry);
-        }
+        title = entry->getString();
     }
 
 }
@@ -870,8 +866,8 @@ void LogstalgiaSettings::exportLogstalgiaSettings(ConfFile& conf) {
 
     settings->addEntry("path", path);
 
-    if (windows_title.length() > 0) {
-        settings->addEntry(new ConfEntry("windows-title", windows_title));
+    if (title.length() > 0) {
+        settings->addEntry(new ConfEntry("title", title));
     }
 }
 

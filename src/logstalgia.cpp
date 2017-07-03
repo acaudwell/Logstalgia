@@ -1811,10 +1811,10 @@ void Logstalgia::draw(float t, float dt) {
         fontMedium.draw(2,19, displaytime.c_str());
     }
 
-    if (settings.windows_title.length() > 0) {
-        int titlew = fontMedium.getWidth(settings.windows_title);
+    if(settings.title.length() > 0) {
+        int titlew = fontMedium.getWidth(settings.title);
         int titlex = (display.width / 2) - (titlew / 2);
-        fontMedium.print(titlex, 2, "%s", settings.windows_title.c_str());
+        fontMedium.print(titlex, 2, "%s", settings.title.c_str());
     }
 
     fontLarge.setColour(vec4(1.0f,1.0f,1.0f,font_alpha));

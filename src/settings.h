@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_SETTINGS_H
 #define LOGSTALGIA_SETTINGS_H
 
-#define LOGSTALGIA_VERSION "1.0.8-wintitle"
+#define LOGSTALGIA_VERSION "1.0.8"
 
 #include "core/settings.h"
 
@@ -110,7 +110,7 @@ public:
 
     int font_size;
 
-    std::string windows_title;
+    std::string title;
 
     LogstalgiaSettings();
 
