@@ -110,6 +110,8 @@ public:
 
     int font_size;
 
+    std::string title;
+
     LogstalgiaSettings();
 
     void setLogstalgiaDefaults();
