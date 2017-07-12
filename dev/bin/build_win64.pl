@@ -64,6 +64,7 @@ my $nsis_script = q[
 !define MULTIUSER_MUI
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_USE_PROGRAMFILES64
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "Software\Logstalgia"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "Software\Logstalgia"
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "Install_Mode"
@@ -71,10 +72,7 @@ my $nsis_script = q[
 !define MULTIUSER_INSTALLMODE_INSTDIR "Logstalgia"
 
 !include "x64.nsh"
-
-!define MULTIUSER_USE_PROGRAMFILES64
 !include "MultiUser.nsh"
-
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "SafeEnvVarUpdate.nsh"
