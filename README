@@ -52,6 +52,9 @@ options:
     --frameless
             Frameless window.
 
+    --title TITLE
+            Set a title.
+
     -b, --background FFFFFF
             Background colour in hex.
 

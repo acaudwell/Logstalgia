@@ -33,7 +33,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
 #ifdef _WIN32
     //resize window to fit help message
-    SDLApp::resizeConsole(910);
+    SDLApp::resizeConsole(920);
     SDLApp::showConsole(true);
 #endif
 
@@ -44,7 +44,8 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -WIDTHxHEIGHT              Set window size\n");
     printf("  -f                         Fullscreen\n\n");
     printf("  --window-position XxY      Initial window position\n");
-    printf("  --frameless                Frameless window\n\n");
+    printf("  --frameless                Frameless window\n");
+    printf("  --title TITLE              Set a title\n\n");
 
     printf("  -b --background FFFFFF     Background colour in hex\n\n");
 
@@ -103,8 +104,6 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("  -o, --output-ppm-stream FILE   Write frames as PPM to a file ('-' for STDOUT)\n");
     printf("  -r, --output-framerate  FPS    Framerate of output (25,30,60)\n\n");
-
-    printf("  --title TITLE              Set a title\n\n");
 
     printf("FILE should be a log file or '-' to read STDIN.\n\n");
 
