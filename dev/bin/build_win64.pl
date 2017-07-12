@@ -69,6 +69,10 @@ my $nsis_script = q[
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "Install_Mode"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "Install_Dir"
 !define MULTIUSER_INSTALLMODE_INSTDIR "Logstalgia"
+
+!include "x64.nsh"
+
+!define MULTIUSER_USE_PROGRAMFILES64
 !include "MultiUser.nsh"
 
 !include "MUI2.nsh"
@@ -96,6 +100,10 @@ OutFile "LOGSTALGIA_INSTALLER"
 !insertmacro MUI_LANGUAGE "English"
 
 Function .onInit
+  ${IfNot} ${RunningX64}
+    MessageBox MB_OK "This installer requires 64-bit Windows"
+    Quit
+  ${EndIf}
   !insertmacro MULTIUSER_INIT
   ReadRegStr $R0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Logstalgia" "UninstallString"
   StrCmp $R0 "" done
