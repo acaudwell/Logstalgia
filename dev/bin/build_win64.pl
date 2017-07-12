@@ -257,7 +257,7 @@ foreach my $file (@logstalgia_txts) {
 
 my $version = logstalgia_version();
 
-my $installer_name = "logstalgia-${version}-setup.exe";
+my $installer_name = "logstalgia-${version}.win64-setup.exe";
 my $archive_name   = "logstalgia-${version}.win64.zip";
 
 my $install_list = '';
