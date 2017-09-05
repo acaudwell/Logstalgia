@@ -79,9 +79,9 @@ function donateClicked() {
 
 <p>
 <center>
-<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7-setup.exe">logstalgia-1.0.7-setup.exe</a>
-<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7.win32.zip">logstalgia-1.0.7.win32.zip</a>
-<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.7/logstalgia-1.0.7.tar.gz">logstalgia-1.0.7.tar.gz</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.8/logstalgia-1.0.8.win64-setup.exe">logstalgia-1.0.8.win64-setup.exe</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.8/logstalgia-1.0.8.win64.zip">logstalgia-1.0.8.win64.zip</a>
+<a class="btn btn-lg btn-info" href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.8/logstalgia-1.0.8.tar.gz">logstalgia-1.0.8.tar.gz</a>
 </center>
 </p>
 
@@ -91,8 +91,9 @@ function donateClicked() {
     <li><a href="#formats">Log Formats</a></li>
     <li><a href="#examples">Examples</a></li>
     <li><a href="#related">Related Software</a></li>
-    <li><a href="#news">News</a></li>
     <li><a href="#donations">Donations</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#news">News</a></li>
 </ul>
 
 <h2><a id="introduction"></a>Introduction</h2>
@@ -163,7 +164,51 @@ ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad 
 
 <p>You may also want to check out <a href="http://gource.io/">Gource</a>, a software version control visualization tool.</p>
 
+<h2><a id="donations"></a>Donations</h2>
+
+<p>If you like Logstalgia and would like to show your appreciation and encourage future work on this and other open source projects by the author, please consider making a donation!</p>
+
+<p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=TZYLY4VTKC9TN&lc=NZ&item_name=Logstalgia&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"><img src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif"></a></p>
+
+<h2><a id="contact"></a>Contact</h2>
+
+<p>If you use Logstalgia as a dashboard at your work and are interested in getting new features developed or maybe would like to discuss other bespoke visualization work please don't hesitate to <a href="http://www.thealphablenders.com/about/">contact me</a>.</p>
+
 <h2><a id="news"></a>News</h2>
+
+<h3>21 July 2017</h3>
+
+<p>Logstalgia 1.0.8 has been released.</p>
+
+<p>Thanks to Intercontinental Exchange for funding a lot of the new features in this release.</p>
+
+<p>Changes since 1.0.7:</p>
+
+<ul>
+ <li>Performance improvements.</li>
+ <li>Changed unsuccessful response code direction to match ball.</li>
+ <li>Added --screen option.</li>
+ <li>Added --window-position XxY option.</li>
+ <li>Added --frameless option.</li>
+ <li>Added --title option (mclang).</li>
+ <li>Added --detect-changes option to automatically reload config file.</li>
+ <li>Added --display-fields FIELDS to set fields shown mousing over a request.</li>
+ <li>Can now specify path separators, max path depth and min abbreviation depth.</li>
+ <li>Reload config (F5).</li>
+ <li>Save config (Ctrl+S) with updated display settings.</li>
+ <li>Fixed queued log entries not being deleted when seeking using the timeline.</li>
+ <li>Made --hide-url-prefix apply to https URLs (rudisimo).</li>
+ <li>Counter no longer overflows at 100000000.</li>
+ <li>Now requires SDL 2 to build (deprecated SDL 1.2 support removed).</li>
+</ul>
+
+<p>Downloads:</p>
+
+<ul>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.8/logstalgia-1.0.8.win64-setup.exe">logstalgia-1.0.8.win64-setup.exe</a></li>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.8/logstalgia-1.0.8.win64.zip">logstalgia-1.0.8.win64.zip</a></li>
+    <li><a href="https://github.com/acaudwell/Logstalgia/releases/download/logstalgia-1.0.8/logstalgia-1.0.8.tar.gz">logstalgia-1.0.8.tar.gz</a></li>
+</ul>
 
 <h3>21 October 2015</h3>
 
@@ -246,12 +291,6 @@ ssh user@yourserver.com tail -f /var/log/apache2/access.log | logstalgia -g "Ad 
 </ul>
 
 <p>If you package Logstalgia for a distro, please update the dependencies to use SDL 2 instead of SDL 1.2.</p>
-
-<h2><a id="donations"></a>Donations</h2>
-
-<p>If you like Logstalgia and would like to show your appreciation and encourage future work on this and other open source projects by the author, please consider making a donation!</p>
-
-<p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=TZYLY4VTKC9TN&lc=NZ&item_name=Logstalgia&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"><img src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif"></a></p>
 
 </div><!-- /.container -->
 

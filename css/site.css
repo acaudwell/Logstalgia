@@ -40,7 +40,7 @@ div #donations-box {
 }
 
 .navbar-nav > li > a, .index > li > a {
-    color: #aaa;
+    color: #ccc;
 }
 
 .navbar-nav > li > a:focus, .navbar-nav > li > a:hover, .index > li > a:focus, .index > li > a:hover {
