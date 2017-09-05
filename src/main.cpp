@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
         display.enableResize(true);
     }
 
-    display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen);
+    display.init("Logstalgia", settings.display_width, settings.display_height, settings.fullscreen, settings.screen);
 
 #if SDL_VERSION_ATLEAST(2,0,0)
     if(!display.isFullscreen() && settings.window_x >= 0 && settings.window_y >= 0) {
