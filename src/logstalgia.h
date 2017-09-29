@@ -56,7 +56,7 @@ class Logstalgia : public SDLApp {
     bool take_screenshot;
     bool initialized;
 
-    int highscore;
+    uint64_t highscore;
 
     time_t mintime;
 

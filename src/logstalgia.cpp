@@ -65,7 +65,7 @@ Logstalgia::Logstalgia(const std::string& logfile) : SDLApp() {
 
     spawn_delay=0;
 
-    highscore = 0;
+    highscore = 0u;
 
     message_timer = 0.0f;
 
@@ -330,7 +330,7 @@ void Logstalgia::reset() {
 
     end_reached = false;
 
-    highscore = 0;
+    highscore = 0u;
 
     initPaddles();
     initRequestBalls();
@@ -1819,11 +1819,14 @@ void Logstalgia::draw(float t, float dt) {
 
     fontLarge.setColour(vec4(1.0f,1.0f,1.0f,font_alpha));
 
-    int counter_width = fontLarge.getWidth("00000000");
+    char highscore_str[256];
+    snprintf(highscore_str, 256, "%08" PRIu64, highscore);
+
+    int counter_width = fontLarge.getWidth(highscore_str);
 
     fontLarge.alignTop(false);
 
-    fontLarge.print(display.width-10-counter_width,display.height-10, "%08d", highscore);
+    fontLarge.print(display.width-10-counter_width,display.height-10, highscore_str);
 
     infowindow.draw();
 

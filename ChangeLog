@@ -12,6 +12,7 @@
  * Save config (Ctrl+S) with updated display settings.
  * Fixed queued log entries not being deleted when seeking using the timeline.
  * Made --hide-url-prefix apply to https URLs (rudisimo).
+ * Counter no longer overflows at 100000000.
  * Now requires SDL 2 to build (deprecated SDL 1.2 support removed).
 
 1.0.7:
