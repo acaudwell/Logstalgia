@@ -15,6 +15,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include "logstalgia.h"
 #include "settings.h"
 #include "ncsa.h"
