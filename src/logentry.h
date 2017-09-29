@@ -24,6 +24,10 @@
 #include <vector>
 #include <map>
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#endif
+
 class LogEntry {
 
 private:
