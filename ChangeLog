@@ -1,3 +1,6 @@
+1.0.9:
+ * Fixed compilation issues on FreeBSD (ehaupt) and OpenBSD (gonzalo-).
+
 1.0.8:
  * Performance improvements.
  * Changed unsuccessful response code direction to match ball.
