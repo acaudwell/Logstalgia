@@ -72,7 +72,7 @@ bool ConfigWatcher::changeDetected() {
 
 void ConfigWatcher::handleFileAction(FW::WatchID watchid, const FW::String &dir, const FW::String &filename, FW::Action action)
 {
-    if(action == FW::Actions::Modified) {
+    if(action == FW::Actions::Modified || action == FW::Actions::Add) {
         if(filename == config_file) {
             changed = true;
         }

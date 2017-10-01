@@ -1,5 +1,6 @@
 1.0.9:
  * Fixed compilation issues on FreeBSD (ehaupt) and OpenBSD (gonzalo-).
+ * Fixed config change not being detected in some cases.
 
 1.0.8:
  * Performance improvements.
