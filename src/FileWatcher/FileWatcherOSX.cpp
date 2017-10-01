@@ -96,11 +96,11 @@ namespace FW
 			struct stat attrib;
 			stat(name.c_str(), &attrib);
 			
-			int open_flags = O_RDONLY;
 #ifdef O_EVTONLY
-			open_flags |= O_EVTONLY;
+                        int fd = open(name.c_str(), O_RDONLY | O_EVTONLY);
+#else
+                        int fd = open(name.c_str(), O_RDONLY);
 #endif
-			int fd = open(name.c_str(), open_flags);
 
 			if(fd == -1)
 				throw FileNotFoundException(name);
@@ -229,7 +229,11 @@ namespace FW
 		void addAll()
 		{
 			// add base dir
-			int fd = open(mDirName.c_str(), O_RDONLY | O_EVTONLY);
+#ifdef O_EVTONLY
+                        int fd = open(mDirName.c_str(), O_RDONLY | O_EVTONLY);
+#else
+                        int fd = open(mDirName.c_str(), O_RDONLY);
+#endif
 			EV_SET(&mChangeList[0], fd, EVFILT_VNODE,
 				   EV_ADD | EV_ENABLE | EV_ONESHOT,
 				   NOTE_DELETE | NOTE_EXTEND | NOTE_WRITE | NOTE_ATTRIB,
