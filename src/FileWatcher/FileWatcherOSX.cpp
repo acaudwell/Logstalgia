@@ -96,7 +96,11 @@ namespace FW
 			struct stat attrib;
 			stat(name.c_str(), &attrib);
 			
-			int fd = open(name.c_str(), O_RDONLY | O_EVTONLY);
+			int open_flags = O_RDONLY;
+#ifdef O_EVTONLY
+			open_flags |= O_EVTONLY;
+#endif
+			int fd = open(name.c_str(), open_flags);
 
 			if(fd == -1)
 				throw FileNotFoundException(name);

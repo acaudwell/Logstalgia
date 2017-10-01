@@ -36,10 +36,10 @@
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_WIN32
-#elif defined(__APPLE_CC__) || defined(BSD)
-#	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_KQUEUE
 #elif defined(__linux__)
 #	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_LINUX
+#elif defined(__APPLE_CC__) || defined(__unix__)
+#	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_KQUEUE
 #endif
 
 namespace FW
