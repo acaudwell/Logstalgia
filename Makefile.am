@@ -26,10 +26,6 @@ logstalgia_SOURCES = \
 	src/core/timezone.cpp \
 	src/core/vbo.cpp \
 	src/core/vectors.cpp \
-	src/FileWatcher/FileWatcher.cpp \
-        src/FileWatcher/FileWatcherOSX.cpp \
-	src/FileWatcher/FileWatcherLinux.cpp \
-	src/FileWatcher/FileWatcherWin32.cpp \
 	src/configwatcher.cpp \
         src/ncsa.cpp \
 	src/custom.cpp \
@@ -44,7 +40,7 @@ logstalgia_SOURCES = \
 	src/textarea.cpp \
 	src/tests.cpp
 
-AM_CPPFLAGS = -Isrc/FileWatcher -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
+AM_CPPFLAGS = -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
 
 dist_pkgdata_DATA = data/ball.tga data/example.log data/glow.tga
 

@@ -21,7 +21,6 @@
 #include "core/sdlapp.h"
 #include "core/seeklog.h"
 #include "logentry.h"
-#include "FileWatcher/FileWatcher.h"
 
 #include <time.h>
 #include <algorithm>
@@ -624,15 +623,8 @@ void LogstalgiaSettings::importLogstalgiaSettings(ConfFile& conffile, ConfSectio
         ffp = true;
     }
 
-
-    if((entry = settings->getEntry("detect-changes")) != 0) {
-        if(entry->getBool()) {
-            if(FW::FileWatcher::isPlatformSupported()) {
-                detect_changes = true;
-            } else {
-                conffile.entryException(entry, "detect changes is not supported on this platform");
-            }
-        }
+    if(settings->getBool("detect-changes")) {
+        detect_changes = true;
     }
 
     if((entry = settings->getEntry("display-fields")) != 0) {

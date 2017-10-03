@@ -1132,13 +1132,11 @@ void Logstalgia::init() {
 
     if(detect_changes) {
         if(config_watcher != 0) delete config_watcher;
+        config_watcher = 0;
 
-        config_watcher = new ConfigWatcher();
-        config_watcher->setConfig(settings.load_config);
-
-        if(!config_watcher->start()) {
-            delete config_watcher;
-            config_watcher = 0;
+        if(!settings.load_config.empty()) {
+            config_watcher = new ConfigWatcher();
+            config_watcher->setConfig(settings.load_config);
         }
     }
 
@@ -1658,7 +1656,7 @@ void Logstalgia::draw(float t, float dt) {
         }
         // perform check after to add a delay between
         // the file being modified and being reloaded
-        config_watcher->update();
+        config_watcher->logic(dt);
     }
 
     if(hasProgressBar()) slider.logic(dt);

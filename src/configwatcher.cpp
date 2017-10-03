@@ -1,80 +1,75 @@
+/*
+    Copyright (C) 2017 Andrew Caudwell (acaudwell@gmail.com)
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version
+    3 of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "configwatcher.h"
 
 #include "core/logger.h"
 #include "core/sdlapp.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 ConfigWatcher::ConfigWatcher()
-    : watcher(0), changed(false) {
+    : changed(false), last_mtime(0), elapsed(0.0f) {
 }
 
 ConfigWatcher::~ConfigWatcher() {
-    if(watcher != 0) delete watcher;
 }
 
 void ConfigWatcher::setConfig(const std::string &config_file) {
     this->config_file = config_file;
-}
-
-bool ConfigWatcher::start() {
-    if(watcher != 0) stop();
-
-    std::string config_dir;
-
-    size_t last_slash = config_file.rfind('/');
-#ifdef _WIN32
-    size_t last_back_slash = config_file.rfind('\\');
-    if(   last_back_slash != std::string::npos
-       && (last_slash == std::string::npos || last_back_slash > last_slash)) {
-        last_slash = last_back_slash;
-    }
-#endif
-
-    if(last_slash != std::string::npos) {
-        config_dir  = config_file.substr(0,last_slash+1);
-        config_file = config_file.substr(last_slash+1, config_file.size()-last_slash);
-    }
-
-    if(config_dir.empty()) {
-        config_dir = ".";
-    }
-
-    debugLog("config_file = %s", config_file.c_str());
-    debugLog("config_dir = %s", config_dir.c_str());
-
-    watcher = new FW::FileWatcher();
-
-    try {
-        watcher->addWatch(config_dir, this);
-    } catch(FW::FileNotFoundException& e) {
-        debugLog("failed to create file watcher for directory %s", config_dir.c_str());
-        stop();
-        return false;
-    }
-
-    return true;
-}
-
-void ConfigWatcher::stop() {
-    delete watcher;
-    watcher = 0;
+    elapsed = 0.0f;
     changed = false;
+
+    struct stat st;
+    int rc = stat(config_file.c_str(), &st);
+
+    if(rc == 0) {
+        last_mtime = st.st_mtime;
+    } else {
+        last_mtime = time(0);
+    }
 }
 
-void ConfigWatcher::update() {
-    if(watcher != 0) watcher->update();
+void ConfigWatcher::logic(float dt) {
+
+    elapsed += dt;
+
+    if(elapsed >= 1.0f) {
+        elapsed = 0.0f;
+
+        if(!changed) {
+            struct stat st;
+            int rc = stat(config_file.c_str(), &st);
+
+            if(rc == 0) {
+                time_t mtime = st.st_mtime;
+
+                if(mtime > this->last_mtime) {
+                    this->last_mtime = mtime;
+                    changed = true;
+                }
+            }
+        }
+   }
 }
 
 bool ConfigWatcher::changeDetected() {
     bool has_changed = changed;
     changed = false;
     return has_changed;
-}
-
-void ConfigWatcher::handleFileAction(FW::WatchID watchid, const FW::String &dir, const FW::String &filename, FW::Action action)
-{
-    if(action == FW::Actions::Modified || action == FW::Actions::Add) {
-        if(filename == config_file) {
-            changed = true;
-        }
-    }
 }
