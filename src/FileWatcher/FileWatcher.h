@@ -117,6 +117,9 @@ namespace FW
 		/// Updates the watcher. Must be called often.
 		void update();
 
+                /// Check if supported on this platform
+                static bool isPlatformSupported();
+
 	private:
 		/// The implementation
 		FileWatcherImpl* mImpl;

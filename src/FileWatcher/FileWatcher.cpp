@@ -40,7 +40,9 @@ namespace FW
 	//--------
 	FileWatcher::FileWatcher()
 	{
+#ifdef FILEWATCHER_IMPL
 		mImpl = new FILEWATCHER_IMPL();
+#endif
 	}
 
 	//--------
@@ -79,5 +81,13 @@ namespace FW
 	{
 		mImpl->update();
 	}
+
+	bool FileWatcher::isPlatformSupported() {
+#ifdef FILEWATCHER_IMPL
+		return true;
+#else
+		return false;
+#endif
+        }
 
 };//namespace FW
