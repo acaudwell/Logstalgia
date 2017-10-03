@@ -34,11 +34,15 @@
 #define FILEWATCHER_PLATFORM_LINUX 2
 #define FILEWATCHER_PLATFORM_KQUEUE 3
 
+#ifdef __unix__
+#include <sys/param.h>
+#endif
+
 #if defined(_WIN32) || defined(__CYGWIN__)
 #	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_WIN32
 #elif defined(__linux__)
 #	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_LINUX
-#elif defined(__APPLE_CC__) || defined(__unix__)
+#elif defined(__APPLE_CC__) || defined(BSD)
 #	define FILEWATCHER_PLATFORM FILEWATCHER_PLATFORM_KQUEUE
 #endif
 
