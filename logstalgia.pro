@@ -19,7 +19,6 @@ mingw {
     QMAKE_CXXFLAGS += -Dmain=SDL_main
     QMAKE_LFLAGS   += -mconsole
 
-    INCLUDEPATH += src/FileWatcher
     INCLUDEPATH += C:\msys64\mingw64\include\SDL2
     INCLUDEPATH += C:\msys64\mingw64\include\freetype2
 
@@ -30,8 +29,6 @@ mingw {
 }
 
 linux {
-    INCLUDEPATH += src/FileWatcher
-
     INCLUDEPATH += /usr/include/GL        \
                    /usr/include/SDL2      \
                    /usr/include/libpng12  \
@@ -76,11 +73,7 @@ SOURCES += custom.cpp \
     core/texture.cpp \
     core/timezone.cpp \
     core/vbo.cpp \
-    core/vectors.cpp \
-    FileWatcher/FileWatcher.cpp \
-    FileWatcher/FileWatcherLinux.cpp \
-    FileWatcher/FileWatcherOSX.cpp \
-    FileWatcher/FileWatcherWin32.cpp
+    core/vectors.cpp
 
 HEADERS += custom.h \
     logentry.h \
@@ -118,9 +111,4 @@ HEADERS += custom.h \
     core/timezone.h \
     core/vbo.h \
     core/vectors.h \
-    core/settings.h \
-    FileWatcher/FileWatcher.h \
-    FileWatcher/FileWatcherImpl.h \
-    FileWatcher/FileWatcherLinux.h \
-    FileWatcher/FileWatcherOSX.h \
-    FileWatcher/FileWatcherWin32.h
+    core/settings.h
