@@ -16,10 +16,10 @@ LogstalgiaTester::LogstalgiaTester()
 
 void LogstalgiaTester::runTests() {
 
-    FXFont font = fontmanager.grab("FreeMonoBold.ttf", settings.font_size);
+    FXFont font = fontmanager.grab("FreeMonoBold.ttf", settings.font_size, 72, FT_LOAD_NO_HINTING);
 
     display.width  = 1024;
-    display.height = 768;    
+    display.height = 768;
 
     int max_depth = 0;
     int abbreviation_depth = 0;

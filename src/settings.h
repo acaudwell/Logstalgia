@@ -18,7 +18,7 @@
 #ifndef LOGSTALGIA_SETTINGS_H
 #define LOGSTALGIA_SETTINGS_H
 
-#define LOGSTALGIA_VERSION "1.0.9"
+#define LOGSTALGIA_VERSION "1.1.0"
 
 #include "core/settings.h"
 
