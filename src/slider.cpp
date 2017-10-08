@@ -22,7 +22,7 @@
 PositionSlider::PositionSlider(float percent) {
     this->percent = percent;
 
-    font = fontmanager.grab("FreeMonoBold.ttf", 16, 72, FT_LOAD_NO_HINTING);
+    font = fontmanager.grab("FreeMonoBold.ttf", 16, 72, FT_LOAD_TARGET_MONO);
     font.dropShadow(true);
 
     slidercol = vec3(1.0, 1.0, 1.0);

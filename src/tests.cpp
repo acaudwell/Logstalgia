@@ -16,7 +16,7 @@ LogstalgiaTester::LogstalgiaTester()
 
 void LogstalgiaTester::runTests() {
 
-    FXFont font = fontmanager.grab("FreeMonoBold.ttf", settings.font_size, 72, FT_LOAD_NO_HINTING);
+    FXFont font = fontmanager.grab("FreeMonoBold.ttf", settings.font_size, 72, FT_LOAD_TARGET_MONO);
 
     display.width  = 1024;
     display.height = 768;

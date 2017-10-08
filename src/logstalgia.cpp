@@ -1062,9 +1062,9 @@ void Logstalgia::readLog(int buffer_rows) {
 void Logstalgia::init() {
 
     fontLarge  = fontmanager.grab("FreeSerif.ttf", 42);
-    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16, 72, FT_LOAD_NO_HINTING);
-    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16, 72, FT_LOAD_NO_HINTING);
-    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", settings.font_size, 72, FT_LOAD_NO_HINTING);
+    fontMedium = fontmanager.grab("FreeMonoBold.ttf", 16, 72, FT_LOAD_TARGET_MONO);
+    fontBall   = fontmanager.grab("FreeMonoBold.ttf", 16, 72, FT_LOAD_TARGET_MONO);
+    fontSmall  = fontmanager.grab("FreeMonoBold.ttf", settings.font_size, 72, FT_LOAD_TARGET_MONO);
 
     fontLarge.dropShadow(true);
     fontMedium.dropShadow(true);
