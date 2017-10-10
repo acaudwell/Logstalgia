@@ -1,5 +1,5 @@
 1.1.0:
- * Fixed rendering of newer versions of the FreeMonoBold font.
+ * Fixed rendering of FreeMonoBold with FreeType2 2.8 by disabling hinting.
  * Updated fonts.
 
 1.0.9:
