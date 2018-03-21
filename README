@@ -163,7 +163,7 @@ options:
 
     --sync  Read from STDIN, ignoring entries before the current time.
 
-    --from, --to 'YYYY-MM-DD hh:mm:ss +tz'
+    --from, --to "YYYY-MM-DD hh:mm:ss +tz"
             Show entries from a specific time period.
 
             If a time zone offset isn't specified the local time zone is used.
@@ -217,7 +217,7 @@ options:
             Intensity of the glow.
 
     -o, --output-ppm-stream FILE
-            Write frames as PPM to a file (?-? for STDOUT).
+            Write frames as PPM to a file ('-' for STDOUT).
 
     -r, --output-framerate FPS
             Framerate of output (used with --output-ppm-stream).
