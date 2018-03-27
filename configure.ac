@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(Logstalgia, 1.1.1, [acaudwell@gmail.com])
+AC_INIT(Logstalgia, 1.1.2, [acaudwell@gmail.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/main.cpp])
 
@@ -47,8 +47,15 @@ AC_CHECK_FUNCS([IMG_LoadJPG_RW], , AC_MSG_ERROR([SDL2_image with JPEG support re
 AX_BOOST_BASE([1.46], , AC_MSG_ERROR(Boost Base >= 1.46 is required. Please see INSTALL))
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
 
-#GLM
-AC_CHECK_HEADER([glm/glm.hpp],, AC_MSG_ERROR(GLM headers are required. Please see INSTALL))
+#see if building against system GLM library
+use_glm_system_library=no
+AC_ARG_WITH(glm, AC_HELP_STRING([--with-glm], [Use system installed GLM header-only library]), use_glm_system_library=$withval)
+if test "x$use_glm_system_library" = "xyes"; then
+    AC_CHECK_HEADER([glm/glm.hpp],, AC_MSG_ERROR(GLM header-only library was required but not found))
+else
+    AC_CHECK_FILE(src/core/glm/glm/glm.hpp,, AC_MSG_ERROR(src/core/glm submodule not found. Please re-install or run ./autogen.sh))
+fi
+AM_CONDITIONAL(USE_BUNDLED_GLM, test "x$use_glm_system_library" != "xyes")
 
 #see if ttf-font-dir option is enabled
 AC_ARG_ENABLE(ttf-font-dir,[AS_HELP_STRING([--enable-ttf-font-dir=DIR],[directory containing GNU FreeFont TTF fonts])],[sdlappfontdir="$enableval"],[sdlappfontdir=""])

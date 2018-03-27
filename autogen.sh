@@ -4,14 +4,13 @@ if (autoreconf -f -i) ; then
 	echo "Initializing submodules..."
 	if (git submodule init) ; then
 		echo "Updating submodules..."
-		if (git submodule update) ; then
+		if (git submodule update --init --recursive) ; then
 			echo "Run './configure && make' to continue."
 		else
 			echo "Error: could not update submodules!"
 		fi
 	else
 		echo "Error: could not initialize submodules (hint: delete the src/core directory if it exists and try again)"
-
 	fi
 else
 	echo "Running autoreconf failed, please make sure you have autoconf installed."

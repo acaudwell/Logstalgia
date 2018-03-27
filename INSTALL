@@ -17,7 +17,6 @@ Logstalgia requires the following libraries to compile (package names may vary):
     PCRE (libpcre3-dev)
     Freetype 2 (libfreetype6-dev)
     GLEW (libglew-dev)
-    GLM >= 0.9.3 (libglm-dev)
     Boost >= 1.46 (libboost-dev)
     PNG >= 1.2 (libpng12-dev)
 
@@ -52,6 +51,12 @@ Logstalgia expects SDL to have been built with the NO_STDIO_REDIRECT flag.
 ====================
 
 By default Logstalgia will install some GNU FreeFont TTF Fonts on your system.
+
+Gource includes a copy of the GLM header-only library due to backwards
+incompatible changes in the version most recently packaged by Debian.
+To build against the system version of GLM use:
+
+    ./configure --with-glm
 
 If you already have these fonts installed, you can configure Logstalgia to use
 these instead:
