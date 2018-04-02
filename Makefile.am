@@ -42,10 +42,6 @@ logstalgia_SOURCES = \
 
 AM_CPPFLAGS = -DSDLAPP_RESOURCE_DIR=\"$(pkgdatadir)\"
 
-if USE_BUNDLED_GLM
-AM_CPPFLAGS += -I src/core/glm
-endif
-
 dist_pkgdata_DATA = data/ball.tga data/example.log data/glow.tga
 
 install-data-hook:
