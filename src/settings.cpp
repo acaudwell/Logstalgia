@@ -39,7 +39,7 @@ void LogstalgiaSettings::help(bool extended_help) {
 
     printf("Logstalgia v%s\n", LOGSTALGIA_VERSION);
 
-    printf("Usage: logstalgia [OPTIONS] FILE\n\n");
+    printf("Usage: logstalgia [options] logfile\n\n");
     printf("Options:\n");
     printf("  -WIDTHxHEIGHT              Set window size\n");
     printf("  -f, --fullscreen           Fullscreen\n");
