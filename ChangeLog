@@ -1,3 +1,6 @@
+1.1.2:
+ * Fixed compatibility with GLM 0.9.9.0.
+
 1.1.0:
  * Fixed rendering of FreeMonoBold with FreeType2 2.8 by disabling hinting.
  * Updated fonts.
