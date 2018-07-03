@@ -46,7 +46,7 @@ dist_pkgdata_DATA = data/ball.tga data/example.log data/glow.tga
 
 install-data-hook:
 	mkdir -p -m 755 ${DESTDIR}/$(mandir)/man1
-	$(SED) 's|SDLAPP_RESOURCE_DIR|$(pkgdatadir)|g' data/logstalgia.1 | gzip -f9 > $(DESTDIR)$(mandir)/man1/logstalgia.1.gz
+	$(SED) 's|SDLAPP_RESOURCE_DIR|$(pkgdatadir)|g' data/logstalgia.1 | gzip -n -f9 > $(DESTDIR)$(mandir)/man1/logstalgia.1.gz
 
 uninstall-hook:
 	-rm -f $(DESTDIR)$(mandir)/man1/logstalgia.1.gz
