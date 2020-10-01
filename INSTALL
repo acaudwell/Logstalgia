@@ -1,4 +1,6 @@
-This file is to help you configure, build and install Logstalgia on your system.
+Welcome to installation part.
+
+This file is to help you configure, build, and install Logstalgia on your system.
 
 Contents
 ========
@@ -28,7 +30,7 @@ Logstalgia requires a GNU compatible C++ compiler that supports c++0x features s
 GCC 4.6+ or Clang recommended.
 
 If you got the source directly from the Logstalgia.git repository, you will
-first need to run autogen.sh which will generate the configure script and
+first, need to run autogen.sh which will generate the configure script and
 initialize and update the submodules.
 
     ./autogen.sh
@@ -50,9 +52,9 @@ Logstalgia expects SDL to have been built with the NO_STDIO_REDIRECT flag.
 3. Configure Options
 ====================
 
-By default Logstalgia will install some GNU FreeFont TTF Fonts on your system.
+By default, Logstalgia will install some GNU FreeFont TTF Fonts on your system.
 
-Gource includes a copy of the GLM header-only library due to backwards
+Gource includes a copy of the GLM header-only library due to backward
 incompatible changes in the version most recently packaged by Debian.
 To build against the system version of GLM use:
 
