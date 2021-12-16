@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(Logstalgia, 1.1.2, [acaudwell@gmail.com])
+AC_INIT(Logstalgia, 1.1.3, [acaudwell@gmail.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/main.cpp])
 
@@ -32,20 +32,24 @@ CPPFLAGS="$CPPFLAGS $GL_CFLAGS $GLU_CFLAGS"
 LIBS="$LIBS $GL_LIBS $GLU_LIBS"
 
 PKG_CHECK_MODULES([FT2],  [freetype2 >= 9.0.3])
-PKG_CHECK_MODULES([PCRE], [libpcre])
+PKG_CHECK_MODULES([PCRE2], [libpcre2-8])
 PKG_CHECK_MODULES([GLEW], [glew])
 PKG_CHECK_MODULES([SDL2], [sdl2 SDL2_image])
 PKG_CHECK_MODULES([PNG],  [libpng >= 1.2])
 
-CPPFLAGS="${CPPFLAGS} ${FT2_CFLAGS} ${PCRE_CFLAGS} ${GLEW_CFLAGS} ${SDL2_CFLAGS} ${PNG_CFLAGS}"
-LIBS="${LIBS} ${FT2_LIBS} ${PCRE_LIBS} ${GLEW_LIBS} ${SDL2_LIBS} ${PNG_LIBS}"
+CPPFLAGS="${CPPFLAGS} ${FT2_CFLAGS} ${PCRE2_CFLAGS} ${GLEW_CFLAGS} ${SDL2_CFLAGS} ${PNG_CFLAGS}"
+LIBS="${LIBS} ${FT2_LIBS} ${PCRE2_LIBS} ${GLEW_LIBS} ${SDL2_LIBS} ${PNG_LIBS}"
 
 AC_CHECK_FUNCS([IMG_LoadPNG_RW], , AC_MSG_ERROR([SDL2_image with PNG support required. Please see INSTALL]))
 AC_CHECK_FUNCS([IMG_LoadJPG_RW], , AC_MSG_ERROR([SDL2_image with JPEG support required. Please see INSTALL]))
 
 #BOOST
-AX_BOOST_BASE([1.46], , AC_MSG_ERROR(Boost Base >= 1.46 is required. Please see INSTALL))
+AX_BOOST_BASE([1.46], , AC_MSG_ERROR(Boost Filesystem >= 1.46 is required. Please see INSTALL))
+AX_BOOST_SYSTEM
+AX_BOOST_FILESYSTEM
+
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
+LIBS="$LIBS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB"
 
 #GLM
 AC_CHECK_HEADER([glm/glm.hpp],, AC_MSG_ERROR(GLM headers are required. Please see INSTALL))

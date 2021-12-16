@@ -14,10 +14,10 @@ Logstalgia requires the following libraries to compile (package names may vary):
 
     SDL 2.0 (libsdl2-dev)
     SDL Image 2.0 (libsdl2-image-dev)
-    PCRE (libpcre3-dev)
+    PCRE2 (libpcre2-dev)
     Freetype 2 (libfreetype6-dev)
     GLEW (libglew-dev)
-    Boost >= 1.46 (libboost-dev)
+    Boost Filesystem >= 1.46 (libboost-filesystem-dev)
     PNG >= 1.2 (libpng12-dev)
 
 2. Building
