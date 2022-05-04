@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
     // If a resolution has been specified this may not be appropriate
     // E.g. if you are recording a video at a specific resolution
     // Can override by supplying --high-dpi option.
-    if(settings.viewport_specified && !settings.high_dpi) {
+    if(/* settings.viewport_specified && */ !settings.high_dpi) {
         high_dpi = false;
     }
 #endif
