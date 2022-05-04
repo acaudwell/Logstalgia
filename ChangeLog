@@ -1,4 +1,6 @@
 1.1.3:
+ * Added --high-dpi option.
+ * Support rendering at native resolution on Retina / Ultra HD displays.
  * Change regular expression library to PCRE2.
  * Added Boost Filesystem build requirement.
 

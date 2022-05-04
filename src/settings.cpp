@@ -44,10 +44,12 @@ void LogstalgiaSettings::help(bool extended_help) {
     printf("  -WIDTHxHEIGHT              Set window size\n");
     printf("  -f, --fullscreen           Fullscreen\n");
     printf("  --screen SCREEN            Screen number\n");
+#ifndef _WIN32
+    printf("  --high-dpi                 Request a high DPI display\n");
+#endif
     printf("  --window-position XxY      Initial window position\n");
     printf("  --frameless                Frameless window\n");
     printf("  --title TITLE              Set a title\n\n");
-
     printf("  -b --background FFFFFF     Background colour in hex\n\n");
 
     printf("  -x --full-hostnames        Show full request ip/hostname\n");
