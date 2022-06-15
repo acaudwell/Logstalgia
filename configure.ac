@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(Logstalgia, 1.1.3, [acaudwell@gmail.com])
+AC_INIT(Logstalgia, 1.1.4, [acaudwell@gmail.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/main.cpp])
 
