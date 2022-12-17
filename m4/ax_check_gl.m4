@@ -89,7 +89,7 @@ m4_define([AX_CHECK_GL_GLX_PROGRAM],
 # else
 #   error no gl.h
 # endif]],
-                           [[glXQueryVersion(0, 0, 0)]])])
+                           [[glBegin(0)]])])
 
 AC_CACHE_CHECK([for OpenGL library], [ax_cv_check_gl_libgl],
 [ax_cv_check_gl_libgl=no
