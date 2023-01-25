@@ -1,6 +1,7 @@
 1.1.4:
- * Fixed INSTALL instructions regarding GLM.
+ * Added experimental support for Wayland (beroset).
  * Updated autoconf macros.
+ * Fixed INSTALL instructions regarding GLM.
 
 1.1.3:
  * Added --high-dpi option.
