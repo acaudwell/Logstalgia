@@ -12,6 +12,7 @@ AM_INIT_AUTOMAKE([dist-bzip2 foreign subdir-objects])
 AC_CANONICAL_HOST
 
 # Checks for programs.
+AC_PROG_SED
 AC_PROG_CXX
 AC_LANG(C++)
 
